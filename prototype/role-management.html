@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>角色管理 - 游寄后台管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+  <style>
+    body{background:#F7F8FA;}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;}
+    .btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}.btn-primary:hover{background:#0052CC;}
+    .btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}.btn-default:hover{border-color:#0066FF;color:#0066FF;}
+    .btn-sm{height:28px;padding:0 10px;font-size:12px;}
+    .btn-text{background:transparent;border:none;color:#0066FF;cursor:pointer;font-size:13px;padding:0;}.btn-text:hover{opacity:.8;}
+    .btn-text.danger{color:#D9001B;}
+    .form-input{width:100%;height:36px;padding:0 12px;font-size:13px;border:1px solid #DFE1E5;border-radius:4px;color:#3A3F4A;outline:none;transition:border-color .15s;box-sizing:border-box;background:#fff;}
+    .form-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .form-textarea{width:100%;padding:8px 12px;font-size:13px;border:1px solid #DFE1E5;border-radius:4px;color:#3A3F4A;outline:none;resize:none;box-sizing:border-box;font-family:inherit;}
+    .form-textarea:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .form-error{display:block;color:#D9001B;font-size:12px;margin-top:4px;}
+    .role-item{cursor:pointer;transition:background .12s;display:flex;align-items:center;padding:10px 12px;border-radius:6px;margin-bottom:2px;}
+    .role-item:hover{background:#F3F4F6;}
+    .role-item.active{background:#E6F0FF;}
+    .role-item .role-more{opacity:0;transition:opacity .15s;}
+    .role-item:hover .role-more{opacity:1;}
+    .tab-item{cursor:pointer;padding:10px 20px;font-size:14px;color:#6E7685;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
+    .tab-item.active{color:#0066FF;font-weight:600;border-bottom-color:#0066FF;}
+    .data-table{width:100%;border-collapse:collapse;font-size:13px;}
+    .data-table th{text-align:left;font-weight:600;font-size:12px;color:#6E7685;padding:9px 12px;background:#F7F8FA;border-bottom:1px solid #DFE1E5;white-space:nowrap;}
+    .data-table td{padding:9px 12px;border-bottom:1px solid #F0F1F3;color:#3A3F4A;}
+    .data-table tr:hover td{background:#F3F4F6;}
+    .action-link{color:#0066FF;cursor:pointer;font-size:13px;}.action-link:hover{text-decoration:underline;}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;}
+    .modal{background:#fff;border-radius:8px;width:500px;max-width:90%;max-height:70vh;display:flex;flex-direction:column;box-shadow:0 6px 24px rgba(0,0,0,.12);}
+    .modal-sm{width:440px;}.modal-lg{width:600px;}
+    .modal-header{padding:16px 20px;border-bottom:1px solid #DFE1E5;display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600;color:#1A1D24;}
+    .modal-body{padding:20px;overflow-y:auto;flex:1;}
+    .modal-footer{padding:12px 20px;border-top:1px solid #DFE1E5;display:flex;justify-content:flex-end;gap:8px;}
+    .context-menu{position:fixed;background:#fff;border:1px solid #DFE1E5;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.06);z-index:50;padding:4px 0;min-width:120px;}
+    .context-menu-item{padding:6px 14px;font-size:13px;cursor:pointer;color:#3A3F4A;}.context-menu-item:hover{background:#F3F4F6;}.context-menu-item.danger{color:#D9001B;}
+    .anno-badge{position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:20;transition:transform .15s;line-height:1;}
+    .anno-badge:hover{transform:scale(1.2);}.anno-hidden .anno-badge{display:none;}
+    .tip-box{display:flex;align-items:flex-start;gap:8px;padding:12px 16px;background:#F7F8FA;border-radius:4px;margin-bottom:16px;font-size:13px;color:#6E7685;}
+  
+.menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+.menu-item:hover{background:#F3F4F6;}
+.menu-item.l1{padding-left:20px;font-weight:500;}
+.menu-item.l2{padding-left:52px;}
+.menu-item.active-l1{color:#0066FF;}
+.menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+.menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+.active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+.menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+.menu-arrow.open{transform:rotate(180deg);}
+.submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+.submenu.collapsed{max-height:0!important;opacity:0;}
+
+</style>
+</head>
+<body class="font-sans flex flex-col h-screen overflow-hidden">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-6 flex-shrink-0">
+<div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'"><div class="w-8 h-8 rounded bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div><span class="text-[15px] font-semibold text-ink-title">游寄后台管理系统</span></div>
+<div class="ml-auto flex items-center gap-5">
+<a href="task-center.html" class="relative flex items-center text-ink-sub hover:text-primary transition-colors no-underline" title="任务列表"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i></a>
+<a href="message-center.html" class="relative flex items-center text-ink-sub hover:text-primary transition-colors no-underline" title="消息中心"><i data-lucide="bell" class="w-[18px] h-[18px]"></i></a>
+<a href="account-info.html" class="flex items-center gap-1.5 text-ink-sub hover:text-primary transition-colors no-underline" title="账号信息"><i data-lucide="user" class="w-[18px] h-[18px]"></i></a>
+</div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<div class="flex flex-1 min-h-0">
+<aside id="sidebar" class="w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+<div class="menu-item l1 js-select-l1" data-label="工作台">
+<div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台
+</div>
+<div class="menu-item l1 js-toggle-sub" data-target="sub-orders">
+<div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理<span class="menu-arrow">▼</span>
+</div>
+<div class="submenu collapsed" id="sub-orders" style="max-height:400px;">
+<a  class="menu-item l2 no-underline" style="color:inherit;">全部订单</a>
+<a  class="menu-item l2 no-underline" style="color:inherit;">异常工单</a>
+</div>
+<div class="menu-item l1 js-select-l1" data-label="柜机监控">
+<div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控
+</div>
+<div class="menu-item l1 js-toggle-sub active-l1" data-target="sub-settings">
+<div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置<span class="menu-arrow open">▼</span>
+</div>
+<div class="submenu" id="sub-settings" style="max-height:400px;">
+<a href="member-management.html" class="menu-item l2 no-underline" style="color:inherit;">成员管理</a>
+<a href="department-management.html" class="menu-item l2 no-underline" style="color:inherit;">部门管理</a>
+<a href="role-management.html" class="menu-item l2 active-l2 no-underline" style="color:inherit;">角色管理</a>
+<a href="account-info.html" class="menu-item l2 no-underline" style="color:inherit;">账号信息</a>
+<a href="message-settings.html" class="menu-item l2 no-underline" style="color:inherit;">消息设置</a>
+</div>
+<a href="task-center.html" class="menu-item l1 no-underline" style="color:inherit;">
+<div class="menu-ico"><i data-lucide="clipboard-list" class="w-[15px] h-[15px]"></i></div>任务列表
+</a>
+<a href="message-center.html" class="menu-item l1 no-underline" style="color:inherit;">
+<div class="menu-ico"><i data-lucide="bell" class="w-[15px] h-[15px]"></i></div>消息中心
+</a>
+
+</aside>
+<main class="max-w-[1200px] mx-auto px-4 py-6">
+  <!-- Page Header -->
+  <div class="bg-white rounded-t-lg border border-line border-b-0 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3 relative"><h2 class="text-[16px] font-semibold text-ink-title m-0">角色管理</h2><span class="anno-badge" data-anno="1" >1</span></div>
+    <div class="relative"><span class="anno-badge" data-anno="2">2</span><button class="btn btn-primary" onclick="openRoleDialog('add')"><i data-lucide="plus" class="w-[15px] h-[15px]"></i> 新增角色</button></div>
+  </div>
+  <!-- Content -->
+  <div class="flex gap-4 min-h-[65vh]">
+    <!-- LEFT: Role List -->
+    <div class="w-[280px] bg-white rounded-b-lg border border-line flex flex-col flex-shrink-0">
+      <div class="p-3 border-b border-line relative"><span class="anno-badge" data-anno="3" >3</span><div class="relative ml-7"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-[15px] h-[15px] text-ink-muted"></i><input type="text" id="roleSearch" placeholder="搜索角色" class="form-input pl-9 h-[32px]"></div></div>
+      <div class="flex-1 overflow-y-auto p-2" id="roleList"></div>
+    </div>
+    <!-- RIGHT: Role Detail -->
+    <div class="flex-1 bg-white rounded-b-lg border border-line p-6 overflow-y-auto min-w-0" id="detailPanel">
+      <div class="flex items-center justify-center min-h-[300px] text-[13px] text-ink-muted" id="detailEmpty">请选择角色查看详情</div>
+      </div>
+<div id="detailContent" class="hidden"></div>
+    </div>
+  </div>
+</main>
+</div><!-- /flex wrapper -->
+
+
+<!-- ===== TOAST ===== -->
+<div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg text-white text-[13px] font-medium z-[200] opacity-0 transition-opacity duration-300 pointer-events-none whitespace-nowrap" style="background:#1A1D24;"></div>
+
+<!-- ===== ANNOTATION TOGGLE ===== -->
+<div id="annoToggleWrap" class="fixed z-[150] select-none" style="right:8px;top:120px;cursor:grab;" onmousedown="startDragToggle(event)">
+<div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium bg-white/90 backdrop-blur text-primary border border-primary/30 hover:bg-primary-bg hover:border-primary/60 transition-colors cursor-pointer shadow-sm">
+<i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i>
+<span id="annoToggleLabel">标注</span>
+</div>
+</div>
+<div id="annoModal" class="hidden fixed z-[300]" style="top:50%;left:50%;transform:translate(-50%,-50%);">
+<div class="bg-white rounded-lg p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto relative" style="box-shadow:0 12px 40px rgba(0,0,0,.18);" onclick="event.stopPropagation()">
+<div class="flex items-center gap-2 mb-4 select-none" id="annoDragHandle" style="cursor:grab;" onmousedown="startDragModal(event)" title="长按拖拽移动弹窗">
+<i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i>
+<h3 id="annoModalTitle" class="text-[16px] font-semibold text-ink-title"></h3>
+
+<button onclick="closeAnnoModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted" style="position:absolute;top:12px;right:12px;z-index:10;"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+</div>
+<ul id="annoModalBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul>
+</div>
+</div></div>
+
+<!-- ===== MODALS ===== -->
+<!-- Role Form Modal -->
+<div id="roleModalOverlay" class="hidden modal-overlay" onclick="closeRoleModal()"><div class="modal" onclick="event.stopPropagation()"><div class="modal-header"><span id="roleModalTitle">新增角色</span><button onclick="closeRoleModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[16px] h-[16px]"></i></button></div><div class="modal-body"><div class="mb-4"><label class="block text-[13px] font-medium text-ink-body mb-1.5"><span class="text-danger mr-1">*</span>角色名称</label><input type="text" id="roleName" class="form-input" placeholder="请输入角色名称" maxlength="20"><span id="roleNameError" class="form-error hidden"></span></div><div class="mb-4"><label class="block text-[13px] font-medium text-ink-body mb-1.5">角色描述</label><textarea id="roleDesc" class="form-textarea" rows="3" placeholder="请输入角色描述" maxlength="100"></textarea></div></div><div class="modal-footer"><button class="btn btn-default" onclick="closeRoleModal()">取消</button><button class="btn btn-primary" onclick="confirmRole()">确定</button></div></div></div>
+<!-- Delete Modal -->
+<div id="deleteModalOverlay" class="hidden modal-overlay" onclick="closeDeleteModal()"><div class="modal modal-sm" onclick="event.stopPropagation()"><div class="modal-header"><span>确认删除该角色吗？</span><button onclick="closeDeleteModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[16px] h-[16px]"></i></button></div><div class="modal-body"><p class="text-[13px] text-ink-sub leading-relaxed">删除后，该角色的所有成员将失去该角色的权限，<br>请谨慎操作。</p></div><div class="modal-footer"><button class="btn btn-default" onclick="closeDeleteModal()">取消</button><button class="btn btn-primary" onclick="confirmDelete()">确定</button></div></div></div>
+<!-- Add Member Modal -->
+<div id="addMemberModalOverlay" class="hidden modal-overlay" onclick="closeAddMemberModal()"><div class="modal modal-lg" onclick="event.stopPropagation()"><div class="modal-header"><span>添加成员</span><button onclick="closeAddMemberModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[16px] h-[16px]"></i></button></div><div class="modal-body"><div class="flex gap-3 mb-4"><input type="text" id="addMemberSearch" placeholder="请输入成员名称搜索" class="form-input flex-1"><button class="btn btn-primary" onclick="searchAvailableMembers()">搜索</button></div><div class="max-h-[300px] overflow-y-auto"><table class="data-table" id="availableMemberTable"></table></div></div><div class="modal-footer"><button class="btn btn-default" onclick="closeAddMemberModal()">取消</button><button class="btn btn-primary" onclick="confirmAddMembers()">已添加 <span id="addCount">0</span> 人</button></div></div></div>
+<!-- Remove Member Modal -->
+<div id="removeModalOverlay" class="hidden modal-overlay" onclick="closeRemoveModal()"><div class="modal modal-sm" onclick="event.stopPropagation()"><div class="modal-header"><span>确认移除该成员吗？</span><button onclick="closeRemoveModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[16px] h-[16px]"></i></button></div><div class="modal-body"><p class="text-[13px] text-ink-sub leading-relaxed">移除后，该成员将失去该角色的权限。</p></div><div class="modal-footer"><button class="btn btn-default" onclick="closeRemoveModal()">取消</button><button class="btn btn-primary" onclick="confirmRemove()">确定</button></div></div></div>
+<!-- Batch Remove Modal -->
+<div id="batchRemoveModalOverlay" class="hidden modal-overlay" onclick="closeBatchRemoveModal()"><div class="modal modal-sm" onclick="event.stopPropagation()"><div class="modal-header"><span>确定要移除选中的成员吗？</span><button onclick="closeBatchRemoveModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[16px] h-[16px]"></i></button></div><div class="modal-body"><p class="text-[13px] text-ink-sub leading-relaxed" id="batchRemoveMsg">已选择 0 个成员，移除后这些成员将失去该角色的权限，<br>请谨慎操作。</p></div><div class="modal-footer"><button class="btn btn-default" onclick="closeBatchRemoveModal()">取消</button><button class="btn btn-primary" onclick="confirmBatchRemove()">确定</button></div></div></div>
+
+<script>
+/* ===== DATA ===== */
+const roleList = [
+  { id:'r1', name:'超级管理员', description:'系统内置超级管理员，拥有所有权限', status:1, creator:'系统', createTime:'2023-01-01 10:00:00', remark:'- -', memberCount:2, isSystem:true },
+  { id:'r2', name:'部门管理员', description:'部门管理员，拥有部门管理权限', status:1, creator:'张伟', createTime:'2023-02-01 10:00:00', remark:'负责日常部门管理工作', memberCount:3, isSystem:false },
+  { id:'r3', name:'普通成员', description:'普通成员，拥有基础操作权限', status:1, creator:'张伟', createTime:'2023-03-01 10:00:00', remark:'- -', memberCount:5, isSystem:false },
+  { id:'r4', name:'运营专员', description:'运营专员，负责日常运营工作', status:1, creator:'李娜', createTime:'2023-04-01 10:00:00', remark:'运营部门核心成员', memberCount:4, isSystem:false },
+  { id:'r5', name:'数据分析师', description:'数据分析师，拥有数据查看权限', status:0, creator:'周磊', createTime:'2023-05-01 10:00:00', remark:'已停用', memberCount:1, isSystem:false }
+];
+const memberList = [
+  { id:'m1', name:'张伟', nickname:'小张', phone:'13812345678', deptName:'技术部', roleId:'r1' },
+  { id:'m2', name:'李娜', nickname:'小李', phone:'13923456789', deptName:'运营部', roleId:'r1' },
+  { id:'m3', name:'王强', nickname:'老王', phone:'13734567890', deptName:'客服部', roleId:'r2' },
+  { id:'m4', name:'赵敏', nickname:'小赵', phone:'13645678901', deptName:'技术部', roleId:'r2' },
+  { id:'m5', name:'钱明', nickname:'钱多多', phone:'13556789012', deptName:'客服部', roleId:'r2' },
+  { id:'m6', name:'孙丽', nickname:'小孙', phone:'13467890123', deptName:'运营部', roleId:'r3' },
+  { id:'m7', name:'周磊', nickname:'老周', phone:'13378901234', deptName:'技术部', roleId:'r3' },
+  { id:'m8', name:'吴芳', nickname:'小吴', phone:'13289012345', deptName:'运营部', roleId:'r4' },
+  { id:'m9', name:'郑浩', nickname:'浩哥', phone:'13190123456', deptName:'技术部', roleId:'r4' },
+  { id:'m10', name:'陈静', nickname:'静静', phone:'13067890123', deptName:'客服部', roleId:'r5' }
+];
+const availableMembers = [
+  { id:'am1', name:'刘测试', deptName:'技术部' }, { id:'am2', name:'陈开发', deptName:'技术部' },
+  { id:'am3', name:'邓产品', deptName:'产品部' }, { id:'am4', name:'何设计', deptName:'设计部' },
+  { id:'am5', name:'林运营', deptName:'运营部' }
+];
+const permissionList = [
+  { id:'p1', menuName:'工作台', permissionText:'所有权限', isAllPermission:true },
+  { id:'p2', menuName:'找达人', permissionText:'查看、导出', isAllPermission:false },
+  { id:'p3', menuName:'达人库', permissionText:'所有权限', isAllPermission:true },
+  { id:'p4', menuName:'订单管理', permissionText:'所有权限', isAllPermission:true },
+  { id:'p5', menuName:'柜机监控', permissionText:'查看、新增', isAllPermission:false },
+  { id:'p6', menuName:'成员管理', permissionText:'查看、新增、编辑、删除', isAllPermission:false },
+  { id:'p7', menuName:'部门管理', permissionText:'查看、新增、编辑', isAllPermission:false },
+  { id:'p8', menuName:'角色管理', permissionText:'所有权限', isAllPermission:true }
+];
+const dataPerms = [
+  { id:'dp1', permissionName:'全部数据权限' }, { id:'dp2', permissionName:'本部门及下级部门数据权限' },
+  { id:'dp3', permissionName:'本部门数据权限' }, { id:'dp4', permissionName:'仅本人数据权限' }
+];
+
+/* ===== STATE ===== */
+let selectedRoleId = null;
+let roleSearch = '';
+let memberSearch = '';
+let activeTab = 'member';
+let currentRoleAction = null; // {type, roleId}
+let currentDeleteRoleId = null;
+let currentRemoveMember = null;
+let selectedMemberIds = []; // for batch remove (checkbox)
+let addMemberSearchKw = '';
+let availableList = [];
+let pendingAddIds = [];
+
+/* ===== HELPERS ===== */
+function selRole(){ return roleList.find(r=>r.id===selectedRoleId); }
+function roleMembers(){ return memberList.filter(m=>m.roleId===selectedRoleId); }
+function formatPhone(p){ return p?p.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2'):'-'; }
+
+/* ===== RENDER ROLE LIST ===== */
+function renderRoleList(){
+  const kw = roleSearch.toLowerCase();
+  const filtered = roleList.filter(r => !kw || r.name.toLowerCase().includes(kw));
+  const container = document.getElementById('roleList');
+  let html = '';
+  filtered.forEach(r => {
+    const icon = r.isSystem ? 'lock' : 'user';
+    const activeCls = r.id === selectedRoleId ? ' active' : '';
+    html += '<div class="role-item'+activeCls+'" data-role-id="'+r.id+'">';
+    html += '<div class="w-8 h-8 rounded-md flex items-center justify-center mr-2.5 flex-shrink-0" style="background:#E6F0FF;color:#0066FF;"><i data-lucide="'+icon+'" class="w-[15px] h-[15px]"></i></div>';
+    html += '<div class="flex-1 min-w-0"><div class="text-[14px] text-ink-body truncate">'+r.name+'</div><div class="text-[12px] text-ink-muted font-mono">('+r.memberCount+'人)</div></div>';
+    html += '<span class="role-more flex-shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-line-lighter text-ink-sub cursor-pointer" data-role-id="'+r.id+'"><i data-lucide="more-horizontal" class="w-[14px] h-[14px]"></i></span>';
+    html += '</div>';
+  });
+  if (filtered.length === 0) html = '<div class="flex items-center justify-center py-10 text-[13px] text-ink-muted">暂无搜索结果</div>';
+  container.innerHTML = html;
+  lucide.createIcons({attrs:{class:'w-[14px] h-[14px]'}});
+  // Bind clicks
+  container.querySelectorAll('.role-item').forEach(item => {
+    item.addEventListener('click', function(e){
+      if(e.target.closest('.role-more')) return;
+      selectedRoleId = this.getAttribute('data-role-id');
+      renderRoleList(); renderDetail();
+    });
+  });
+  container.querySelectorAll('.role-more').forEach(btn => {
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      const rid = this.getAttribute('data-role-id');
+      const r = roleList.find(x=>x.id===rid);
+      openRoleMenu(e, r);
+    });
+  });
+}
+
+function openRoleMenu(e, role){
+  document.querySelectorAll('.context-menu').forEach(m=>m.remove());
+  const menu = document.createElement('div'); menu.className = 'context-menu';
+  menu.style.left = e.clientX+'px'; menu.style.top = e.clientY+'px';
+  const items = [
+    { label:'编辑', action(){ openRoleDialog('edit',role.id); close(); } },
+  ];
+  if (!role.isSystem) items.push({ label:'删除', cls:'danger', action(){ if(role.isSystem){showToast('系统角色不可删除','warning');close();return;} currentDeleteRoleId = role.id; document.getElementById('deleteModalOverlay').classList.remove('hidden'); close(); } });
+  items.forEach(item => {
+    const d = document.createElement('div'); d.className = 'context-menu-item'+(item.cls?' '+item.cls:''); d.textContent = item.label; d.onclick = item.action; menu.appendChild(d);
+  });
+  document.body.appendChild(menu);
+  function close(){ menu.remove(); document.removeEventListener('click',close); }
+  setTimeout(()=>document.addEventListener('click',close),0);
+}
+
+/* ===== RENDER DETAIL ===== */
+function renderDetail(){
+  const role = selRole();
+  const empty = document.getElementById('detailEmpty');
+  const content = document.getElementById('detailContent');
+  if (!role) { empty.classList.remove('hidden'); content.classList.add('hidden'); return; }
+  empty.classList.add('hidden'); content.classList.remove('hidden');
+  const statusDot = role.status===1?'#0FC060':'#9DA2AC';
+  const statusText = role.status===1?'已启用':'已停用';
+  let html = '';
+  // Header
+  html += '<div class="flex items-center justify-between mb-4"><div class="flex items-center gap-3"><span class="text-[18px] font-semibold text-ink-title">'+role.name+'</span><span class="flex items-center gap-1.5 text-[13px] text-ink-sub"><span class="w-2 h-2 rounded-full inline-block" style="background:'+statusDot+'"></span>'+statusText+'</span></div><div class="flex gap-4"><span class="btn-text cursor-pointer relative" onclick="openRoleDialog(\'edit\',\''+role.id+'\')">编辑</span>'+(!role.isSystem?'<span class="btn-text danger cursor-pointer" onclick="deleteRole()">删除</span>':'')+'</div></div>';
+  // Base info
+  html += '<div class="flex gap-6 py-4 border-b border-line-light mb-5 text-[13px]"><span class="text-ink-muted">创建人 <span class="text-ink-body ml-2">'+role.creator+'</span></span><span class="text-ink-muted">创建时间 <span class="text-ink-body ml-2 font-mono text-[12px]">'+role.createTime+'</span></span><span class="text-ink-muted">备注 <span class="text-ink-body ml-2">'+role.remark+'</span></span></div>';
+  // Tabs
+  html += '<div class="flex border-b border-line mb-5 relative">';
+  html += '<span class="anno-badge" data-anno="4">4</span>';
+  ['member','permission','data'].forEach(t => {
+    const labels = {member:'角色成员',permission:'功能权限',data:'数据权限'};
+    html += '<div class="tab-item'+(t===activeTab?' active':'')+'" data-tab="'+t+'">'+labels[t]+'</div>';
+  });
+  html += '</div>';
+  // Tab content
+  if (activeTab === 'member') {
+    html += renderMemberTab();
+  } else if (activeTab === 'permission') {
+    html += '<div class="relative"><span class="anno-badge" data-anno="5">5</span><div class="tip-box ml-7"><i data-lucide="info" class="w-[15px] h-[15px] flex-shrink-0 mt-0.5" style="color:#0066FF"></i><span>功能权限说明：若拥有该菜单模块下所有功能权限则显示"所有权限"，若没有全部拥有则将有的功能权限以"、"隔开显示</span></div></div>';
+    html += '<table class="data-table"><thead><tr><th>菜单功能</th><th>权限</th></tr></thead><tbody>';
+    permissionList.forEach(p => {
+      html += '<tr><td>'+p.menuName+'</td><td><span class="'+(p.isAllPermission?'text-success font-medium':'text-ink-body')+'">'+p.permissionText+'</span></td></tr>';
+    });
+    html += '</tbody></table>';
+  } else if (activeTab === 'data') {
+    html += '<div class="relative"><span class="anno-badge" data-anno="6">6</span><div class="tip-box ml-7"><i data-lucide="info" class="w-[15px] h-[15px] flex-shrink-0 mt-0.5" style="color:#0066FF"></i><span>数据权限说明：数据权限用于控制角色可见的数据范围</span></div></div>';
+    html += '<table class="data-table"><thead><tr><th>权限</th></tr></thead><tbody>';
+    dataPerms.forEach(dp => { html += '<tr><td>'+dp.permissionName+'</td></tr>'; });
+    html += '</tbody></table>';
+  }
+  content.innerHTML = html;
+  lucide.createIcons({attrs:{class:'w-[14px] h-[14px]'}});
+  // Bind tabs
+  content.querySelectorAll('.tab-item').forEach(tab => {
+    tab.addEventListener('click', function(){ activeTab = this.getAttribute('data-tab'); renderDetail(); });
+  });
+}
+
+function renderMemberTab(){
+  const members = roleMembers();
+  const kw = memberSearch.toLowerCase();
+  const filtered = kw ? members.filter(m => m.name.toLowerCase().includes(kw)||(m.nickname||'').toLowerCase().includes(kw)||m.phone.includes(kw)) : members;
+  let html = '';
+  // Actions
+  html += '<div class="flex items-center justify-between mb-4"><div class="relative w-[280px]"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-[15px] h-[15px] text-ink-muted"></i><input type="text" id="memberSearchInput" placeholder="请输入成员名称/昵称/手机号搜索" class="form-input pl-9 h-[32px]" value="'+memberSearch+'"></div><div class="flex gap-2"><button class="btn btn-primary btn-sm" onclick="openAddMember()">添加成员</button><button class="btn btn-default btn-sm" onclick="batchRemove()">移除成员</button></div></div>';
+  // Table
+  html += '<table class="data-table"><thead><tr><th style="width:40px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th><th>成员名称</th><th>昵称</th><th>手机号</th><th>所在部门</th><th style="width:80px">操作</th></tr></thead><tbody>';
+  if (filtered.length === 0) {
+    html += '<tr><td colspan="6" class="text-center text-ink-muted py-10">'+(kw?'暂无搜索结果':'该角色暂无成员')+'</td></tr>';
+  } else {
+    filtered.forEach(m => {
+      const checked = selectedMemberIds.includes(m.id);
+      html += '<tr><td><input type="checkbox" '+(checked?'checked':'')+' value="'+m.id+'" onchange="toggleMemberSelect(this)" class="w-[15px] h-[15px]"></td><td>'+m.name+'</td><td>'+(m.nickname||'-')+'</td><td class="font-mono text-[12px]">'+formatPhone(m.phone)+'</td><td>'+m.deptName+'</td><td><span class="action-link" onclick="removeMember(\''+m.id+'\')">移除</span></td></tr>';
+    });
+  }
+  html += '</tbody></table>';
+  // Pagination info
+  html += '<div class="flex justify-end mt-4 text-[12px] text-ink-muted">共 '+members.length+' 人，当前显示 '+filtered.length+' 人</div>';
+  return html;
+}
+
+/* ===== ROLE MODAL ===== */
+function openRoleDialog(type, roleId){
+  currentRoleAction = {type, roleId};
+  document.getElementById('roleModalTitle').textContent = type==='edit'?'编辑角色':'新增角色';
+  document.getElementById('roleNameError').classList.add('hidden');
+  if (type === 'edit') {
+    const r = roleList.find(x=>x.id===roleId);
+    if (r) { document.getElementById('roleName').value = r.name; document.getElementById('roleDesc').value = r.description||''; }
+  } else { document.getElementById('roleName').value = ''; document.getElementById('roleDesc').value = ''; }
+  document.getElementById('roleModalOverlay').classList.remove('hidden');
+}
+function closeRoleModal(){ document.getElementById('roleModalOverlay').classList.add('hidden'); }
+function confirmRole(){
+  const name = document.getElementById('roleName').value.trim();
+  const desc = document.getElementById('roleDesc').value.trim();
+  const errEl = document.getElementById('roleNameError');
+  if(!name){ errEl.textContent='请输入角色名称'; errEl.classList.remove('hidden'); return; }
+  if(name.length>20){ errEl.textContent='角色名称不能超过20字'; errEl.classList.remove('hidden'); return; }
+  const excludeId = currentRoleAction.type==='edit'?currentRoleAction.roleId:null;
+  if(roleList.some(r=>r.id!==excludeId&&r.name===name)){ errEl.textContent='角色名称已存在'; errEl.classList.remove('hidden'); return; }
+  errEl.classList.add('hidden');
+  if(currentRoleAction.type==='edit'){
+    const r = roleList.find(x=>x.id===currentRoleAction.roleId);
+    if(r){ r.name=name; r.description=desc; }
+    showToast('编辑成功','success');
+  }else{
+    roleList.push({id:'r'+Date.now(),name,description:desc,status:1,creator:'当前用户',createTime:new Date().toLocaleString('zh-CN'),remark:'- -',memberCount:0,isSystem:false});
+    showToast('添加成功','success');
+  }
+  closeRoleModal(); renderRoleList(); renderDetail();
+}
+function deleteRole(){ currentDeleteRoleId = selectedRoleId; document.getElementById('deleteModalOverlay').classList.remove('hidden'); }
+function closeDeleteModal(){ document.getElementById('deleteModalOverlay').classList.add('hidden'); }
+function confirmDelete(){
+  const idx = roleList.findIndex(r=>r.id===currentDeleteRoleId);
+  if(idx!==-1){ roleList.splice(idx,1); for(let i=memberList.length-1;i>=0;i--){if(memberList[i].roleId===currentDeleteRoleId)memberList.splice(i,1);} }
+  if(selectedRoleId===currentDeleteRoleId) selectedRoleId = null;
+  showToast('删除成功','success');
+  closeDeleteModal(); renderRoleList(); renderDetail();
+}
+
+/* ===== ADD MEMBER ===== */
+function openAddMember(){
+  addMemberSearchKw = ''; document.getElementById('addMemberSearch').value = '';
+  availableList = availableMembers.map(m=>({...m,added:false}));
+  pendingAddIds = [];
+  updateAddMemberTable();
+  document.getElementById('addMemberModalOverlay').classList.remove('hidden');
+}
+function closeAddMemberModal(){ document.getElementById('addMemberModalOverlay').classList.add('hidden'); }
+function searchAvailableMembers(){
+  addMemberSearchKw = document.getElementById('addMemberSearch').value.trim();
+  const kw = addMemberSearchKw.toLowerCase();
+  availableList = (kw ? availableMembers.filter(m=>m.name.toLowerCase().includes(kw)) : [...availableMembers]).map(m=>({...m,added:pendingAddIds.includes(m.id)}));
+  updateAddMemberTable();
+}
+function updateAddMemberTable(){
+  let html = '<thead><tr><th>成员名称</th><th>所属部门</th><th style="width:80px">操作</th></tr></thead><tbody>';
+  availableList.forEach(m => {
+    html += '<tr><td>'+m.name+'</td><td>'+m.deptName+'</td><td>';
+    if(m.added) html += '<span class="text-success text-[12px] font-medium">已添加</span>';
+    else html += '<span class="action-link" onclick="addSingleMember(\''+m.id+'\')">添加</span>';
+    html += '</td></tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('availableMemberTable').innerHTML = html;
+  document.getElementById('addCount').textContent = pendingAddIds.length;
+}
+function addSingleMember(id){
+  pendingAddIds.push(id);
+  const m = availableList.find(x=>x.id===id);
+  if(m) m.added = true;
+  updateAddMemberTable();
+}
+function confirmAddMembers(){
+  if(pendingAddIds.length===0){ showToast('请先添加成员','warning'); return; }
+  const newMembers = availableMembers.filter(m=>pendingAddIds.includes(m.id)).map(m=>({id:'m'+Date.now()+Math.random(),name:m.name,nickname:'',phone:'',deptName:m.deptName,roleId:selectedRoleId}));
+  memberList.push(...newMembers);
+  const r = selRole(); if(r) r.memberCount = roleMembers().length;
+  showToast('添加成功','success');
+  closeAddMemberModal(); renderRoleList(); renderDetail();
+}
+
+/* ===== REMOVE MEMBER ===== */
+function removeMember(memberId){
+  if(roleMembers().length===1){ showToast('该角色至少保留一个成员','warning'); return; }
+  currentRemoveMember = memberId;
+  document.getElementById('removeModalOverlay').classList.remove('hidden');
+}
+function closeRemoveModal(){ document.getElementById('removeModalOverlay').classList.add('hidden'); }
+function confirmRemove(){
+  const idx = memberList.findIndex(m=>m.id===currentRemoveMember);
+  if(idx!==-1) memberList.splice(idx,1);
+  const r = selRole(); if(r) r.memberCount = roleMembers().length;
+  selectedMemberIds = selectedMemberIds.filter(id=>id!==currentRemoveMember);
+  showToast('移除成功','success');
+  closeRemoveModal(); renderDetail(); renderRoleList();
+}
+
+/* ===== BATCH REMOVE ===== */
+function toggleSelectAll(cb){
+  const members = roleMembers();
+  if(cb.checked){ members.forEach(m=>{ if(!selectedMemberIds.includes(m.id)) selectedMemberIds.push(m.id); }); }
+  else { selectedMemberIds = []; }
+  renderDetail();
+}
+function toggleMemberSelect(cb){
+  if(cb.checked) selectedMemberIds.push(cb.value);
+  else selectedMemberIds = selectedMemberIds.filter(id=>id!==cb.value);
+}
+function batchRemove(){
+  if(selectedMemberIds.length===0){ showToast('请先选择要移除的成员','warning'); return; }
+  if(roleMembers().length - selectedMemberIds.length === 0){ showToast('该角色至少保留一个成员','warning'); return; }
+  document.getElementById('batchRemoveMsg').innerHTML = '已选择 '+selectedMemberIds.length+' 个成员，移除后这些成员将失去该角色的权限，<br>请谨慎操作。';
+  document.getElementById('batchRemoveModalOverlay').classList.remove('hidden');
+}
+function closeBatchRemoveModal(){ document.getElementById('batchRemoveModalOverlay').classList.add('hidden'); }
+function confirmBatchRemove(){
+  for(let i=memberList.length-1;i>=0;i--){ if(selectedMemberIds.includes(memberList[i].id)) memberList.splice(i,1); }
+  const r = selRole(); if(r) r.memberCount = roleMembers().length;
+  selectedMemberIds = [];
+  showToast('移除成功','success');
+  closeBatchRemoveModal(); renderDetail(); renderRoleList();
+}
+
+/* ===== SEARCH ===== */
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('roleSearch').addEventListener('input',function(){ roleSearch=this.value; renderRoleList(); });
+});
+
+/* ===== DELEGATED EVENTS for member tab ===== */
+document.getElementById('detailContent').addEventListener('input', function(e){
+  if(e.target.id === 'memberSearchInput'){ memberSearch = e.target.value; renderDetail(); }
+});
+
+/* ===== TOAST ===== */
+let toastTimer=null;
+function showToast(msg,type='info'){
+  if(toastTimer)clearTimeout(toastTimer);
+  const el=document.getElementById('toast');
+  const c={info:{bg:'#1A1D24',c:'#fff'},success:{bg:'#0FC060',c:'#fff'},error:{bg:'#D9001B',c:'#fff'},warning:{bg:'#E7772D',c:'#fff'}};
+  const t=c[type]||c.info; el.textContent=msg; el.style.background=t.bg; el.style.color=t.c; el.style.opacity='1';
+  toastTimer=setTimeout(()=>{el.style.opacity='0';},2500);
+}
+
+/* ===== ANNOTATIONS ===== */
+const annotations={
+  1:{title:'角色管理页面',desc:['定位：系统设置下的角色管理页面，管理后台角色体系','页面结构：左角色列表 + 右角色详情（3个Tab：角色成员/功能权限/数据权限）','支持角色的新增、编辑、删除，以及角色内成员的增删']},
+  2:{title:'新增角色按钮',desc:['触发：点击"新增角色"按钮','响应：弹出新增角色弹窗（角色名称必填最长20字 + 角色描述可选最长100字）','校验：名称不可为空、不可超20字、不可与已有角色重名']},
+  3:{title:'角色搜索',desc:['触发：在搜索框输入角色名称关键字','响应：前端实时过滤角色列表','规则：不区分大小写，按名称匹配']},
+  4:{title:'角色详情Tab',desc:['角色成员：查看/搜索/添加/移除该角色的成员，支持批量移除','功能权限：展示该角色拥有的菜单功能及对应权限，拥有全部权限时绿色标注"所有权限"','数据权限：展示该角色可见的数据范围（全部/本部门及下级/本部门/仅本人）']},
+  5:{title:'功能权限',desc:['展示角色的菜单功能访问权限','"所有权限"：表示拥有该菜单下的全部操作（查看/新增/编辑/删除/导出等），绿色高亮','部分权限：以"、"分隔列出拥有的具体权限，如"查看、导出"','数据为Mock演示，实际由后端返回']},
+  6:{title:'数据权限',desc:['控制角色可见的数据范围','全部数据权限：可查看系统所有数据','本部门及下级部门数据权限：可查看本部门及所有子部门的数据','本部门数据权限：仅可查看本部门的数据','仅本人数据权限：仅可查看本人的数据']},
+};
+
+let annoVisible=true;
+document.getElementById('annoToggleWrap').addEventListener('click',function(){
+  annoVisible=!annoVisible;
+  if(annoVisible){document.body.classList.remove('anno-hidden');document.getElementById('annoToggleLabel').textContent='标注';document.getElementById('annoToggleIcon').setAttribute('data-lucide','eye');lucide.createIcons({attrs:{class:'w-[13px] h-[13px]'}});}
+  else{document.body.classList.add('anno-hidden');document.getElementById('annoToggleLabel').textContent='标注';document.getElementById('annoToggleIcon').setAttribute('data-lucide','eye-off');lucide.createIcons({attrs:{class:'w-[13px] h-[13px]'}});}
+  lucide.createIcons({attrs:{class:'w-[14px] h-[14px]'}});
+});
+document.querySelectorAll('.anno-badge').forEach(badge=>{
+  badge.addEventListener('click',function(e){
+    e.stopPropagation();
+    const id=this.getAttribute('data-anno');
+    const a=annotations[id]; if(!a)return;
+    document.getElementById('annoModalTitle').textContent='#'+id+' '+a.title;
+    document.getElementById('annoModalBody').innerHTML=a.desc.map(d=>'<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>'+d+'</span></li>').join('');
+    document.getElementById('annoModal').classList.remove('hidden');
+  });
+});
+// Re-bind annotation badges after detail render
+new MutationObserver(()=>{
+  document.querySelectorAll('#detailContent .anno-badge').forEach(badge=>{
+    if(badge.dataset.bound) return; badge.dataset.bound='1';
+    badge.addEventListener('click',function(e){
+      e.stopPropagation();
+      const id=this.getAttribute('data-anno');
+      const a=annotations[id]; if(!a)return;
+      document.getElementById('annoModalTitle').textContent='#'+id+' '+a.title;
+      document.getElementById('annoModalBody').innerHTML=a.desc.map(d=>'<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>'+d+'</span></li>').join('');
+      document.getElementById('annoModal').classList.remove('hidden');
+    });
+  });
+}).observe(document.getElementById('detailContent'),{childList:true,subtree:true});
+
+/* ===== DRAG: Annotation Modal ===== */
+let dragModal = null, dragOffX = 0, dragOffY = 0, dragStartTime = 0, dragActive = false;
+function startDragModal(e){
+  if(e.target.closest('button')) return;
+  dragStartTime = Date.now();
+  dragActive = false;
+  const modal = document.getElementById('annoModal');
+  if(!modal) return;
+  document.addEventListener('mousemove', onDragModal);
+  document.addEventListener('mouseup', stopDragModal);
+  dragOffX = e.clientX - modal.offsetLeft;
+  dragOffY = e.clientY - modal.offsetTop;
+}
+function onDragModal(e){
+  if(Date.now() - dragStartTime < 200) return;
+  dragActive = true;
+  const modal = document.getElementById('annoModal');
+  if(!modal) return;
+  modal.style.left = (e.clientX - dragOffX) + 'px';
+  modal.style.top = (e.clientY - dragOffY) + 'px';
+  modal.style.transform = 'none';
+  document.getElementById('annoDragHandle').style.cursor = 'grabbing';
+}
+function stopDragModal(){
+  document.removeEventListener('mousemove', onDragModal);
+  document.removeEventListener('mouseup', stopDragModal);
+  if(document.getElementById('annoDragHandle'))
+    document.getElementById('annoDragHandle').style.cursor = 'grab';
+}
+
+/* ===== DRAG: Toggle Button ===== */
+let dragToggle = null, dragToggleY = 0, dragToggleActive = false, dragToggleMoved = false;
+function startDragToggle(e){
+  if(e.target.closest('button') && e.target.closest('#annoToggleWrap')) return;
+  dragToggleActive = true; dragToggleMoved = false;
+  dragToggleY = e.clientY;
+  document.addEventListener('mousemove', onDragToggle);
+  document.addEventListener('mouseup', stopDragToggle);
+  e.preventDefault();
+}
+function onDragToggle(e){
+  if(Math.abs(e.clientY - dragToggleY) < 5) return;
+  dragToggleMoved = true;
+  const wrap = document.getElementById('annoToggleWrap');
+  if(!wrap) return;
+  let newTop = e.clientY - 20;
+  newTop = Math.max(60, Math.min(window.innerHeight - 60, newTop));
+  wrap.style.top = newTop + 'px';
+  wrap.style.right = '8px';
+  wrap.style.cursor = 'grabbing';
+}
+function stopDragToggle(e){
+  document.removeEventListener('mousemove', onDragToggle);
+  document.removeEventListener('mouseup', stopDragToggle);
+  if(document.getElementById('annoToggleWrap')){
+    document.getElementById('annoToggleWrap').style.cursor = 'grab';
+    document.getElementById('annoToggleWrap').dataset.dragging = dragToggleMoved ? '1' : '';
+    if(dragToggleMoved) setTimeout(function(){ document.getElementById('annoToggleWrap').dataset.dragging = ''; }, 100);
+  }
+}
+function closeAnnoModal(){document.getElementById('annoModal').classList.add('hidden');}
+document.addEventListener('click',function(e){
+  var m=document.getElementById('annoModal');
+  if(!m||m.classList.contains('hidden'))return;
+  if(!m.contains(e.target))closeAnnoModal();
+});
+document.addEventListener('click',function(e){
+  var modal = document.getElementById('annoModal');
+  if(!modal || modal.classList.contains('hidden')) return;
+  if(!modal.contains(e.target)) closeAnnoModal();
+});
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded',()=>{
+  lucide.createIcons();
+  renderRoleList();
+});
+
+
+/* ===== SIDEBAR MENU ===== */
+(function(){
+  var sb = document.getElementById('sidebar');
+  if(!sb) return;
+  sb.addEventListener('click', function(e){
+    var el = e.target.closest('.js-toggle-sub');
+    if(!el) return;
+    var targetId = el.getAttribute('data-target');
+    var sub = document.getElementById(targetId);
+    if(!sub) return;
+    var arrow = el.querySelector('.menu-arrow');
+    if(sub.classList.contains('collapsed')){
+      sub.classList.remove('collapsed');
+      if(arrow) arrow.classList.add('open');
+    } else {
+      sub.classList.add('collapsed');
+      if(arrow) arrow.classList.remove('open');
+    }
+  });
+})();
+
+</script>
+</body>
+</html>

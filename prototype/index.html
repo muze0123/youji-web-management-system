@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>游寄后台管理系统 - 原型预览</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary:   { DEFAULT: '#0066FF', hover: '#0052CC', active: '#0047B3', bg: '#E6F0FF' },
+            ink:       { title: '#1A1D24', body: '#3A3F4A', sub: '#6E7685', muted: '#9DA2AC' },
+            line:      { DEFAULT: '#DFE1E5', light: '#E8EAED', lighter: '#F0F1F3' },
+            bg:        { page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6' },
+            success:   { DEFAULT: '#0FC060', bg: '#E7F9F0' },
+            warning:   { DEFAULT: '#E7772D', bg: '#FDF2E9' },
+            danger:    { DEFAULT: '#D9001B', bg: '#FFE8EB' },
+            info:      { DEFAULT: '#0091D5', bg: '#E4F4FB' },
+          },
+          borderRadius: { DEFAULT: '4px', md: '6px', lg: '8px' },
+          fontFamily: {
+            sans: ['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],
+            mono: ['JetBrains Mono','monospace'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background: #F7F8FA; }
+    .card-hover { transition: all .2s ease; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 6px 24px rgba(0,0,0,.1); }
+  </style>
+</head>
+<body class="font-sans min-h-screen">
+
+<!-- ===== HEADER ===== -->
+<header class="bg-white border-b border-line">
+  <div class="max-w-[1200px] mx-auto px-6 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+        <span class="text-white font-bold text-lg">游</span>
+      </div>
+      <div>
+        <h1 class="text-[18px] font-semibold text-ink-title">游寄后台管理系统</h1>
+        <p class="text-[12px] text-ink-muted font-mono">Youji Admin · Prototype Preview</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="text-[12px] text-ink-muted">design.md v2.0</span>
+      <a href="login.html" class="flex items-center gap-2 px-4 py-2 rounded bg-primary text-white text-[13px] font-medium no-underline hover:bg-primary-hover transition-colors">
+        <i data-lucide="log-in" class="w-[15px] h-[15px]"></i> 登录
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<main class="max-w-[1200px] mx-auto px-6 py-10">
+
+  <!-- Section: 后台系统 -->
+  <section class="mb-12">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="font-mono text-[13px] font-bold text-primary">01</span>
+      <h2 class="text-[19px] font-semibold text-ink-title">后台管理系统</h2>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+      <!-- 登录页 -->
+      <a href="login.html" class="card-hover block bg-white border border-line rounded-md p-6 no-underline text-inherit">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-primary-bg flex items-center justify-center">
+            <i data-lucide="log-in" class="w-[20px] h-[20px] text-primary"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">登录页</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Login</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">左品牌面板 + 右登录表单，含手机号/密码校验、记住我、交互标注系统</p>
+        <div class="mt-4 flex items-center gap-2 text-[12px] text-primary font-medium">
+          <span>打开预览</span>
+          <i data-lucide="arrow-right" class="w-[14px] h-[14px]"></i>
+        </div>
+      </a>
+
+      <!-- 成员管理 -->
+      <a href="member-management.html" class="card-hover block bg-white border border-line rounded-md p-6 no-underline text-inherit">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-primary-bg flex items-center justify-center">
+            <i data-lucide="users" class="w-[20px] h-[20px] text-primary"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">成员管理</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Members</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">组织架构树 + 成员列表，含搜索/筛选/CRUD/状态切换/交互标注</p>
+        <div class="mt-4 flex items-center gap-2 text-[12px] text-primary font-medium">
+          <span>打开预览</span>
+          <i data-lucide="arrow-right" class="w-[14px] h-[14px]"></i>
+        </div>
+      </a>
+
+      <!-- 占位：更多页面 -->
+      <div class="card-hover block bg-white border border-dashed border-line rounded-md p-6 opacity-60">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-bg-hover flex items-center justify-center">
+            <i data-lucide="layout-dashboard" class="w-[20px] h-[20px] text-ink-muted"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">控制台</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Dashboard</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">数据概览、关键指标看板、快捷入口</p>
+        <div class="mt-4 text-[12px] text-ink-muted">即将上线</div>
+      </div>
+
+      <!-- 部门管理 -->
+      <a href="department-management.html" class="card-hover block bg-white border border-line rounded-md p-6 no-underline text-inherit">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-primary-bg flex items-center justify-center">
+            <i data-lucide="building" class="w-[20px] h-[20px] text-primary"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">部门管理</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Departments</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">全宽组织架构树 + 搜索过滤 + 部门CRUD + 名称唯一性校验</p>
+        <div class="mt-4 flex items-center gap-2 text-[12px] text-primary font-medium">
+          <span>打开预览</span>
+          <i data-lucide="arrow-right" class="w-[14px] h-[14px]"></i>
+        </div>
+      </a>
+
+      <!-- 消息设置 -->
+      <a href="message-settings.html" class="card-hover block bg-white border border-line rounded-md p-6 no-underline text-inherit">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-primary-bg flex items-center justify-center">
+            <i data-lucide="bell" class="w-[20px] h-[20px] text-primary"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">消息设置</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Notifications</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">14种游寄业务消息类型，气泡/消息中心开关，推送角色+方式配置</p>
+        <div class="mt-4 flex items-center gap-2 text-[12px] text-primary font-medium">
+          <span>打开预览</span>
+          <i data-lucide="arrow-right" class="w-[14px] h-[14px]"></i>
+        </div>
+      </a>
+
+      <div class="card-hover block bg-white border border-dashed border-line rounded-md p-6 opacity-60">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-bg-hover flex items-center justify-center">
+            <i data-lucide="monitor" class="w-[20px] h-[20px] text-ink-muted"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">柜机监控</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Lockers</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">柜机状态面板、实时监控、异常告警</p>
+        <div class="mt-4 text-[12px] text-ink-muted">即将上线</div>
+      </div>
+
+      <!-- 角色管理 -->
+      <a href="role-management.html" class="card-hover block bg-white border border-line rounded-md p-6 no-underline text-inherit">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-primary-bg flex items-center justify-center">
+            <i data-lucide="shield" class="w-[20px] h-[20px] text-primary"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">角色管理</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Roles</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">左角色列表 + 右详情3Tab（成员/功能权限/数据权限），CRUD + 成员增减</p>
+        <div class="mt-4 flex items-center gap-2 text-[12px] text-primary font-medium">
+          <span>打开预览</span>
+          <i data-lucide="arrow-right" class="w-[14px] h-[14px]"></i>
+        </div>
+      </a>
+
+      <!-- 账号信息 -->
+      <a href="account-info.html" class="card-hover block bg-white border border-line rounded-md p-6 no-underline text-inherit">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-primary-bg flex items-center justify-center">
+            <i data-lucide="user-circle" class="w-[20px] h-[20px] text-primary"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">账号信息</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Account</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">当前登录成员详情：头像/ID/企业/角色/入职时间/手机号，只读展示</p>
+        <div class="mt-4 flex items-center gap-2 text-[12px] text-primary font-medium">
+          <span>打开预览</span>
+          <i data-lucide="arrow-right" class="w-[14px] h-[14px]"></i>
+        </div>
+      </a>
+
+      <div class="card-hover block bg-white border border-dashed border-line rounded-md p-6 opacity-60">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-bg-hover flex items-center justify-center">
+            <i data-lucide="alert-triangle" class="w-[20px] h-[20px] text-ink-muted"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">异常工单</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Tickets</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">异常件处理、工单流转、超时追踪</p>
+        <div class="mt-4 text-[12px] text-ink-muted">即将上线</div>
+      </div>
+
+      <!-- 任务列表 -->
+      <a href="task-center.html" class="card-hover block bg-white border border-line rounded-md p-6 no-underline text-inherit">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-primary-bg flex items-center justify-center">
+            <i data-lucide="clipboard-list" class="w-[20px] h-[20px] text-primary"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">任务列表</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Task Center</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">顶部导航抽屉面板：导入/下载任务，筛选+进度追踪+下载操作</p>
+        <div class="mt-4 flex items-center gap-2 text-[12px] text-primary font-medium">
+          <span>打开预览</span>
+          <i data-lucide="arrow-right" class="w-[14px] h-[14px]"></i>
+        </div>
+      </a>
+
+      <!-- 消息中心 -->
+      <a href="message-center.html" class="card-hover block bg-white border border-line rounded-md p-6 no-underline text-inherit">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-primary-bg flex items-center justify-center">
+            <i data-lucide="bell" class="w-[20px] h-[20px] text-primary"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">消息中心</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Inbox</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">消息通知+系统公告，分类筛选（异常监控/消息提醒），只看未读+一键已读</p>
+        <div class="mt-4 flex items-center gap-2 text-[12px] text-primary font-medium">
+          <span>打开预览</span>
+          <i data-lucide="arrow-right" class="w-[14px] h-[14px]"></i>
+        </div>
+      </a>
+
+      <div class="card-hover block bg-white border border-dashed border-line rounded-md p-6 opacity-60">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-bg-hover flex items-center justify-center">
+            <i data-lucide="users" class="w-[20px] h-[20px] text-ink-muted"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">用户管理</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Users</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">运营人员账号、角色权限管理</p>
+        <div class="mt-4 text-[12px] text-ink-muted">即将上线</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section: 设计规范 -->
+  <section>
+    <div class="flex items-center gap-3 mb-6">
+      <span class="font-mono text-[13px] font-bold text-primary">02</span>
+      <h2 class="text-[19px] font-semibold text-ink-title">设计规范与参考</h2>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <a href="../设计系统.html" class="card-hover block bg-white border border-line rounded-md p-6 no-underline text-inherit">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-info-bg flex items-center justify-center">
+            <i data-lucide="palette" class="w-[20px] h-[20px] text-info"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">设计系统</h3>
+            <span class="text-[11px] text-ink-muted font-mono">Design System</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">完整的设计系统文档：颜色、字体、间距、组件库、布局规范、分页器</p>
+        <div class="mt-4 flex items-center gap-2 text-[12px] text-info font-medium">
+          <span>打开预览</span>
+          <i data-lucide="arrow-right" class="w-[14px] h-[14px]"></i>
+        </div>
+      </a>
+
+      <a href="../design.md" class="card-hover block bg-white border border-line rounded-md p-6 no-underline text-inherit">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded bg-warning-bg flex items-center justify-center">
+            <i data-lucide="file-text" class="w-[20px] h-[20px] text-warning"></i>
+          </div>
+          <div>
+            <h3 class="text-[15px] font-semibold text-ink-title">视觉规范文档</h3>
+            <span class="text-[11px] text-ink-muted font-mono">design.md</span>
+          </div>
+        </div>
+        <p class="text-[13px] text-ink-sub leading-relaxed">项目视觉规范的单一事实来源，所有页面的颜色/字号/圆角/间距必须引用此文件</p>
+        <div class="mt-4 flex items-center gap-2 text-[12px] text-warning font-medium">
+          <span>查看文档</span>
+          <i data-lucide="arrow-right" class="w-[14px] h-[14px]"></i>
+        </div>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="border-t border-line bg-white mt-12">
+  <div class="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between text-[12px] text-ink-muted">
+    <span>游寄后台管理系统 · 原型预览 v1.0</span>
+    <span class="font-mono">Built with Tailwind CSS + Lucide Icons</span>
+  </div>
+</footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+  });
+</script>
+
+</body>
+</html>

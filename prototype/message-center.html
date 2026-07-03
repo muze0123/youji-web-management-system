@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>消息中心 - 游寄后台管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+  <style>
+    body{background:#F7F8FA;}
+    .tab-badge{position:absolute;top:6px;right:-14px;min-width:16px;height:16px;padding:0 4px;background:#FF4D4F;border-radius:8px;color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;line-height:1;}
+    .filter-chip{padding:5px 14px;border-radius:16px;font-size:13px;cursor:pointer;white-space:nowrap;transition:all .15s;border:1px solid #DFE1E5;color:#6E7685;background:#fff;display:inline-flex;align-items:center;gap:4px;}
+    .filter-chip:hover{border-color:#0066FF;color:#0066FF;}
+    .filter-chip.active{background:#E6F0FF;color:#0066FF;border-color:#0066FF;font-weight:500;}
+    .filter-chip .chip-badge{min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#FF4D4F;color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+    .filter-chip.active .chip-badge{background:#0066FF;}
+    .msg-item{padding:14px 0;border-bottom:1px solid #F0F1F3;cursor:pointer;transition:background .12s;}
+    .msg-item:hover{background:#FAFBFC;}
+    .msg-item .msg-dot{width:8px;height:8px;border-radius:50%;background:#0066FF;flex-shrink:0;margin-top:6px;}
+    .msg-item.read .msg-dot{background:transparent;}
+    .msg-item.read .msg-title{color:#9DA2AC;font-weight:400;}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;}
+    .modal{background:#fff;border-radius:8px;width:500px;max-width:90%;max-height:70vh;display:flex;flex-direction:column;box-shadow:0 6px 24px rgba(0,0,0,.12);}
+    .modal-sm{width:360px;}.modal-lg{width:600px;}
+    .modal-header{padding:16px 20px;border-bottom:1px solid #DFE1E5;display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600;color:#1A1D24;}
+    .modal-body{padding:20px;overflow-y:auto;flex:1;}
+    .modal-footer{padding:12px 20px;border-top:1px solid #DFE1E5;display:flex;justify-content:flex-end;gap:8px;}
+  
+.menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+.menu-item:hover{background:#F3F4F6;}
+.menu-item.l1{padding-left:20px;font-weight:500;}
+.menu-item.l2{padding-left:52px;}
+.menu-item.active-l1{color:#0066FF;}
+.menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+.menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+.active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+.menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+.menu-arrow.open{transform:rotate(180deg);}
+.submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+.submenu.collapsed{max-height:0!important;opacity:0;}
+
+</style>
+</head>
+<body class="font-sans flex flex-col h-screen overflow-hidden">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-6 flex-shrink-0">
+<div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'"><div class="w-8 h-8 rounded bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div><span class="text-[15px] font-semibold text-ink-title">游寄后台管理系统</span></div>
+<div class="ml-auto flex items-center gap-5">
+<a href="task-center.html" class="relative flex items-center text-ink-sub hover:text-primary transition-colors no-underline" title="任务列表"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i></a>
+<a href="message-center.html" class="relative flex items-center text-ink-sub hover:text-primary transition-colors no-underline" title="消息中心"><i data-lucide="bell" class="w-[18px] h-[18px]"></i></a>
+<a href="account-info.html" class="flex items-center gap-1.5 text-ink-sub hover:text-primary transition-colors no-underline" title="账号信息"><i data-lucide="user" class="w-[18px] h-[18px]"></i></a>
+</div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<div class="flex flex-1 min-h-0">
+<aside id="sidebar" class="w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+<a href="index.html" class="menu-item l1 no-underline" style="color:inherit;"><div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台</a>
+<div class="menu-item l1"><div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理<span class="menu-arrow">▼</span></div>
+<div class="submenu collapsed" style="max-height:200px;"><div class="menu-item l2">全部订单</div><div class="menu-item l2">异常工单</div></div>
+<div class="menu-item l1"><div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控</div>
+<div class="menu-item l1 js-toggle-sub" data-target="sub-settings"><div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置<span class="menu-arrow">▼</span></div>
+<div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
+<a href="member-management.html" class="menu-item l2 no-underline" style="color:inherit;">成员管理</a>
+<a href="department-management.html" class="menu-item l2 no-underline" style="color:inherit;">部门管理</a>
+<a href="role-management.html" class="menu-item l2 no-underline" style="color:inherit;">角色管理</a>
+<a href="account-info.html" class="menu-item l2 no-underline" style="color:inherit;">账号信息</a>
+<a href="message-settings.html" class="menu-item l2 no-underline" style="color:inherit;">消息设置</a>
+</div>
+<a href="task-center.html" class="menu-item l1 active-l1 no-underline" style="color:inherit;"><div class="menu-ico"><i data-lucide="clipboard-list" class="w-[15px] h-[15px]"></i></div>任务列表</a>
+<a href="message-center.html" class="menu-item l1 active-l1 no-underline" style="color:inherit;"><div class="menu-ico"><i data-lucide="bell" class="w-[15px] h-[15px]"></i></div>消息中心</a>
+</aside>
+<main class="flex-1 bg-bg-page overflow-y-auto">
+<div class="max-w-[900px] mx-auto bg-white min-h-screen border-x border-line">
+
+  <!-- Top Tab Bar -->
+  <div class="flex items-center justify-between h-12 px-6 border-b border-line sticky top-0 bg-white z-10">
+    <div class="flex items-end h-full gap-8">
+      <div id="tabNotification" class="relative h-full flex items-center text-[15px] cursor-pointer border-b-2 font-semibold pb-[1px] transition-colors" style="color:#0066FF;border-bottom-color:#0066FF;" onclick="switchTab('notification')">
+        消息通知<span class="tab-badge" id="badgeNotif">5</span>
+      </div>
+      <div id="tabAnnounce" class="relative h-full flex items-center text-[15px] cursor-pointer border-b-2 border-transparent pb-[1px] text-ink-sub hover:text-primary transition-colors" onclick="switchTab('announcement')">
+        系统公告<span class="tab-badge" id="badgeAnnounce">1</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="text-[13px] text-ink-muted cursor-pointer hover:text-primary transition-colors" onclick="showWechatModal()">绑定公众号，随时掌握柜机动态 ></span>
+      <a href="message-settings.html" class="text-[13px] text-ink-sub hover:text-primary no-underline">消息设置</a>
+    </div>
+  </div>
+
+  <!-- Filter Section (notification only) -->
+  <div id="filterSection" class="px-6 py-3 border-b border-line bg-white">
+    <!-- 异常监控 -->
+    <div class="flex items-center gap-2 mb-2.5 flex-wrap"><span class="text-[12px] text-ink-muted font-medium flex-shrink-0" style="width:68px;">异常监控</span><div class="flex gap-2 flex-wrap" id="exceptionFilters"></div></div>
+    <!-- 消息提醒 -->
+    <div class="flex items-center gap-2 flex-wrap"><span class="text-[12px] text-ink-muted font-medium flex-shrink-0" style="width:68px;">消息提醒</span><div class="flex gap-2 flex-wrap" id="reminderFilters"></div></div>
+  </div>
+
+  <!-- List Header -->
+  <div class="flex items-center justify-between h-[52px] px-6 border-b border-line bg-white">
+    <div><span class="text-[15px] font-semibold text-ink-title" id="listTitle">消息列表</span><span class="text-[13px] text-ink-muted ml-2" id="listCount">共计 10 条消息</span></div>
+    <div class="flex items-center gap-4" id="listActions">
+      <label class="flex items-center gap-1.5 text-[13px] text-ink-sub cursor-pointer"><input type="checkbox" id="unreadOnly" onchange="applyFilters()" class="w-[14px] h-[14px] accent-primary"> 只看未读消息</label>
+      <button id="markAllBtn" class="h-[30px] px-3.5 bg-white border-none rounded text-[13px] text-primary cursor-pointer hover:bg-primary-bg transition-colors" onclick="markAllRead()">一键已读(<span id="markAllCount">5</span>)</button>
+    </div>
+  </div>
+
+  <!-- Message List -->
+  <div class="px-6 bg-white min-h-[300px]" id="msgList"></div>
+
+  <!-- Pagination -->
+  <div class="flex items-center justify-center py-3 border-t border-line bg-white gap-3 text-[13px]" id="paginationBar">
+    <button class="h-[28px] px-3 rounded border border-line bg-white text-ink-body cursor-pointer hover:border-primary hover:text-primary disabled:opacity-40 disabled:cursor-default" id="prevBtn" onclick="prevPage()">上一页</button>
+    <span class="text-ink-muted" id="pageInfo">第 1/1 页</span>
+    <button class="h-[28px] px-3 rounded border border-line bg-white text-ink-body cursor-pointer hover:border-primary hover:text-primary disabled:opacity-40 disabled:cursor-default" id="nextBtn" onclick="nextPage()">下一页</button>
+  </div>
+</div>
+
+<!-- ===== WECHAT MODAL ===== -->
+<div id="wechatModalOverlay" class="hidden modal-overlay" onclick="closeWechatModal()"><div class="modal modal-sm" onclick="event.stopPropagation()"><div class="modal-header"><span>微信提醒设置</span><button onclick="closeWechatModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[16px] h-[16px]"></i></button></div><div class="modal-body flex flex-col items-center py-4"><div class="w-[120px] h-[120px] bg-bg-page rounded flex items-center justify-center mb-4 text-[12px] text-ink-muted">游寄<br>公众号</div><p class="text-[15px] font-medium text-ink-title mb-1">请用微信"扫一扫"</p><p class="text-[13px] text-ink-muted mb-5">微信扫码关注"游寄"微信公众号</p><div class="w-full bg-bg-page rounded-md p-4"><p class="text-[13px] font-medium text-ink-sub mb-2">关注后可接收：</p><div class="flex items-start gap-1.5 text-[13px] text-ink-sub mb-1.5"><i data-lucide="check" class="w-[14px] h-[14px] text-success flex-shrink-0 mt-0.5"></i> 柜机异常、行李超时等实时告警</div><div class="flex items-start gap-1.5 text-[13px] text-ink-sub"><i data-lucide="check" class="w-[14px] h-[14px] text-success flex-shrink-0 mt-0.5"></i> 订单状态变更、退款审核等消息通知</div></div></div></div></div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg text-white text-[13px] font-medium z-[200] opacity-0 transition-opacity duration-300 pointer-events-none whitespace-nowrap" style="background:#1A1D24;"></div>
+
+<script>
+/* ===== DATA - 游寄业务消息 ===== */
+const notifications = [
+  { id:'n1', title:'【订单分配】张伟、李娜、王强等5个订单分配给你，请及时处理', category:'reminder', sub:'order_assign', isRead:false, time:'2026-07-03 14:00' },
+  { id:'n2', title:'【行李寄存到期提醒】客户138****5678的行李寄存将于明天到期', category:'reminder', sub:'storage_expire', isRead:false, time:'2026-07-03 13:30' },
+  { id:'n3', title:'【退款申请待审核】订单号 YJ20260703001 用户申请退款，请审核', category:'reminder', sub:'refund_review', isRead:false, time:'2026-07-03 12:00' },
+  { id:'n4', title:'【柜机故障告警】柜机 LK-031 传感器通信异常，请及时检修', category:'exception', sub:'locker_fault', isRead:false, time:'2026-07-03 11:00' },
+  { id:'n5', title:'【行李超时未领取】订单 YJ20260701015 寄存到期72小时未领取，升级告警', category:'exception', sub:'storage_overtime', isRead:false, time:'2026-07-03 10:00' },
+  { id:'n6', title:'【订单超时未完成】订单 YJ20260628008 创建72小时未完成', category:'exception', sub:'order_overtime', isRead:true, time:'2026-07-02 18:00' },
+  { id:'n7', title:'【订单转移】订单 YJ20260702020 从王强转移给你，请及时处理', category:'reminder', sub:'order_transfer', isRead:true, time:'2026-07-02 16:00' },
+  { id:'n8', title:'【柜机即将满载】柜机 LK-018 使用率达85%，请及时调配', category:'exception', sub:'locker_full', isRead:true, time:'2026-07-02 15:00' },
+  { id:'n9', title:'【异常件处理完成】工单 TK20260702005 已处理完毕', category:'reminder', sub:'ticket_done', isRead:false, time:'2026-07-02 14:00' },
+  { id:'n10', title:'【柜机授权即将到期】柜机 LK-005 授权剩余3天，请及时续期', category:'exception', sub:'auth_expire', isRead:false, time:'2026-07-02 12:00' },
+];
+
+const announcements = [
+  { id:'a1', title:'版本升级', content:'1、【订单管理】新增批量分配订单功能\n2、【柜机监控】优化柜机状态面板，新增满载预警\n3、【消息中心】全新消息中心上线，支持分类筛选和一键已读\n4、【异常工单】新增自动催办提醒，超时自动升级\n5、【数据统计】全新数据大屏上线，支持自定义指标\n6、【系统优化】修复若干已知问题，提升稳定性', isRead:false, time:'2026-07-03 09:00' },
+  { id:'a2', title:'版本升级', content:'1、【柜机管理】优化柜机列表加载速度\n2、【订单查询】新增多条件组合筛选', isRead:true, time:'2026-06-20 09:00' },
+];
+
+const exceptionTabs = [
+  { key:'all', label:'全部' },
+  { key:'locker_fault', label:'柜机故障告警' },
+  { key:'storage_overtime', label:'行李超时未领取' },
+  { key:'order_overtime', label:'订单超时未完成' },
+  { key:'locker_full', label:'柜机即将满载' },
+  { key:'auth_expire', label:'柜机授权即将到期' },
+];
+const reminderTabs = [
+  { key:'all', label:'全部' },
+  { key:'order_assign', label:'订单分配' },
+  { key:'order_transfer', label:'订单转移' },
+  { key:'storage_expire', label:'行李寄存到期提醒' },
+  { key:'refund_review', label:'退款申请待审核' },
+  { key:'ticket_done', label:'异常件处理完成' },
+];
+
+/* ===== STATE ===== */
+let activeTab = 'notification';
+let filterEx = 'all', filterRm = 'all', unreadOnly = false;
+let page = 1, pageSize = 10;
+
+/* ===== COMPUTED ===== */
+function getFiltered(){
+  if(activeTab==='announcement') return announcements;
+  let data = notifications.slice();
+  if(filterEx!=='all' || filterRm!=='all'){
+    data = data.filter(n => {
+      const mEx = filterEx==='all' || (n.category==='exception' && n.sub===filterEx);
+      const mRm = filterRm==='all' || (n.category==='reminder' && n.sub===filterRm);
+      return mEx || mRm;
+    });
+  }
+  if(unreadOnly) data = data.filter(n=>!n.isRead);
+  return data;
+}
+function getUnreadCount(data){ return data.filter(n=>!n.isRead).length; }
+
+/* ===== RENDER ===== */
+function renderAll(){
+  const data = getFiltered();
+  const totalPages = Math.ceil(data.length/pageSize)||1;
+  if(page>totalPages) page=totalPages;
+  const pageData = activeTab==='announcement' ? data : data.slice((page-1)*pageSize, page*pageSize);
+
+  // Update badges
+  const nUnread = notifications.filter(n=>!n.isRead).length;
+  const aUnread = announcements.filter(a=>!a.isRead).length;
+  document.getElementById('badgeNotif').textContent = nUnread;
+  document.getElementById('badgeNotif').style.display = nUnread>0?'flex':'none';
+  document.getElementById('badgeAnnounce').textContent = aUnread;
+  document.getElementById('badgeAnnounce').style.display = aUnread>0?'flex':'none';
+
+  // List header
+  document.getElementById('listTitle').textContent = activeTab==='notification'?'消息列表':'系统公告';
+  document.getElementById('listCount').textContent = '共计 '+data.length+' 条消息';
+  document.getElementById('listActions').style.display = activeTab==='notification'?'flex':'none';
+  const unreadInFiltered = getUnreadCount(data);
+  document.getElementById('markAllCount').textContent = unreadInFiltered;
+  document.getElementById('markAllBtn').style.display = unreadInFiltered>0?'block':'none';
+
+  // Filters visibility
+  document.getElementById('filterSection').style.display = activeTab==='notification'?'block':'none';
+
+  // Message list
+  const listEl = document.getElementById('msgList');
+  if(pageData.length===0){
+    listEl.innerHTML = '<div class="flex flex-col items-center py-20 text-[14px] text-ink-muted gap-3"><i data-lucide="inbox" class="w-[48px] h-[48px] opacity-30"></i><p>暂无消息</p></div>';
+  } else {
+    let html = '';
+    pageData.forEach(m => {
+      const cls = m.isRead?'read':'';
+      html += '<div class="msg-item flex items-start gap-3 '+cls+'" onclick="markRead(\''+m.id+'\')">';
+      html += '<div class="msg-dot"></div>';
+      html += '<div class="flex-1 min-w-0"><div class="text-[14px] msg-title '+(m.isRead?'text-ink-muted font-normal':'text-ink-title font-medium')+'">'+m.title+'</div></div>';
+      html += '<span class="text-[12px] text-ink-muted font-mono flex-shrink-0">'+m.time+'</span>';
+      html += '</div>';
+    });
+    listEl.innerHTML = html;
+  }
+
+  // Pagination
+  document.getElementById('pageInfo').textContent = '第 '+page+'/'+totalPages+' 页';
+  document.getElementById('prevBtn').disabled = page<=1;
+  document.getElementById('nextBtn').disabled = page>=totalPages;
+  document.getElementById('paginationBar').style.display = activeTab==='notification'?'flex':'none';
+}
+
+function renderFilters(){
+  let h = '';
+  exceptionTabs.forEach(t=>{
+    const count = t.key==='all'?notifications.filter(n=>n.category==='exception'&&!n.isRead).length:notifications.filter(n=>n.sub===t.key&&!n.isRead).length;
+    h += '<span class="filter-chip'+(filterEx===t.key?' active':'')+'" onclick="setFilter(\'ex\',\''+t.key+'\')">'+t.label+(count>0?' <span class="chip-badge">'+count+'</span>':'')+'</span>';
+  });
+  document.getElementById('exceptionFilters').innerHTML = h;
+  h = '';
+  reminderTabs.forEach(t=>{
+    const count = t.key==='all'?notifications.filter(n=>n.category==='reminder'&&!n.isRead).length:notifications.filter(n=>n.sub===t.key&&!n.isRead).length;
+    h += '<span class="filter-chip'+(filterRm===t.key?' active':'')+'" onclick="setFilter(\'rm\',\''+t.key+'\')">'+t.label+(count>0?' <span class="chip-badge">'+count+'</span>':'')+'</span>';
+  });
+  document.getElementById('reminderFilters').innerHTML = h;
+}
+
+function setFilter(type,key){
+  if(type==='ex') filterEx = key; else filterRm = key;
+  page = 1; applyFilters();
+}
+function applyFilters(){
+  unreadOnly = document.getElementById('unreadOnly').checked;
+  page = 1; renderAll(); renderFilters();
+}
+function switchTab(tab){
+  activeTab = tab; filterEx = 'all'; filterRm = 'all'; unreadOnly = false; page = 1;
+  document.getElementById('unreadOnly').checked = false;
+  document.getElementById('tabNotification').style.cssText = tab==='notification'?'color:#0066FF;font-weight:600;border-bottom-color:#0066FF;':'color:#6E7685;font-weight:400;border-bottom-color:transparent;';
+  document.getElementById('tabAnnounce').style.cssText = tab==='announcement'?'color:#0066FF;font-weight:600;border-bottom-color:#0066FF;':'color:#6E7685;font-weight:400;border-bottom-color:transparent;';
+  renderAll(); renderFilters();
+}
+function markRead(id){
+  const n = notifications.find(x=>x.id===id);
+  if(n){ n.isRead=true; renderAll(); renderFilters(); return; }
+  const a = announcements.find(x=>x.id===id);
+  if(a){ a.isRead=true; renderAll(); }
+}
+function markAllRead(){
+  getFiltered().forEach(n=>{ n.isRead=true; });
+  renderAll(); renderFilters(); showToast('已全部标记为已读','success');
+}
+function prevPage(){ if(page>1){ page--; renderAll(); } }
+function nextPage(){ const total=Math.ceil(getFiltered().length/pageSize)||1; if(page<total){ page++; renderAll(); } }
+
+/* ===== MODALS ===== */
+function showWechatModal(){ document.getElementById('wechatModalOverlay').classList.remove('hidden'); }
+function closeWechatModal(){ document.getElementById('wechatModalOverlay').classList.add('hidden'); }
+
+/* ===== TOAST ===== */
+let tt=null;
+function showToast(msg,type='info'){
+  if(tt)clearTimeout(tt);
+  const el=document.getElementById('toast');
+  const c={info:'#1A1D24',success:'#0FC060'};
+  el.textContent=msg;el.style.background=c[type]||c.info;el.style.opacity='1';
+  tt=setTimeout(()=>{el.style.opacity='0';},2000);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{lucide.createIcons();renderAll();renderFilters();});
+</script>
+</main>
+</div>
+</body>
+</html>

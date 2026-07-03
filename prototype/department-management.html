@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>部门管理 - 游寄后台管理系统</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary:   { DEFAULT: '#0066FF', hover: '#0052CC', active: '#0047B3', bg: '#E6F0FF' },
+            ink:       { title: '#1A1D24', body: '#3A3F4A', sub: '#6E7685', muted: '#9DA2AC' },
+            line:      { DEFAULT: '#DFE1E5', light: '#E8EAED', lighter: '#F0F1F3' },
+            bg:        { page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6' },
+            success:   { DEFAULT: '#0FC060', bg: '#E7F9F0' },
+            warning:   { DEFAULT: '#E7772D', bg: '#FDF2E9' },
+            danger:    { DEFAULT: '#D9001B', bg: '#FFE8EB' },
+            info:      { DEFAULT: '#0091D5', bg: '#E4F4FB' },
+          },
+          borderRadius: { DEFAULT: '4px', md: '6px', lg: '8px' },
+          fontFamily: {
+            sans: ['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],
+            mono: ['JetBrains Mono','monospace'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background: #F7F8FA; }
+    .tree-node { cursor: pointer; user-select: none; transition: background .12s; display: flex; align-items: center; gap: 6px; padding: 0 8px; height: 36px; border-radius: 4px; }
+    .tree-node:hover { background: #F3F4F6; }
+    .tree-node.active { background: #E6F0FF; }
+    .tree-node .node-more { opacity: 0; transition: opacity .15s; margin-left: auto; }
+    .tree-node:hover .node-more { opacity: 1; }
+    .tree-children { overflow: hidden; transition: max-height .25s ease; }
+    .tree-children.collapsed { max-height: 0 !important; }
+    .tree-arrow { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; color: #9DA2AC; transition: transform .2s; font-size: 10px; flex-shrink: 0; }
+    .tree-arrow.open { transform: rotate(90deg); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 14px; font-size: 13px; font-weight: 500; border-radius: 4px; border: 1px solid transparent; cursor: pointer; transition: all .15s; outline: none; }
+    .btn-primary { background: #0066FF; color: #fff; border-color: #0066FF; }
+    .btn-primary:hover { background: #0052CC; }
+    .btn-default { background: #fff; color: #3A3F4A; border-color: #DFE1E5; }
+    .btn-default:hover { border-color: #0066FF; color: #0066FF; }
+
+    .form-input { width: 100%; height: 36px; padding: 0 12px; font-size: 13px; border: 1px solid #DFE1E5; border-radius: 4px; color: #3A3F4A; outline: none; transition: border-color .15s; box-sizing: border-box; background: #fff; }
+    .form-input:focus { border-color: #0066FF; box-shadow: 0 0 0 2px rgba(0,102,255,.12); }
+    .form-select { width: 100%; height: 36px; padding: 0 32px 0 12px; font-size: 13px; border: 1px solid #DFE1E5; border-radius: 4px; color: #3A3F4A; outline: none; appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239DA2AC' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center; cursor: pointer; }
+    .form-select:focus { border-color: #0066FF; box-shadow: 0 0 0 2px rgba(0,102,255,.12); }
+    .form-error { display: block; color: #D9001B; font-size: 12px; margin-top: 4px; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 100; display: flex; align-items: center; justify-content: center; }
+    .modal { background: #fff; border-radius: 8px; width: 500px; max-width: 90%; max-height: 70vh; display: flex; flex-direction: column; box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+    .modal-sm { width: 440px; }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid #DFE1E5; display: flex; align-items: center; justify-content: space-between; font-size: 15px; font-weight: 600; color: #1A1D24; }
+    .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 12px 20px; border-top: 1px solid #DFE1E5; display: flex; justify-content: flex-end; gap: 8px; }
+
+    .anno-badge { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%; background: #0066FF; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 20; transition: transform .15s; line-height: 1; }
+    .anno-badge:hover { transform: scale(1.2); }
+    .anno-hidden .anno-badge { display: none; }
+
+    .context-menu { position: fixed; background: #fff; border: 1px solid #DFE1E5; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.06); z-index: 50; padding: 4px 0; min-width: 140px; }
+    .context-menu-item { padding: 6px 14px; font-size: 13px; cursor: pointer; color: #3A3F4A; transition: background .1s; }
+    .context-menu-item:hover { background: #F3F4F6; }
+    .context-menu-item.danger { color: #D9001B; }
+  
+.menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+.menu-item:hover{background:#F3F4F6;}
+.menu-item.l1{padding-left:20px;font-weight:500;}
+.menu-item.l2{padding-left:52px;}
+.menu-item.active-l1{color:#0066FF;}
+.menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+.menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+.active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+.menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+.menu-arrow.open{transform:rotate(180deg);}
+.submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+.submenu.collapsed{max-height:0!important;opacity:0;}
+
+</style>
+</head>
+<body class="font-sans flex flex-col h-screen overflow-hidden">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-6 flex-shrink-0">
+<div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'"><div class="w-8 h-8 rounded bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div><span class="text-[15px] font-semibold text-ink-title">游寄后台管理系统</span></div>
+<div class="ml-auto flex items-center gap-5">
+<a href="task-center.html" class="relative flex items-center text-ink-sub hover:text-primary transition-colors no-underline" title="任务列表"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i></a>
+<a href="message-center.html" class="relative flex items-center text-ink-sub hover:text-primary transition-colors no-underline" title="消息中心"><i data-lucide="bell" class="w-[18px] h-[18px]"></i></a>
+<a href="account-info.html" class="flex items-center gap-1.5 text-ink-sub hover:text-primary transition-colors no-underline" title="账号信息"><i data-lucide="user" class="w-[18px] h-[18px]"></i></a>
+</div>
+</header>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="flex flex-1 min-h-0">
+<aside id="sidebar" class="w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+<div class="menu-item l1 js-select-l1" data-label="工作台">
+<div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台
+</div>
+<div class="menu-item l1 js-toggle-sub" data-target="sub-orders">
+<div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理<span class="menu-arrow">▼</span>
+</div>
+<div class="submenu collapsed" id="sub-orders" style="max-height:400px;">
+<a  class="menu-item l2 no-underline" style="color:inherit;">全部订单</a>
+<a  class="menu-item l2 no-underline" style="color:inherit;">异常工单</a>
+</div>
+<div class="menu-item l1 js-select-l1" data-label="柜机监控">
+<div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控
+</div>
+<div class="menu-item l1 js-toggle-sub active-l1" data-target="sub-settings">
+<div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置<span class="menu-arrow open">▼</span>
+</div>
+<div class="submenu" id="sub-settings" style="max-height:400px;">
+<a href="member-management.html" class="menu-item l2 no-underline" style="color:inherit;">成员管理</a>
+<a href="department-management.html" class="menu-item l2 active-l2 no-underline" style="color:inherit;">部门管理</a>
+<a href="role-management.html" class="menu-item l2 no-underline" style="color:inherit;">角色管理</a>
+<a href="account-info.html" class="menu-item l2 no-underline" style="color:inherit;">账号信息</a>
+<a href="message-settings.html" class="menu-item l2 no-underline" style="color:inherit;">消息设置</a>
+</div>
+<a href="task-center.html" class="menu-item l1 no-underline" style="color:inherit;">
+<div class="menu-ico"><i data-lucide="clipboard-list" class="w-[15px] h-[15px]"></i></div>任务列表
+</a>
+<a href="message-center.html" class="menu-item l1 no-underline" style="color:inherit;">
+<div class="menu-ico"><i data-lucide="bell" class="w-[15px] h-[15px]"></i></div>消息中心
+</a>
+
+</aside>
+<main class="max-w-[960px] mx-auto px-4 py-6">
+
+  <!-- Page Header -->
+  <div class="bg-white rounded-t-lg border border-line border-b-0 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3 relative">
+      <h2 class="text-[16px] font-semibold text-ink-title m-0">部门管理</h2>
+      <span class="anno-badge" data-anno="1" >1</span>
+    </div>
+    <div class="relative">
+      <span class="anno-badge" data-anno="2">2</span>
+      <button class="btn btn-primary" onclick="openDeptDialog('add')"><i data-lucide="plus" class="w-[15px] h-[15px]"></i> 添加部门</button>
+    </div>
+  </div>
+
+  <!-- Department Tree Section -->
+  <div class="bg-white rounded-b-lg border border-line min-h-[60vh]">
+    <!-- Search -->
+    <div class="px-4 py-3 border-b border-line relative">
+      <span class="anno-badge" data-anno="3" >3</span>
+      <div class="relative inline-block" style="margin-left:28px;">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-[15px] h-[15px] text-ink-muted"></i>
+        <input type="text" id="searchInput" placeholder="搜索部门名称" class="form-input pl-9 w-[260px] h-[32px]">
+      </div>
+    </div>
+    <!-- Tree -->
+    <div class="p-4" id="deptTreeContainer">
+      </div>
+<div id="deptTree"></div>
+      <div id="searchEmpty" class="hidden flex items-center justify-center py-16 text-[13px] text-ink-muted">暂无搜索结果</div>
+    </div>
+  </div>
+</main>
+</div><!-- /flex wrapper -->
+
+
+<!-- ===== TOAST ===== -->
+<div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg text-white text-[13px] font-medium z-[200] opacity-0 transition-opacity duration-300 pointer-events-none whitespace-nowrap" style="background:#1A1D24;"></div>
+
+<!-- ===== ANNOTATION TOGGLE ===== -->
+<div id="annoToggleWrap" class="fixed z-[150] select-none" style="right:8px;top:120px;cursor:grab;" onmousedown="startDragToggle(event)">
+<div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium bg-white/90 backdrop-blur text-primary border border-primary/30 hover:bg-primary-bg hover:border-primary/60 transition-colors cursor-pointer shadow-sm">
+<i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i>
+<span id="annoToggleLabel">标注</span>
+</div>
+</div>
+
+<!-- ===== ANNOTATION MODAL ===== -->
+<div id="annoModal" class="hidden fixed z-[300]" style="top:50%;left:50%;transform:translate(-50%,-50%);">
+<div class="bg-white rounded-lg p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto relative" style="box-shadow:0 12px 40px rgba(0,0,0,.18);" onclick="event.stopPropagation()">
+<div class="flex items-center gap-2 mb-4 select-none" id="annoDragHandle" style="cursor:grab;" onmousedown="startDragModal(event)" title="长按拖拽移动弹窗">
+<i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i>
+<h3 id="annoModalTitle" class="text-[16px] font-semibold text-ink-title"></h3>
+
+<button onclick="closeAnnoModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted" style="position:absolute;top:12px;right:12px;z-index:10;"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+</div>
+<ul id="annoModalBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul>
+</div>
+</div>
+</div>
+
+<!-- ===== DEPT MODAL ===== -->
+<div id="deptModalOverlay" class="hidden modal-overlay" onclick="closeDeptModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span id="deptModalTitle">添加部门</span><button onclick="closeDeptModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[16px] h-[16px]"></i></button></div>
+    <div class="modal-body">
+      <div class="mb-4"><label class="block text-[13px] font-medium text-ink-body mb-1.5"><span class="text-danger mr-1">*</span>部门名称</label><input type="text" id="deptName" class="form-input" placeholder="请输入部门名称" maxlength="20"><span id="deptNameError" class="form-error hidden"></span></div>
+      <div class="mb-4"><label class="block text-[13px] font-medium text-ink-body mb-1.5"><span class="text-danger mr-1">*</span>上级部门</label><select id="deptParent" class="form-select"></select></div>
+      <div class="mb-4"><label class="block text-[13px] font-medium text-ink-body mb-1.5">负责人</label><select id="deptLeader" class="form-select" multiple size="4"></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeDeptModal()">取消</button><button class="btn btn-primary" onclick="confirmDept()">确定</button></div>
+  </div>
+</div>
+
+<!-- ===== DELETE MODAL ===== -->
+<div id="deleteModalOverlay" class="hidden modal-overlay" onclick="closeDeleteModal()">
+  <div class="modal modal-sm" onclick="event.stopPropagation()">
+    <div class="modal-header"><span>确认删除该部门吗？</span><button onclick="closeDeleteModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[16px] h-[16px]"></i></button></div>
+    <div class="modal-body"><p class="text-[13px] text-ink-sub leading-relaxed">删除后，该部门及其所有子部门将被删除。<br>该部门的成员将被移除。</p></div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeDeleteModal()">取消</button><button class="btn btn-primary" onclick="confirmDelete()">确定</button></div>
+  </div>
+</div>
+
+<script>
+/* ===== DATA ===== */
+const deptTreeData = [
+  { id:'d0', name:'游寄科技', parentId:null, memberCount:15, createTime:'2023-01-01 10:00:00', leaders:'张伟', children:[
+    { id:'d1', name:'运营部', parentId:'d0', memberCount:5, createTime:'2023-02-01 10:00:00', leaders:'李娜', children:[
+      { id:'d1-1', name:'运营一组', parentId:'d1', memberCount:2, createTime:'2023-03-01 10:00:00', leaders:'', children:[] },
+      { id:'d1-2', name:'运营二组', parentId:'d1', memberCount:3, createTime:'2023-03-15 10:00:00', leaders:'', children:[] }
+    ]},
+    { id:'d2', name:'客服部', parentId:'d0', memberCount:4, createTime:'2023-02-15 10:00:00', leaders:'钱明', children:[
+      { id:'d2-1', name:'投诉处理组', parentId:'d2', memberCount:4, createTime:'2023-04-01 10:00:00', leaders:'', children:[] }
+    ]},
+    { id:'d3', name:'技术部', parentId:'d0', memberCount:6, createTime:'2023-03-01 10:00:00', leaders:'周磊', children:[] }
+  ]}
+];
+
+const memberOptions = [
+  { id:'m1', name:'张伟' }, { id:'m2', name:'李娜' }, { id:'m3', name:'王强' },
+  { id:'m4', name:'赵敏' }, { id:'m5', name:'钱明' }, { id:'m6', name:'周磊' }, { id:'m7', name:'吴芳' }
+];
+
+let selectedDeptId = null;
+let searchKeyword = '';
+let currentDeptAction = null; // { type:'add'|'edit', deptId }
+let currentDeleteDeptId = null;
+
+/* ===== HELPERS ===== */
+function findDeptById(depts, id) {
+  for (const d of depts) { if (d.id === id) return d; if (d.children) { const f = findDeptById(d.children, id); if (f) return f; } }
+  return null;
+}
+function findParentDeptId(depts, childId, parentId = null) {
+  for (const d of depts) { if (d.id === childId) return parentId; if (d.children) { const f = findParentDeptId(d.children, childId, d.id); if (f !== null) return f; } }
+  return null;
+}
+function deleteDeptFromTree(depts, deptId) {
+  for (let i = 0; i < depts.length; i++) { if (depts[i].id === deptId) { depts.splice(i, 1); return true; } if (depts[i].children && deleteDeptFromTree(depts[i].children, deptId)) return true; }
+  return false;
+}
+function checkDeptNameExists(depts, name, excludeId) {
+  for (const d of depts) { if (d.id !== excludeId && d.name === name) return true; if (d.children && checkDeptNameExists(d.children, name, excludeId)) return true; }
+  return false;
+}
+function getLeaderNames(ids) { return ids.map(id => { const m = memberOptions.find(x => x.id === id); return m ? m.name : ''; }).filter(Boolean).join('、'); }
+function getLeaderIds(nameStr) { if (!nameStr) return []; return memberOptions.filter(m => nameStr.includes(m.name)).map(m => m.id); }
+
+/* ===== TREE FILTER ===== */
+function filterTree(data, keyword) {
+  if (!keyword) return data;
+  const result = [];
+  for (const item of data) {
+    const children = item.children ? filterTree(item.children, keyword) : [];
+    if (item.name.toLowerCase().includes(keyword.toLowerCase()) || children.length > 0) {
+      result.push({ ...item, children });
+    }
+  }
+  return result;
+}
+
+/* ===== RENDER TREE ===== */
+function renderTree() {
+  const container = document.getElementById('deptTree');
+  const empty = document.getElementById('searchEmpty');
+  const filtered = filterTree(deptTreeData, searchKeyword);
+
+  if (filtered.length === 0) {
+    container.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  function renderNode(dept, level) {
+    const hasChildren = dept.children && dept.children.length > 0;
+    const isActive = dept.id === selectedDeptId;
+    let html = '<div class="tree-node' + (isActive ? ' active' : '') + '" data-dept-id="' + dept.id + '" style="padding-left:' + (8 + level * 20) + 'px">';
+    html += '<span class="tree-arrow open' + (hasChildren ? '' : ' invisible') + '">▶</span>';
+    html += '<span class="flex-1 text-[14px] text-ink-body truncate">' + dept.name + '</span>';
+    html += '<span class="text-[12px] text-ink-muted font-mono flex-shrink-0 mr-2">(' + dept.memberCount + '人)</span>';
+    if (dept.id !== 'd0') {
+      html += '<span class="node-more flex-shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-line-lighter text-ink-sub cursor-pointer" data-dept-id="' + dept.id + '"><i data-lucide="more-horizontal" class="w-[14px] h-[14px]"></i></span>';
+    }
+    html += '</div>';
+    if (hasChildren) {
+      html += '<div class="tree-children" style="max-height:2000px">';
+      dept.children.forEach(c => { html += renderNode(c, level + 1); });
+      html += '</div>';
+    }
+    return html;
+  }
+
+  let html = '';
+  filtered.forEach(d => { html += renderNode(d, 0); });
+  container.innerHTML = html;
+  lucide.createIcons({ attrs: { class: 'w-[14px] h-[14px]' } });
+
+  // Bind tree node clicks
+  container.querySelectorAll('.tree-node').forEach(node => {
+    node.addEventListener('click', function(e) {
+      if (e.target.closest('.node-more')) return;
+      selectedDeptId = this.getAttribute('data-dept-id');
+      renderTree();
+    });
+  });
+
+  // Bind arrow clicks
+  container.querySelectorAll('.tree-arrow').forEach(arrow => {
+    arrow.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const node = this.parentElement;
+      const children = node.nextElementSibling;
+      if (children && children.classList.contains('tree-children')) {
+        if (children.classList.contains('collapsed')) {
+          children.classList.remove('collapsed');
+          this.classList.add('open');
+        } else {
+          children.classList.add('collapsed');
+          this.classList.remove('open');
+        }
+      }
+    });
+  });
+
+  // Bind more buttons
+  container.querySelectorAll('.node-more').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      openContextMenu(e, this.getAttribute('data-dept-id'));
+    });
+  });
+}
+
+/* ===== CONTEXT MENU ===== */
+function openContextMenu(e, deptId) {
+  // Remove existing
+  document.querySelectorAll('.context-menu').forEach(m => m.remove());
+  const menu = document.createElement('div');
+  menu.className = 'context-menu';
+  menu.style.left = e.clientX + 'px';
+  menu.style.top = e.clientY + 'px';
+
+  const items = [
+    { label: '编辑部门', cls: '', action() { openDeptDialog('edit', deptId); closeMenu(); } },
+    { label: '添加子部门', cls: '', action() { openDeptDialog('add', deptId); closeMenu(); } },
+    { label: '删除部门', cls: 'danger', action() { if (deptId === 'd0') { showToast('根部门不能删除', 'warning'); closeMenu(); return; } currentDeleteDeptId = deptId; document.getElementById('deleteModalOverlay').classList.remove('hidden'); closeMenu(); } },
+  ];
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'context-menu-item' + (item.cls ? ' ' + item.cls : '');
+    div.textContent = item.label;
+    div.onclick = item.action;
+    menu.appendChild(div);
+  });
+  document.body.appendChild(menu);
+
+  function closeMenu() { menu.remove(); document.removeEventListener('click', closeMenu); }
+  setTimeout(() => document.addEventListener('click', closeMenu), 0);
+}
+
+/* ===== DEPT MODAL ===== */
+function openDeptDialog(type, deptId) {
+  currentDeptAction = { type, deptId };
+  const titleEl = document.getElementById('deptModalTitle');
+  const nameEl = document.getElementById('deptName');
+  const errEl = document.getElementById('deptNameError');
+  const parentSel = document.getElementById('deptParent');
+  const leaderSel = document.getElementById('deptLeader');
+
+  titleEl.textContent = type === 'edit' ? '编辑部门' : (deptId ? '添加子部门' : '添加部门');
+  errEl.classList.add('hidden');
+
+  // Build parent select
+  parentSel.innerHTML = '';
+  function addOpts(depts, level) {
+    depts.forEach(d => {
+      parentSel.innerHTML += '<option value="' + d.id + '">' + '　'.repeat(level) + d.name + '</option>';
+      if (d.children) addOpts(d.children, level + 1);
+    });
+  }
+  addOpts(deptTreeData, 0);
+
+  // Build leader select
+  leaderSel.innerHTML = '';
+  memberOptions.forEach(m => {
+    leaderSel.innerHTML += '<option value="' + m.id + '">' + m.name + '</option>';
+  });
+
+  if (type === 'edit') {
+    const dept = findDeptById(deptTreeData, deptId);
+    if (dept) {
+      nameEl.value = dept.name;
+      parentSel.value = dept.parentId || 'd0';
+      const leaderIds = getLeaderIds(dept.leaders);
+      Array.from(leaderSel.options).forEach(o => { o.selected = leaderIds.includes(o.value); });
+    }
+  } else {
+    nameEl.value = '';
+    parentSel.value = deptId || 'd0';
+    Array.from(leaderSel.options).forEach(o => { o.selected = false; });
+  }
+  document.getElementById('deptModalOverlay').classList.remove('hidden');
+}
+
+function closeDeptModal() { document.getElementById('deptModalOverlay').classList.add('hidden'); }
+
+function confirmDept() {
+  const name = document.getElementById('deptName').value.trim();
+  const parentId = document.getElementById('deptParent').value;
+  const leaderSel = document.getElementById('deptLeader');
+  const leaderIds = Array.from(leaderSel.selectedOptions).map(o => o.value);
+  const errEl = document.getElementById('deptNameError');
+
+  if (!name) { errEl.textContent = '请输入部门名称'; errEl.classList.remove('hidden'); return; }
+  if (name.length > 20) { errEl.textContent = '部门名称不能超过20字'; errEl.classList.remove('hidden'); return; }
+
+  const excludeId = currentDeptAction.type === 'edit' ? currentDeptAction.deptId : null;
+  if (checkDeptNameExists(deptTreeData, name, excludeId)) {
+    errEl.textContent = '部门名称已存在'; errEl.classList.remove('hidden'); return;
+  }
+  errEl.classList.add('hidden');
+
+  if (currentDeptAction.type === 'edit') {
+    const dept = findDeptById(deptTreeData, currentDeptAction.deptId);
+    if (dept) { dept.name = name; dept.parentId = parentId; dept.leaders = getLeaderNames(leaderIds); }
+    showToast('编辑成功', 'success');
+  } else {
+    const parent = findDeptById(deptTreeData, parentId);
+    if (parent) {
+      if (!parent.children) parent.children = [];
+      parent.children.push({
+        id: 'd' + Date.now(), name, parentId, memberCount: 0,
+        createTime: new Date().toLocaleString('zh-CN'),
+        leaders: getLeaderNames(leaderIds), children: []
+      });
+    }
+    showToast('添加成功', 'success');
+  }
+  closeDeptModal();
+  renderTree();
+}
+
+/* ===== DELETE ===== */
+function closeDeleteModal() { document.getElementById('deleteModalOverlay').classList.add('hidden'); }
+function confirmDelete() {
+  deleteDeptFromTree(deptTreeData, currentDeleteDeptId);
+  selectedDeptId = null;
+  showToast('删除成功', 'success');
+  closeDeleteModal();
+  renderTree();
+}
+
+/* ===== SEARCH ===== */
+document.getElementById('searchInput').addEventListener('input', function() {
+  searchKeyword = this.value;
+  renderTree();
+});
+
+/* ===== TOAST ===== */
+let toastTimer = null;
+function showToast(msg, type = 'info') {
+  if (toastTimer) clearTimeout(toastTimer);
+  const el = document.getElementById('toast');
+  const colors = { info: { bg: '#1A1D24', c: '#fff' }, success: { bg: '#0FC060', c: '#fff' }, error: { bg: '#D9001B', c: '#fff' }, warning: { bg: '#E7772D', c: '#fff' } };
+  const t = colors[type] || colors.info;
+  el.textContent = msg; el.style.background = t.bg; el.style.color = t.c; el.style.opacity = '1';
+  toastTimer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
+}
+
+/* ===== ANNOTATIONS ===== */
+const annotations = {
+  1: { title: '部门管理页面', desc: [
+    '定位：系统设置下的部门管理页面，集中管理部门组织架构',
+    '页面结构：标题栏（部门管理 + 添加部门按钮）+ 搜索区 + 部门树',
+    '规则：全宽布局，无侧边栏，区别于成员管理的左右分栏'
+  ]},
+  2: { title: '添加部门按钮', desc: [
+    '触发：点击"添加部门"按钮',
+    '响应：弹出添加部门弹窗，上级部门默认选根部门',
+    '表单字段：部门名称（必填，最长20字）、上级部门（必选）、负责人（多选，可选）',
+    '校验：名称不可为空、不可超20字、不可与已有部门重名'
+  ]},
+  3: { title: '搜索部门', desc: [
+    '触发：在搜索框输入部门名称关键字',
+    '响应：前端实时过滤部门树，保留匹配节点及其父级路径',
+    '规则：不区分大小写；匹配逻辑为名称包含关键字或子节点有匹配',
+    '空结果：显示"暂无搜索结果"'
+  ]},
+  4: { title: '部门树操作', desc: [
+    '单击节点：选中（蓝色高亮）',
+    '箭头 ▶：展开/收起子部门',
+    '更多 ⋯ 按钮：hover 出现，点击弹出菜单（编辑部门 / 添加子部门 / 删除部门）',
+    '根部门：不可删除，保护提示',
+    '节点信息：显示部门名称 + 成员数量 "(N人)"'
+  ]},
+  5: { title: '部门弹窗', desc: [
+    '添加子部门：从树的更多菜单触发，上级部门自动填入所选节点',
+    '编辑部门：回填当前部门名称、上级部门、负责人',
+    '名称唯一性：提交时校验全局部门名称不重复（编辑时排除自身）',
+    '负责人：支持多选，数据关联成员列表'
+  ]},
+};
+
+let annoVisible = true;
+document.getElementById('annoToggleWrap').addEventListener('click', function() {
+  annoVisible = !annoVisible;
+  if (annoVisible) { document.body.classList.remove('anno-hidden'); document.getElementById('annoToggleLabel').textContent='标注';document.getElementById('annoToggleIcon').setAttribute('data-lucide','eye');lucide.createIcons({attrs:{class:'w-[13px] h-[13px]'}}); }
+  else { document.body.classList.add('anno-hidden'); document.getElementById('annoToggleLabel').textContent='标注';document.getElementById('annoToggleIcon').setAttribute('data-lucide','eye-off');lucide.createIcons({attrs:{class:'w-[13px] h-[13px]'}}); }
+  lucide.createIcons({ attrs: { class: 'w-[14px] h-[14px]' } });
+});
+
+document.querySelectorAll('.anno-badge').forEach(badge => {
+  badge.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const id = this.getAttribute('data-anno');
+    const a = annotations[id];
+    if (!a) return;
+    document.getElementById('annoModalTitle').textContent = '#' + id + ' ' + a.title;
+    document.getElementById('annoModalBody').innerHTML = a.desc.map(d => '<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>' + d + '</span></li>').join('');
+    document.getElementById('annoModal').classList.remove('hidden');
+  });
+});
+function closeAnnoModal(){document.getElementById('annoModal').classList.add('hidden');}
+document.addEventListener('click',function(e){
+  var m=document.getElementById('annoModal');
+  if(!m||m.classList.contains('hidden'))return;
+  if(!m.contains(e.target))closeAnnoModal();
+});
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded', () => {
+  lucide.createIcons();
+  renderTree();
+});
+
+/* ===== DRAG: Annotation Modal ===== */
+let dragModal=null,dragOffX=0,dragOffY=0,dragStartTime=0,dragActive=false;
+function startDragModal(e){
+  if(e.target.closest("button"))return;
+  dragStartTime=Date.now();dragActive=false;
+  const m=document.getElementById("annoModal");if(!m)return;
+  document.addEventListener("mousemove",onDragModal);
+  document.addEventListener("mouseup",stopDragModal);
+  dragOffX=e.clientX-m.offsetLeft;dragOffY=e.clientY-m.offsetTop;
+}
+function onDragModal(e){
+  if(Date.now()-dragStartTime<200)return;dragActive=true;
+  const m=document.getElementById("annoModal");if(!m)return;
+  m.style.left=(e.clientX-dragOffX)+"px";m.style.top=(e.clientY-dragOffY)+"px";
+  m.style.transform="none";
+  document.getElementById("annoDragHandle").style.cursor="grabbing";
+}
+function stopDragModal(){
+  document.removeEventListener("mousemove",onDragModal);
+  document.removeEventListener("mouseup",stopDragModal);
+  const h=document.getElementById("annoDragHandle");if(h)h.style.cursor="grab";
+}
+/* ===== DRAG: Toggle ===== */
+let dragToggleY=0,dragToggleMoved=false;
+function startDragToggle(e){
+  dragToggleY=e.clientY;dragToggleMoved=false;
+  document.addEventListener("mousemove",onDragToggle);
+  document.addEventListener("mouseup",stopDragToggle);e.preventDefault();
+}
+function onDragToggle(e){
+  if(Math.abs(e.clientY-dragToggleY)<5)return;dragToggleMoved=true;
+  const w=document.getElementById("annoToggleWrap");if(!w)return;
+  let t=e.clientY-20;t=Math.max(60,Math.min(window.innerHeight-60,t));
+  w.style.top=t+"px";w.style.right="8px";w.style.cursor="grabbing";
+}
+function stopDragToggle(e){
+  document.removeEventListener("mousemove",onDragToggle);
+  document.removeEventListener("mouseup",stopDragToggle);
+  const w=document.getElementById("annoToggleWrap");if(w){w.style.cursor="grab";
+  w.dataset.dragging=dragToggleMoved?"1":"";if(dragToggleMoved)setTimeout(function(){w.dataset.dragging="";},100);}
+}
+
+
+
+/* ===== SIDEBAR MENU ===== */
+(function(){
+  var sb = document.getElementById('sidebar');
+  if(!sb) return;
+  sb.addEventListener('click', function(e){
+    var el = e.target.closest('.js-toggle-sub');
+    if(!el) return;
+    var targetId = el.getAttribute('data-target');
+    var sub = document.getElementById(targetId);
+    if(!sub) return;
+    var arrow = el.querySelector('.menu-arrow');
+    if(sub.classList.contains('collapsed')){
+      sub.classList.remove('collapsed');
+      if(arrow) arrow.classList.add('open');
+    } else {
+      sub.classList.add('collapsed');
+      if(arrow) arrow.classList.remove('open');
+    }
+  });
+})();
+
+</script>
+</body>
+</html>

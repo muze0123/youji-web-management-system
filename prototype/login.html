@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>登录 - 游寄后台管理系统</title>
+
+  <!-- CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind Config: design.md §7 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary:   { DEFAULT: '#0066FF', hover: '#0052CC', active: '#0047B3', bg: '#E6F0FF' },
+            ink:       { title: '#1A1D24', body: '#3A3F4A', sub: '#6E7685', muted: '#9DA2AC' },
+            line:      { DEFAULT: '#DFE1E5', light: '#E8EAED', lighter: '#F0F1F3' },
+            bg:        { page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6' },
+            success:   { DEFAULT: '#0FC060', bg: '#E7F9F0' },
+            warning:   { DEFAULT: '#E7772D', bg: '#FDF2E9' },
+            danger:    { DEFAULT: '#D9001B', bg: '#FFE8EB' },
+            info:      { DEFAULT: '#0091D5', bg: '#E4F4FB' },
+          },
+          borderRadius: { DEFAULT: '4px', md: '6px', lg: '8px' },
+          fontFamily: {
+            sans: ['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],
+            mono: ['JetBrains Mono','monospace'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ===== Custom styles beyond Tailwind ===== */
+    .brand-panel {
+      background: linear-gradient(135deg, #0047B3 0%, #0066FF 40%, #3388FF 70%, #0052CC 100%);
+    }
+    .decorative-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+    }
+    .orb-1 { width: 260px; height: 260px; background: rgba(255,255,255,.12); top: 15%; right: -80px; }
+    .orb-2 { width: 180px; height: 180px; background: rgba(255,255,255,.08); bottom: 20%; left: -60px; }
+    .orb-3 { width: 200px; height: 200px; background: rgba(255,255,255,.06); top: 50%; left: 30%; }
+
+    .input-focus-ring:focus {
+      box-shadow: 0 0 0 3px rgba(0,102,255,.15);
+    }
+    .login-btn {
+      background: linear-gradient(135deg, #0066FF 0%, #0052CC 100%);
+      box-shadow: 0 4px 14px 0 rgba(0,102,255,.35);
+      transition: all .3s ease;
+    }
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px 0 rgba(0,102,255,.45);
+    }
+    .login-btn:active { transform: translateY(0); }
+
+    /* Annotation badge */
+    .anno-badge {
+      position: absolute;
+      top: -8px; right: -8px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #0066FF;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 20;
+      transition: transform .15s;
+      line-height: 1;
+    }
+    .anno-badge:hover { transform: scale(1.2); }
+    .anno-hidden .anno-badge { display: none; }
+
+    /* Annotation modal */
+    .anno-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .anno-modal {
+      background: #fff; border-radius: 8px; padding: 24px;
+      max-width: 480px; width: 90%; max-height: 70vh; overflow-y: auto;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fadeIn { animation: fadeIn .6s ease-out; }
+  </style>
+</head>
+<body class="m-0 p-0 font-sans">
+
+<!-- ==================== LOGIN PAGE ==================== -->
+<div class="flex min-h-screen">
+  <!-- ===== LEFT: Brand Panel ===== -->
+  <div class="brand-panel flex-1 flex flex-col justify-center items-center relative overflow-hidden min-w-[320px] max-lg:hidden">
+    <!-- Decorative orbs -->
+    <div class="decorative-orb orb-1"></div>
+    <div class="decorative-orb orb-2"></div>
+    <div class="decorative-orb orb-3"></div>
+
+    <!-- Brand header (top-left) -->
+    <div class="absolute top-10 left-10 flex items-center gap-3 z-10">
+      <!-- Logo placeholder -->
+      <div class="w-12 h-12 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+        <span class="text-white font-bold text-xl">游</span>
+      </div>
+      <span class="text-white font-bold text-2xl tracking-wide">游寄</span>
+    </div>
+
+    <!-- Brand content (centered) -->
+    <div class="text-center z-10 px-8">
+      <h1 class="text-white font-bold text-[clamp(1.5rem,3vw,2.5rem)] tracking-wide mb-4">
+        游寄后台管理系统
+      </h1>
+      <p class="text-white/90 text-[clamp(0.875rem,1.2vw,1.125rem)] leading-relaxed max-w-md">
+        湖滨行李安心游 · 智能柜机管理平台<br>高效运营，让每一件行李都安心
+      </p>
+    </div>
+  </div>
+
+  <!-- ===== RIGHT: Login Form Panel ===== -->
+  <div class="w-[520px] min-w-[360px] max-lg:w-full flex items-center justify-center bg-white px-10 py-10 flex-shrink-0">
+    <div class="w-full max-w-[400px] animate-fadeIn">
+
+      <!-- Login header -->
+      <div class="text-center mb-10 relative">
+        <!-- Annotation ①: login header -->
+        <div class="relative inline-block">
+          <span class="anno-badge" data-anno="1">1</span>
+          <h2 class="text-[28px] font-bold text-ink-title">欢迎回来</h2>
+        </div>
+        <p class="text-[15px] text-ink-sub mt-2">登录您的管理账号</p>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" class="space-y-6" novalidate>
+
+        <!-- Phone number -->
+        <div class="relative">
+          <!-- Annotation ②: phone input -->
+          <span class="anno-badge" data-anno="2">2</span>
+          <label class="block text-[13px] font-medium text-ink-body mb-1.5">手机号</label>
+          <div class="relative">
+            <i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-ink-muted"></i>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              placeholder="请输入手机号"
+              maxlength="11"
+              autocomplete="tel"
+              class="w-full h-[52px] pl-11 pr-4 text-[14px] text-ink-body bg-white border border-line rounded-lg
+                     input-focus-ring outline-none transition-all placeholder:text-ink-muted
+                     data-[error]:border-danger data-[error]:focus:shadow-[0_0_0_3px_rgba(217,0,27,.12)]"
+            >
+          </div>
+          <p id="phoneError" class="hidden text-[12px] text-danger mt-1.5 ml-1"></p>
+        </div>
+
+        <!-- Password -->
+        <div class="relative">
+          <!-- Annotation ③: password input -->
+          <span class="anno-badge" data-anno="3">3</span>
+          <label class="block text-[13px] font-medium text-ink-body mb-1.5">密码</label>
+          <div class="relative">
+            <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-ink-muted"></i>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="请输入密码"
+              autocomplete="current-password"
+              class="w-full h-[52px] pl-11 pr-12 text-[14px] text-ink-body bg-white border border-line rounded-lg
+                     input-focus-ring outline-none transition-all placeholder:text-ink-muted
+                     data-[error]:border-danger"
+            >
+            <!-- Toggle password visibility -->
+            <button type="button" id="togglePwd" tabindex="-1"
+              class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-ink-muted hover:text-ink-sub transition-colors">
+              <i data-lucide="eye-off" class="w-[18px] h-[18px]"></i>
+            </button>
+          </div>
+          <p id="pwdError" class="hidden text-[12px] text-danger mt-1.5 ml-1"></p>
+        </div>
+
+        <!-- Remember me -->
+        <div class="flex items-center justify-between">
+          <!-- Annotation ④: remember me -->
+          <div class="relative flex items-center gap-2">
+            <span class="anno-badge" data-anno="4">4</span>
+            <input type="checkbox" id="rememberMe" class="w-[16px] h-[16px] accent-primary rounded cursor-pointer">
+            <label for="rememberMe" class="text-[13px] text-ink-sub cursor-pointer select-none">记住我</label>
+          </div>
+          <!-- Annotation ⑤: forgot password -->
+          <span class="relative">
+            <span class="anno-badge" data-anno="5">5</span>
+            <a href="#" class="text-[13px] text-primary hover:text-primary-hover no-underline" onclick="showToast('请联系管理员重置密码')">忘记密码？</a>
+          </span>
+        </div>
+
+        <!-- Login button -->
+        <div class="relative pt-2">
+          <!-- Annotation ⑥: login button -->
+          <span class="anno-badge" data-anno="6">6</span>
+          <button type="submit" id="loginBtn"
+            class="login-btn w-full h-[52px] text-white text-[16px] font-semibold rounded-lg border-none cursor-pointer">
+            <span id="loginBtnText">登 录</span>
+            <span id="loginBtnLoading" class="hidden items-center justify-center gap-2">
+              <svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              登录中...
+            </span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Toast -->
+      <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg text-white text-[13px] font-medium z-[200]
+                  opacity-0 transition-opacity duration-300 pointer-events-none whitespace-nowrap"
+           style="background:#1A1D24;"></div>
+
+    </div><!-- /login-form-wrapper -->
+  </div><!-- /login-panel -->
+</div>
+
+<!-- ==================== ANNOTATION TOGGLE ==================== -->
+<!-- Annotation Toggle -->
+<div id="annoToggleWrap" class="fixed z-[150] select-none" style="right:8px;top:120px;cursor:grab;" onmousedown="startDragToggle(event)">
+<div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium bg-white/90 backdrop-blur text-primary border border-primary/30 hover:bg-primary-bg hover:border-primary/60 transition-colors cursor-pointer shadow-sm">
+<i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i>
+<span id="annoToggleLabel">标注</span>
+</div>
+</div>
+
+<!-- ==================== ANNOTATION MODAL ==================== -->
+<div id="annoModal" class="hidden fixed z-[300]" style="top:50%;left:50%;transform:translate(-50%,-50%);">
+<div class="bg-white rounded-lg p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto relative" style="box-shadow:0 12px 40px rgba(0,0,0,.18);" onclick="event.stopPropagation()">
+<div class="flex items-center gap-2 mb-4 select-none" id="annoDragHandle" style="cursor:grab;" onmousedown="startDragModal(event)" title="长按拖拽移动弹窗">
+<i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i>
+<h3 id="annoModalTitle" class="text-[16px] font-semibold text-ink-title"></h3>
+
+<button onclick="closeAnnoModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted" style="position:absolute;top:12px;right:12px;z-index:10;"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+</div>
+<ul id="annoModalBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul>
+</div>
+</div>
+</div>
+
+<!-- ==================== SCRIPTS ==================== -->
+<script>
+/* ===== MOCK DATA & STATE ===== */
+const MOCK_ACCOUNT = { phone: '13812345678', password: '123456' };
+
+/* ===== INTERACTION ANNOTATIONS ===== */
+const annotations = {
+  1: { title: '登录页面标题', desc: [
+    '触发：页面加载后展示',
+    '响应：显示"欢迎回来"标题及副标题"登录您的管理账号"',
+    '规则：位于登录表单上方居中位置',
+    '样式：ink-title 色、28px、font-bold'
+  ]},
+  2: { title: '手机号输入', desc: [
+    '触发：用户点击输入框或自动聚焦',
+    '响应：输入框聚焦时显示蓝色描边',
+    '校验：必填，格式为1开头的11位手机号',
+    '错误提示："请输入手机号" / "请输入有效的手机号"',
+    '前置图标：Lucide phone 图标'
+  ]},
+  3: { title: '密码输入', desc: [
+    '触发：用户点击输入框',
+    '响应：输入框聚焦时显示蓝色描边',
+    '校验：必填，长度至少6个字符',
+    '错误提示："请输入密码" / "密码长度至少为6个字符"',
+    '前置图标：Lucide lock 图标',
+    '后缀：点击眼睛图标切换密码明文/密文'
+  ]},
+  4: { title: '记住我', desc: [
+    '触发：勾选/取消复选框',
+    '响应：勾选后登录成功时手机号存入 localStorage（Base64编码）',
+    '规则：下次进入自动回填手机号并勾选',
+    '注销：取消勾选后登录会清除存储'
+  ]},
+  5: { title: '忘记密码', desc: [
+    '触发：点击"忘记密码？"链接',
+    '响应：弹出 toast 提示"请联系管理员重置密码"',
+    '规则：原型阶段不实现完整重置流程，仅展示提示'
+  ]},
+  6: { title: '登录按钮', desc: [
+    '触发：点击"登录"按钮或按 Enter 键提交表单',
+    '响应：前端校验 → 校验通过后显示 loading 状态（2秒模拟）',
+    '规则：手机号需为 13812345678，密码需为 123456（mock）',
+    '成功：toast 绿色提示"登录成功！正在跳转..." → 存入 auth_token → 跳转 index.html',
+    '失败：toast 红色提示"手机号或密码错误"',
+    '交互：hover 时上浮 2px 并增强阴影，active 时复位',
+    '样式：primary 渐变底、白字、h-[52px]、rounded-lg、font-semibold'
+  ]},
+};
+
+/* ===== DOM REFS ===== */
+const form = document.getElementById('loginForm');
+const phoneInput = document.getElementById('phone');
+const pwdInput = document.getElementById('password');
+const phoneError = document.getElementById('phoneError');
+const pwdError = document.getElementById('pwdError');
+const togglePwd = document.getElementById('togglePwd');
+const rememberMe = document.getElementById('rememberMe');
+const loginBtn = document.getElementById('loginBtn');
+const loginBtnText = document.getElementById('loginBtnText');
+const loginBtnLoading = document.getElementById('loginBtnLoading');
+const toast = document.getElementById('toast');
+const annoToggle = document.getElementById('annoToggleWrap');
+const annoToggleLabel = document.getElementById('annoToggleLabel');
+const annoModalOverlay = document.getElementById('annoModal');
+const annoModalTitle = document.getElementById('annoModalTitle');
+const annoModalBody = document.getElementById('annoModalBody');
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded', () => {
+  // Lucide icons
+  lucide.createIcons();
+
+  // Load remembered user
+  loadRememberedUser();
+
+  // Auto-focus phone input
+  setTimeout(() => phoneInput.focus(), 300);
+});
+
+/* ===== REMEMBER ME ===== */
+function loadRememberedUser() {
+  try {
+    const encoded = localStorage.getItem('rememberedUser_youji');
+    if (encoded) {
+      phoneInput.value = atob(encoded);
+      rememberMe.checked = true;
+    }
+  } catch(e) { /* ignore */ }
+}
+
+/* ===== TOAST ===== */
+let toastTimer = null;
+function showToast(msg, type = 'info') {
+  if (toastTimer) clearTimeout(toastTimer);
+  const colors = {
+    info:    { bg: '#1A1D24', text: '#fff' },
+    success: { bg: '#0FC060', text: '#fff' },
+    error:   { bg: '#D9001B', text: '#fff' },
+  };
+  const c = colors[type] || colors.info;
+  toast.textContent = msg;
+  toast.style.background = c.bg;
+  toast.style.color = c.text;
+  toast.style.opacity = '1';
+  toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+}
+
+/* ===== PASSWORD TOGGLE ===== */
+togglePwd.addEventListener('click', () => {
+  const isPassword = pwdInput.type === 'password';
+  pwdInput.type = isPassword ? 'text' : 'password';
+  togglePwd.innerHTML = isPassword
+    ? '<i data-lucide="eye" class="w-[18px] h-[18px]"></i>'
+    : '<i data-lucide="eye-off" class="w-[18px] h-[18px]"></i>';
+  lucide.createIcons({ attrs: { class: 'w-[18px] h-[18px]' } });
+});
+
+/* ===== FORM VALIDATION ===== */
+function validatePhone(value) {
+  if (!value.trim()) return '请输入手机号';
+  if (!/^1[3-9]\d{9}$/.test(value.trim())) return '请输入有效的手机号';
+  return '';
+}
+
+function validatePassword(value) {
+  if (!value) return '请输入密码';
+  if (value.length < 6) return '密码长度至少为6个字符';
+  return '';
+}
+
+// Live validation
+phoneInput.addEventListener('blur', () => {
+  const err = validatePhone(phoneInput.value);
+  if (err) { phoneError.textContent = err; phoneError.classList.remove('hidden'); phoneInput.setAttribute('data-error',''); }
+  else { phoneError.classList.add('hidden'); phoneInput.removeAttribute('data-error'); }
+});
+phoneInput.addEventListener('input', () => {
+  if (phoneInput.hasAttribute('data-error')) {
+    phoneError.classList.add('hidden');
+    phoneInput.removeAttribute('data-error');
+  }
+});
+
+pwdInput.addEventListener('blur', () => {
+  const err = validatePassword(pwdInput.value);
+  if (err) { pwdError.textContent = err; pwdError.classList.remove('hidden'); pwdInput.setAttribute('data-error',''); }
+  else { pwdError.classList.add('hidden'); pwdInput.removeAttribute('data-error'); }
+});
+pwdInput.addEventListener('input', () => {
+  if (pwdInput.hasAttribute('data-error')) {
+    pwdError.classList.add('hidden');
+    pwdInput.removeAttribute('data-error');
+  }
+});
+
+/* ===== LOGIN SUBMIT ===== */
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  // Validate all
+  const phoneErr = validatePhone(phoneInput.value);
+  const pwdErr = validatePassword(pwdInput.value);
+
+  if (phoneErr) {
+    phoneError.textContent = phoneErr;
+    phoneError.classList.remove('hidden');
+    phoneInput.setAttribute('data-error','');
+    phoneInput.focus();
+  }
+  if (pwdErr) {
+    pwdError.textContent = pwdErr;
+    pwdError.classList.remove('hidden');
+    pwdInput.setAttribute('data-error','');
+    if (!phoneErr) pwdInput.focus();
+  }
+  if (phoneErr || pwdErr) return;
+
+  // Show loading
+  loginBtnText.classList.add('hidden');
+  loginBtnLoading.classList.remove('hidden');
+  loginBtnLoading.style.display = 'flex';
+  loginBtn.disabled = true;
+
+  // Simulate API call
+  await new Promise(r => setTimeout(r, 2000));
+
+  // Check credentials
+  if (phoneInput.value.trim() === MOCK_ACCOUNT.phone && pwdInput.value === MOCK_ACCOUNT.password) {
+    // Remember me
+    if (rememberMe.checked) {
+      localStorage.setItem('rememberedUser_youji', btoa(phoneInput.value.trim()));
+    } else {
+      localStorage.removeItem('rememberedUser_youji');
+    }
+
+    // Set auth
+    localStorage.setItem('auth_token_youji', 'logged_in');
+
+    showToast('登录成功！正在跳转...', 'success');
+    setTimeout(() => { window.location.href = 'index.html'; }, 600);
+  } else {
+    showToast('手机号或密码错误', 'error');
+    // Reset
+    loginBtnText.classList.remove('hidden');
+    loginBtnLoading.classList.add('hidden');
+    loginBtnLoading.style.display = 'none';
+    loginBtn.disabled = false;
+  }
+});
+
+/* ===== ANNOTATION SYSTEM ===== */
+let annoVisible = true;
+
+// Toggle
+annoToggleWrap.addEventListener('click', (e) => {
+  if(e.target.closest('#annoToggleWrap') && e.target.closest('#annoToggleWrap').dataset.dragging) return;
+  annoVisible = !annoVisible;
+  if (annoVisible) {
+    document.body.classList.remove('anno-hidden');
+    annoToggleLabel.textContent = '标注';
+    document.getElementById('annoToggleIcon').setAttribute('data-lucide','eye');
+  } else {
+    document.body.classList.add('anno-hidden');
+    annoToggleLabel.textContent = '标注';
+    document.getElementById('annoToggleIcon').setAttribute('data-lucide','eye-off');
+  }
+  lucide.createIcons({ attrs: { class: 'w-[13px] h-[13px]' } });
+});
+
+// Click badge
+document.querySelectorAll('.anno-badge').forEach(badge => {
+  badge.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const id = badge.getAttribute('data-anno');
+    const anno = annotations[id];
+    if (!anno) return;
+    annoModalTitle.textContent = '#' + id + ' ' + anno.title;
+    annoModalBody.innerHTML = anno.desc.map(d => '<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>' + d + '</span></li>').join('');
+    annoModalOverlay.classList.remove('hidden');
+  });
+});
+
+function closeAnnoModal(){document.getElementById('annoModal').classList.add('hidden');}
+document.addEventListener('click',function(e){
+  var m=document.getElementById('annoModal');
+  if(!m||m.classList.contains('hidden'))return;
+  if(!m.contains(e.target))closeAnnoModal();
+});
+
+/* ===== DRAG: Annotation Modal ===== */
+let dragModal=null,dragOffX=0,dragOffY=0,dragStartTime=0,dragActive=false;
+function startDragModal(e){
+  if(e.target.closest("button"))return;
+  dragStartTime=Date.now();dragActive=false;
+  const m=document.getElementById("annoModal");if(!m)return;
+  document.addEventListener("mousemove",onDragModal);
+  document.addEventListener("mouseup",stopDragModal);
+  dragOffX=e.clientX-m.offsetLeft;dragOffY=e.clientY-m.offsetTop;
+}
+function onDragModal(e){
+  if(Date.now()-dragStartTime<200)return;dragActive=true;
+  const m=document.getElementById("annoModal");if(!m)return;
+  m.style.left=(e.clientX-dragOffX)+"px";m.style.top=(e.clientY-dragOffY)+"px";
+  m.style.transform="none";
+  document.getElementById("annoDragHandle").style.cursor="grabbing";
+}
+function stopDragModal(){
+  document.removeEventListener("mousemove",onDragModal);
+  document.removeEventListener("mouseup",stopDragModal);
+  const h=document.getElementById("annoDragHandle");if(h)h.style.cursor="grab";
+}
+/* ===== DRAG: Toggle ===== */
+let dragToggleY=0,dragToggleMoved=false;
+function startDragToggle(e){
+  dragToggleY=e.clientY;dragToggleMoved=false;
+  document.addEventListener("mousemove",onDragToggle);
+  document.addEventListener("mouseup",stopDragToggle);e.preventDefault();
+}
+function onDragToggle(e){
+  if(Math.abs(e.clientY-dragToggleY)<5)return;dragToggleMoved=true;
+  const w=document.getElementById("annoToggleWrap");if(!w)return;
+  let t=e.clientY-20;t=Math.max(60,Math.min(window.innerHeight-60,t));
+  w.style.top=t+"px";w.style.right="8px";w.style.cursor="grabbing";
+}
+function stopDragToggle(e){
+  document.removeEventListener("mousemove",onDragToggle);
+  document.removeEventListener("mouseup",stopDragToggle);
+  const w=document.getElementById("annoToggleWrap");if(w){w.style.cursor="grab";
+  w.dataset.dragging=dragToggleMoved?"1":"";if(dragToggleMoved)setTimeout(function(){w.dataset.dragging="";},100);}
+}
+
+</script>
+
+</body>
+</html>
