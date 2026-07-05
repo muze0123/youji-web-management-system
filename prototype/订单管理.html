@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>订单管理 - 游寄后台管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+  <style>
+    body{overflow:hidden;}
+    /* Sidebar */
+    .menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+    .menu-item:hover{background:#F3F4F6;}
+    .menu-item.l1{padding-left:20px;font-weight:500;}
+    .menu-item.l2{padding-left:64px;font-size:13px;}
+    .menu-item.active-l1{color:#0066FF;}
+    .menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+    .menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+    .active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+    .menu-arrow.open{transform:rotate(180deg);}
+    .submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+    .submenu.collapsed{max-height:0!important;opacity:0;}
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;}
+    .btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+    .btn-primary:hover{background:#0052CC;}
+    .btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+    .btn-default:hover{border-color:#0066FF;color:#0066FF;}
+    .btn-sm{height:28px;padding:0 10px;font-size:12px;}
+    .btn-danger{background:#D9001B;color:#fff;border-color:#D9001B;}
+    .btn-danger:hover{background:#B80015;}
+    /* Data table */
+    .data-table{width:100%;border-collapse:collapse;font-size:13px;}
+    .data-table thead th{background:#F0F1F3;color:#6E7685;font-weight:600;font-size:12px;padding:9px 12px;text-align:left;border-bottom:1px solid #DFE1E5;white-space:nowrap;}
+    .data-table tbody td{padding:9px 12px;color:#3A3F4A;border-bottom:1px solid #E8EAED;}
+    .data-table tbody tr{transition:background .12s;cursor:pointer;}
+    .data-table tbody tr:hover{background:#F3F4F6;}
+    /* Badge */
+    .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:500;white-space:nowrap;}
+    .badge-success{color:#0FC060;background:#E7F9F0;}
+    .badge-warning{color:#E7772D;background:#FDF2E9;}
+    .badge-danger{color:#D9001B;background:#FFE8EB;}
+    .badge-muted{color:#9DA2AC;background:#F0F1F3;}
+    .badge-info{color:#0091D5;background:#E4F4FB;}
+    /* Topbar */
+    .topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
+    .topbar-btn:hover{background:#E6F0FF;}
+    .topbar-btn:hover svg{stroke:#0066FF;}
+    .badge-dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:600;line-height:18px;text-align:center;}
+    /* Filter grid */
+    .filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 16px;align-items:start;}
+    @media(max-width:1100px){.filter-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:640px){.filter-grid{grid-template-columns:1fr;}}
+    .filter-item{display:flex;align-items:center;gap:0;}
+    .filter-label{width:78px;flex-shrink:0;text-align:right;font-size:14px;color:#1A1D24;line-height:32px;white-space:nowrap;}
+    .filter-label::after{content:'：';}
+    .filter-ctrl{flex:1;min-width:0;}
+    .filter-ctrl input,.filter-ctrl select{width:100%;height:32px;font-size:14px;padding:0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;font-family:inherit;background:#fff;}
+    .filter-ctrl input::placeholder{color:#9DA2AC;font-size:14px;}
+    .filter-ctrl input:focus,.filter-ctrl select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .filter-ctrl select{appearance:none;-webkit-appearance:none;padding-right:24px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239DA2AC'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+    .filter-ctrl .date-range{display:flex;align-items:center;gap:4px;}
+    .filter-ctrl .date-range .date-sep{font-size:14px;color:#9DA2AC;flex-shrink:0;margin:0 2px;}
+    .filter-ctrl .date-range input{flex:1;min-width:0;}
+    .filter-ctrl .date-range input[type="text"]{color:#9DA2AC;}
+    .filter-ctrl .date-range input[type="date"]{color:#3A3F4A;}
+    /* Drawer */
+    .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1100;display:none;}
+    .drawer-overlay.show{display:block;}
+    .drawer{position:fixed;top:0;right:0;bottom:0;width:560px;max-width:100%;background:#fff;z-index:1101;box-shadow:-4px 0 24px rgba(0,0,0,.1);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease;}
+    .drawer.open{transform:translateX(0);}
+    .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #DFE1E5;flex-shrink:0;}
+    .drawer-body{flex:1;overflow-y:auto;padding:24px;}
+    .drawer-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:16px 24px;border-top:1px solid #DFE1E5;flex-shrink:0;}
+    .detail-group{margin-bottom:20px;}
+    .detail-group h4{font-size:14px;font-weight:600;color:#1A1D24;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E8EAED;display:flex;align-items:center;gap:6px;}
+    .detail-row{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #F0F1F3;font-size:13px;}
+    .detail-row:last-child{border-bottom:none;}
+    .detail-label{width:90px;flex-shrink:0;color:#6E7685;text-align:right;}
+    .detail-label::after{content:'：';}
+    .detail-value{color:#3A3F4A;margin-left:8px;}
+    /* Timeline */
+    .tl-item{position:relative;padding-left:20px;padding-bottom:16px;border-left:2px solid #E8EAED;}
+    .tl-item:last-child{border-left-color:transparent;padding-bottom:0;}
+    .tl-item::before{content:'';position:absolute;left:-5px;top:4px;width:8px;height:8px;border-radius:50%;background:#DFE1E5;}
+    .tl-item.active::before{background:#0066FF;}
+    .tl-item.current::before{background:#0FC060;box-shadow:0 0 0 3px rgba(15,192,96,.2);}
+    /* Dialog */
+    .dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1300;display:none;align-items:center;justify-content:center;}
+    .dialog-overlay.show{display:flex;}
+    .dialog{width:560px;max-width:92vw;background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);display:flex;flex-direction:column;animation:ds-modal-in .15s ease;}
+    @keyframes ds-modal-in{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    .dialog-body{flex:1;overflow-y:auto;padding:24px;}
+    .dialog-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 24px 20px;flex-shrink:0;}
+    /* Pill tab */
+    .pill-tab{display:inline-flex;align-items:center;padding:4px 12px;font-size:13px;border-radius:14px;cursor:pointer;transition:all .15s;border:1px solid #DFE1E5;background:#fff;color:#6E7685;white-space:nowrap;}
+    .pill-tab:hover{border-color:#0066FF;color:#0066FF;}
+    .pill-tab.active{background:#0066FF;border-color:#0066FF;color:#fff;}
+    /* Copy toast */
+    #copyToast{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:10000;background:#1A1D24;color:#fff;padding:8px 20px;border-radius:6px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;}
+    #copyToast.show{opacity:1;}
+    /* Portal annotation */
+    .anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
+    .anno-portal-badge:hover{transform:scale(1.2);}
+    .anno-hidden .anno-portal-badge{display:none;}
+    .text-14{font-size:14px;}
+    @media(max-width:768px){
+      .sidebar{display:none;}.sidebar.open{display:flex;position:fixed;top:56px;left:0;bottom:0;z-index:50;}
+      .sidebar-overlay{display:none;}.sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;}
+    }
+  </style>
+</head>
+<body class="font-sans flex flex-col h-screen">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-4 md:px-6 flex-shrink-0 gap-3">
+  <button class="topbar-btn md:hidden" onclick="toggleSidebar()"><i data-lucide="menu" class="w-[18px] h-[18px]"></i></button>
+  <div class="flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigate('index.html')">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div>
+    <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
+  </div>
+  <div class="ml-auto flex items-center gap-3 md:gap-5">
+    <button class="topbar-btn" onclick="navigate('任务中心.html')"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i><span class="badge-dot" id="taskBadge" style="display:none;">0</span></button>
+    <button class="topbar-btn" onclick="navigate('消息中心.html')"><i data-lucide="bell" class="w-[18px] h-[18px]"></i><span class="badge-dot" id="msgBadge">5</span></button>
+    <button class="topbar-btn" onclick="navigate('账号信息.html')"><i data-lucide="user" class="w-[18px] h-[18px]"></i></button>
+  </div>
+</header>
+
+<!-- ===== BODY ===== -->
+<div class="flex flex-1 min-h-0">
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+    <div class="menu-item l1" data-page="工作台.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台</div>
+    <div class="menu-item l1" data-page="数据概览.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览</div>
+    <div class="menu-item l1 active-l1" data-page="订单管理.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理</div>
+    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单</div>
+    <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控</div>
+    <div class="menu-item l1" data-page="对账中心.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心</div>
+    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置</div>
+    <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置<span class="menu-arrow">▼</span></div>
+    <div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
+      <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div><div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div><div class="menu-item l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div><div class="menu-item l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div><div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
+    </div>
+  </aside>
+
+  <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
+    <div class="p-4">
+
+      <!-- ===== 区块B: 筛选区 ===== -->
+      <div class="bg-white rounded-lg border border-line p-5 mb-4" data-anno="1">
+        <div class="filter-grid">
+          <!-- Row 1 -->
+          <div class="filter-item"><span class="filter-label">搜索订单</span><div class="filter-ctrl"><input type="text" id="fSearch" placeholder="订单号 / 用户手机号" oninput="applyFilters()"></div></div>
+          <div class="filter-item"><span class="filter-label">订单状态</span><div class="filter-ctrl"><select id="fStatus" onchange="applyFilters()"><option value="">全部</option></select></div></div>
+          <div class="filter-item"><span class="filter-label">业务类型</span><div class="filter-ctrl"><select id="fBizType" onchange="applyFilters()"><option value="">全部</option><option value="寄存">行李寄存</option><option value="寄送">行李寄送</option></select></div></div>
+          <div class="filter-item"><span class="filter-label">订单来源</span><div class="filter-ctrl"><select id="fSource" onchange="applyFilters()"><option value="">全部</option><option value="自有">自有小程序</option><option value="小铁">小铁小程序</option></select></div></div>
+          <!-- Row 2 -->
+          <div class="filter-item"><span class="filter-label">柜机</span><div class="filter-ctrl"><select id="fCabinet" onchange="applyFilters()"><option value="">全部</option></select></div></div>
+          <div class="filter-item"><span class="filter-label">创建时间</span><div class="filter-ctrl"><div class="date-range"><input type="text" id="fDateFrom" placeholder="开始时间" onfocus="(this.type='date')" onchange="applyFilters()" onblur="if(!this.value)this.type='text'"><span class="date-sep">-</span><input type="text" id="fDateTo" placeholder="结束时间" onfocus="(this.type='date')" onchange="applyFilters()" onblur="if(!this.value)this.type='text'"></div></div></div>
+          <div class="filter-item" style="display:flex;align-items:center;gap:8px;">
+            <span class="filter-label" style="visibility:hidden;">操作</span>
+            <button class="btn btn-primary btn-sm" onclick="applyFilters()" style="height:32px;"><i data-lucide="search" class="w-[14px] h-[14px]"></i> 查询</button>
+            <button class="btn btn-default btn-sm" onclick="resetFilters()" style="height:32px;"><i data-lucide="rotate-ccw" class="w-[14px] h-[14px]"></i> 重置</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 区块D: 订单表格 ===== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6" data-anno="2">
+        <!-- Header: title left + export right -->
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-[16px] font-semibold text-ink-title" data-anno="3">订单列表</h3>
+          <button class="btn btn-default btn-sm" onclick="exportOrders()" data-anno="4" style="height:32px;">
+            <i data-lucide="download" class="w-[14px] h-[14px]"></i> 导出
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="data-table" id="orderTable">
+            <thead><tr>
+              <th>订单号</th><th>业务类型</th><th>用户</th><th>柜机</th><th>格口</th><th>柜型</th><th>订单状态</th><th>来源</th><th style="text-align:right;">金额（元）</th><th>创建时间</th><th>更新时间</th><th>操作</th>
+            </tr></thead>
+            <tbody id="orderTbody"></tbody>
+          </table>
+        </div>
+        <div id="emptyOrders" class="hidden flex flex-col items-center justify-center py-16 text-center">
+          <i data-lucide="inbox" class="w-[48px] h-[48px] text-ink-muted mb-3"></i>
+          <p class="text-[14px] text-ink-sub">无符合条件的订单</p>
+          <p class="text-[12px] text-ink-muted mt-1">请调整筛选条件或重置</p>
+        </div>
+      </div>
+
+      <!-- ===== 区块E: 分页 ===== -->
+      <div class="flex items-center justify-between flex-wrap gap-4 bg-white rounded-lg border border-line px-5 py-3 mt-4" id="pagination" data-anno="5">
+        <div class="flex items-center gap-1" id="pgNav"></div>
+        <div class="flex items-center gap-3">
+          <span class="text-[12px] text-ink-muted" id="pgStats">共 0 条记录</span>
+          <div class="select-wrap"><select class="filter-ctrl-select" id="pageSize" onchange="changePageSize()" style="height:30px;font-size:13px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;"><option value="10">10 条/页</option><option value="20" selected>20 条/页</option><option value="50">50 条/页</option></select></div>
+        </div>
+      </div>
+      <style>.select-wrap{position:relative;display:inline-flex;align-items:center;}.select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}</style>
+    </div>
+  </main>
+</div>
+
+<!-- ===== ORDER DETAIL DRAWER ===== -->
+<div class="drawer-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+<div class="drawer" id="detailDrawer">
+  <div class="drawer-header">
+    <h3 class="text-[16px] font-semibold text-ink-title flex items-center gap-2"><i data-lucide="file-text" class="w-[18px] h-[18px] text-primary"></i> 订单详情</h3>
+    <button onclick="closeDetail()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+  </div>
+  <div class="drawer-body" id="detailBody"></div>
+  <div class="drawer-footer">
+    <button class="btn btn-default" onclick="closeDetail()">关闭</button>
+    <button class="btn btn-danger btn-sm" onclick="markAnomaly()" id="btnMarkAnomaly"><i data-lucide="alert-triangle" class="w-[13px] h-[13px]"></i> 标记异常</button>
+  </div>
+</div>
+
+<!-- ===== MARK ANOMALY DIALOG ===== -->
+<div class="dialog-overlay" id="anomalyDialogOverlay" onclick="closeAnomalyDialog()">
+  <div class="dialog" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;"><h3 class="text-[16px] font-semibold text-ink-title flex items-center gap-2"><i data-lucide="alert-triangle" class="w-[18px] h-[18px] text-danger"></i> 标记异常</h3><button onclick="closeAnomalyDialog()" style="font-size:20px;color:#9DA2AC;cursor:pointer;background:none;border:none;line-height:1;">×</button></div>
+    <div class="dialog-body">
+      <p class="text-[14px] text-ink-body mb-4">确认将该订单标记为异常？标记后将自动生成异常工单，进入异常工单处理流程。</p>
+      <div class="bg-danger-bg rounded p-3 text-[13px] flex items-start gap-2"><i data-lucide="info" class="w-[14px] h-[14px] text-danger flex-shrink-0 mt-0.5"></i><span class="text-ink-body">订单号：<span class="font-mono font-medium" id="anomalyOrderNo">--</span><br>标记后将跳转至异常工单页面。</span></div>
+    </div>
+    <div class="dialog-footer"><button class="btn btn-default" onclick="closeAnomalyDialog()">取消</button><button class="btn btn-danger" onclick="confirmMarkAnomaly()">确认标记</button></div>
+  </div>
+</div>
+
+<!-- Copy toast -->
+<div id="copyToast"></div>
+
+<!-- ===== PORTAL ANNOTATION ===== -->
+<div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
+<div id="annoToggle" class="fixed z-[150]" style="right:8px;bottom:40px;cursor:grab;" onmousedown="startDragToggle(event)"><div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] bg-white/90 backdrop-blur text-primary border border-primary/30 shadow-sm"><i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i> 标注</div></div>
+<div id="annoPopup" class="hidden fixed inset-0 z-[9999]" style="background:rgba(0,0,0,.2);" onclick="closeAnnoPopup()"><div id="annoPopupBox" class="fixed bg-white rounded-lg shadow-xl p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto" style="top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 12px 40px rgba(0,0,0,.18);" onclick="event.stopPropagation()"><button onclick="closeAnnoPopup()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted z-10"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button><div id="annoPopupDrag" class="flex items-center gap-2 mb-3 select-none" style="cursor:grab;" onmousedown="startDragPopup(event)"><i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i><h3 id="annoPopupTitle" class="text-[16px] font-semibold text-ink-title"></h3></div><ul id="annoPopupBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul></div></div>
+
+<script>
+/* ================================================================
+   MOCK DATA — 15 orders covering all statuses
+   ================================================================ */
+var statuses = ['待支付','寄存中','超时寄存中','待取件结算','转运中','已送达待取','已完成','已取消','退款中','已退款','异常'];
+var cabinets = ['湖滨A区1号柜','湖滨B区1号柜','西湖天地1号柜','杭州东站1号柜','萧山T3-A柜','杭州大厦1号柜'];
+var rawOrders = [
+  { orderNo:'YK20260705001', bizType:'寄存', user:'138****8888', cabinet:'湖滨A区1号柜', locker:'A01-S01', lockerType:'小', status:'寄存中', source:'自有', amount:28.00, created:'2026-07-05 14:30', updated:'2026-07-05 14:32' },
+  { orderNo:'YK20260705002', bizType:'寄送', user:'139****5678', cabinet:'杭州东站1号柜', locker:'DZ1-M03', lockerType:'中', status:'转运中', source:'小铁', amount:45.00, created:'2026-07-05 13:15', updated:'2026-07-05 13:50' },
+  { orderNo:'YK20260705003', bizType:'寄存', user:'150****2345', cabinet:'湖滨B区1号柜', locker:'B01-L02', lockerType:'大', status:'待支付', source:'自有', amount:17.50, created:'2026-07-05 12:00', updated:'2026-07-05 12:00' },
+  { orderNo:'YK20260705004', bizType:'寄存', user:'186****3456', cabinet:'西湖天地1号柜', locker:'XT1-S03', lockerType:'小', status:'超时寄存中', source:'自有', amount:32.00, created:'2026-07-04 18:00', updated:'2026-07-05 08:00' },
+  { orderNo:'YK20260705005', bizType:'寄送', user:'177****7890', cabinet:'萧山T3-A柜', locker:'T3A-M02', lockerType:'中', status:'已送达待取', source:'小铁', amount:68.00, created:'2026-07-04 15:30', updated:'2026-07-05 10:00' },
+  { orderNo:'YK20260704006', bizType:'寄存', user:'133****1111', cabinet:'湖滨A区1号柜', locker:'A01-M01', lockerType:'中', status:'已完成', source:'自有', amount:12.50, created:'2026-07-04 10:00', updated:'2026-07-04 14:20' },
+  { orderNo:'YK20260704007', bizType:'寄存', user:'155****2222', cabinet:'杭州大厦1号柜', locker:'DS1-L01', lockerType:'大', status:'已取消', source:'小铁', amount:0, created:'2026-07-04 09:00', updated:'2026-07-04 09:15' },
+  { orderNo:'YK20260704008', bizType:'寄送', user:'188****3333', cabinet:'杭州东站1号柜', locker:'DZ1-S02', lockerType:'小', status:'退款中', source:'自有', amount:35.00, created:'2026-07-03 20:00', updated:'2026-07-04 11:00' },
+  { orderNo:'YK20260704009', bizType:'寄存', user:'136****4444', cabinet:'西湖天地1号柜', locker:'XT1-M02', lockerType:'中', status:'已退款', source:'自有', amount:25.00, created:'2026-07-03 16:00', updated:'2026-07-04 08:30' },
+  { orderNo:'YK20260703010', bizType:'寄存', user:'159****5555', cabinet:'湖滨B区1号柜', locker:'B01-S02', lockerType:'小', status:'异常', source:'小铁', amount:18.00, created:'2026-07-03 14:00', updated:'2026-07-03 14:45' },
+  { orderNo:'YK20260703011', bizType:'寄存', user:'182****6666', cabinet:'萧山T3-A柜', locker:'T3A-L01', lockerType:'大', status:'已完成', source:'自有', amount:40.00, created:'2026-07-03 11:00', updated:'2026-07-03 16:00' },
+  { orderNo:'YK20260703012', bizType:'寄送', user:'137****7777', cabinet:'杭州东站1号柜', locker:'DZ1-M04', lockerType:'中', status:'待取件结算', source:'小铁', amount:55.00, created:'2026-07-03 08:00', updated:'2026-07-05 09:00' },
+  { orderNo:'YK20260702013', bizType:'寄存', user:'158****8888', cabinet:'湖滨A区1号柜', locker:'A01-L01', lockerType:'大', status:'已完成', source:'自有', amount:22.00, created:'2026-07-02 19:00', updated:'2026-07-02 22:00' },
+  { orderNo:'YK20260702014', bizType:'寄送', user:'176****9999', cabinet:'杭州大厦1号柜', locker:'DS1-M01', lockerType:'中', status:'已完成', source:'小铁', amount:48.00, created:'2026-07-02 14:00', updated:'2026-07-02 18:00' },
+  { orderNo:'YK20260702015', bizType:'寄存', user:'189****0000', cabinet:'西湖天地1号柜', locker:'XT1-S01', lockerType:'小', status:'待支付', source:'自有', amount:9.00, created:'2026-07-01 21:00', updated:'2026-07-01 21:00' },
+];
+
+/* ================================================================
+   STATE
+   ================================================================ */
+var currentPage = 1, pageSize = 20;
+var filteredOrders = rawOrders.slice();
+var selectedOrder = null;
+var anomalyTarget = null;
+
+/* ================================================================
+   FILTERS
+   ================================================================ */
+function initFilters() {
+  // Status dropdown
+  var sel = document.getElementById('fStatus');
+  statuses.forEach(function(s){ sel.innerHTML += '<option value="'+s+'">'+s+'</option>'; });
+  // Cabinet dropdown
+  var cSel = document.getElementById('fCabinet');
+  cabinets.forEach(function(c){ cSel.innerHTML += '<option value="'+c+'">'+c+'</option>'; });
+  // No default date range pre-filled
+  // Check URL params for preset filter (from 工作台)
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('status')) document.getElementById('fStatus').value = params.get('status');
+}
+
+function applyFilters() {
+  var search = document.getElementById('fSearch').value.toLowerCase().trim();
+  var status = document.getElementById('fStatus').value;
+  var bizType = document.getElementById('fBizType').value;
+  var source = document.getElementById('fSource').value;
+  var cabinet = document.getElementById('fCabinet').value;
+  var dateFrom = document.getElementById('fDateFrom').value;
+  var dateTo = document.getElementById('fDateTo').value;
+
+  filteredOrders = rawOrders.filter(function(o){
+    if (search && o.orderNo.toLowerCase().indexOf(search)===-1 && o.user.indexOf(search)===-1) return false;
+    if (status && o.status !== status) return false;
+    if (bizType && o.bizType !== bizType) return false;
+    if (source && o.source !== source) return false;
+    if (cabinet && o.cabinet !== cabinet) return false;
+    if (dateFrom && o.created.slice(0,10) < dateFrom) return false;
+    if (dateTo && o.created.slice(0,10) > dateTo) return false;
+    return true;
+  });
+  currentPage = 1;
+  renderTable();
+  renderPagination();
+}
+
+function resetFilters() {
+  ['fSearch','fStatus','fBizType','fSource','fCabinet'].forEach(function(id){ document.getElementById(id).value=''; });
+  // Clear date fields
+  ['fDateFrom','fDateTo'].forEach(function(id){
+    var el = document.getElementById(id);
+    el.value = ''; el.type = 'text';
+  });
+  applyFilters();
+}
+
+/* ================================================================
+   RENDER TABLE
+   ================================================================ */
+function getStatusBadge(s) {
+  var m = { '寄存中':'badge-success','待支付':'badge-warning','超时寄存中':'badge-danger','待取件结算':'badge-warning','转运中':'badge-info','已送达待取':'badge-warning','已完成':'badge-muted','已取消':'badge-muted','退款中':'badge-warning','已退款':'badge-muted','异常':'badge-danger' };
+  return '<span class="badge '+(m[s]||'badge-muted')+'">'+s+'</span>';
+}
+
+function renderTable() {
+  var start = (currentPage-1)*pageSize, end = Math.min(start+pageSize, filteredOrders.length);
+  var page = filteredOrders.slice(start, end);
+  var tbody = document.getElementById('orderTbody');
+  var empty = document.getElementById('emptyOrders');
+
+  if (filteredOrders.length === 0) { tbody.innerHTML=''; empty.classList.remove('hidden'); document.getElementById('pagination').style.display='none'; return; }
+  empty.classList.add('hidden');
+  document.getElementById('pagination').style.display='flex';
+
+  var html = '';
+  page.forEach(function(o){
+    html += '<tr onclick="openDetail(\''+o.orderNo+'\')">';
+    html += '<td class="font-mono text-primary cursor-pointer" onclick="event.stopPropagation();copyOrderNo(\''+o.orderNo+'\')" title="点击复制">'+o.orderNo+'</td>';
+    html += '<td>'+o.bizType+'</td><td>'+o.user+'</td><td>'+o.cabinet+'</td><td class="font-mono">'+o.locker+'</td><td>'+o.lockerType+'</td>';
+    html += '<td>'+getStatusBadge(o.status)+'</td>';
+    html += '<td>'+o.source+'</td>';
+    html += '<td class="font-mono" style="text-align:right;">¥'+o.amount.toFixed(2)+'</td>';
+    html += '<td class="font-mono text-[12px] text-ink-muted">'+o.created+'</td>';
+    html += '<td class="font-mono text-[12px] text-ink-muted">'+o.updated+'</td>';
+    html += '<td><button class="btn btn-sm btn-default" onclick="event.stopPropagation();openDetail(\''+o.orderNo+'\')" style="margin-right:6px;">详情</button><button class="btn btn-sm btn-default" onclick="event.stopPropagation();openAnomalyDialog(\''+o.orderNo+'\')">标记异常</button></td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+  lucide.createIcons();
+}
+
+function renderPagination() {
+  var total = Math.ceil(filteredOrders.length/pageSize);
+  document.getElementById('pgStats').textContent = '共 '+filteredOrders.length+' 条记录　第 '+currentPage+'/'+Math.max(1,total)+' 页';
+  var nav = document.getElementById('pgNav'), html = '';
+  html += '<button onclick="goPage('+(currentPage-1)+')" style="min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;'+(currentPage<=1?'color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;':'color:#3A3F4A;background:#fff;')+'border:1px solid #DFE1E5;border-radius:4px;">‹</button>';
+  if (total<=7) { for(var i=1;i<=total;i++) html += '<button onclick="goPage('+i+')" style="min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;'+(i===currentPage?'background:#0066FF;border-color:#0066FF;color:#fff;':'color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;')+'border-radius:4px;">'+i+'</button>'; }
+  else {
+    html += '<button onclick="goPage(1)" style="min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;'+(1===currentPage?'background:#0066FF;border-color:#0066FF;color:#fff;':'color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;')+'border-radius:4px;">1</button>';
+    if(currentPage>3) html += '<span style="min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;">…</span>';
+    var s=Math.max(2,currentPage-1),e=Math.min(total-1,currentPage+1);
+    for(var i=s;i<=e;i++) html += '<button onclick="goPage('+i+')" style="min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;'+(i===currentPage?'background:#0066FF;border-color:#0066FF;color:#fff;':'color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;')+'border-radius:4px;">'+i+'</button>';
+    if(currentPage<total-2) html += '<span style="min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;">…</span>';
+    html += '<button onclick="goPage('+total+')" style="min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;'+(total===currentPage?'background:#0066FF;border-color:#0066FF;color:#fff;':'color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;')+'border-radius:4px;">'+total+'</button>';
+  }
+  html += '<button onclick="goPage('+(currentPage+1)+')" style="min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;'+(currentPage>=total?'color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;':'color:#3A3F4A;background:#fff;')+'border:1px solid #DFE1E5;border-radius:4px;">›</button>';
+  nav.innerHTML = html;
+}
+
+function goPage(p) { var t=Math.ceil(filteredOrders.length/pageSize); if(p<1||p>t)return; currentPage=p; renderTable(); renderPagination(); document.getElementById('mainContent').scrollTop=0; }
+function changePageSize() { pageSize = parseInt(document.getElementById('pageSize').value); currentPage=1; renderTable(); renderPagination(); }
+
+/* ================================================================
+   EXPORT
+   ================================================================ */
+function exportOrders() {
+  var cnt = filteredOrders.length;
+  alert('导出成功！\n\n已导出当前筛选结果 '+cnt+' 条订单为 CSV 文件。\n供运营与财务对账使用。');
+}
+
+/* ================================================================
+   COPY ORDER NO
+   ================================================================ */
+function copyOrderNo(no) {
+  navigator.clipboard.writeText(no).then(function(){
+    var t = document.getElementById('copyToast'); t.textContent = '已复制：'+no; t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 1500);
+  }).catch(function(){ prompt('复制订单号（Ctrl+C）', no); });
+}
+
+/* ================================================================
+   DETAIL DRAWER
+   ================================================================ */
+function openDetail(orderNo) {
+  selectedOrder = rawOrders.find(function(o){return o.orderNo===orderNo;});
+  if (!selectedOrder) return;
+  document.getElementById('detailOverlay').classList.add('show');
+  document.getElementById('detailDrawer').classList.add('open');
+
+  var o = selectedOrder;
+  var body = document.getElementById('detailBody');
+  var html = '';
+
+  // Basic info
+  html += '<div class="detail-group" data-anno="6"><h4><i data-lucide="info" class="w-[15px] h-[15px] text-primary"></i>基本信息</h4>';
+  html += '<div class="detail-row"><span class="detail-label">订单号</span><span class="detail-value font-mono text-primary cursor-pointer" onclick="copyOrderNo(\''+o.orderNo+'\')" title="点击复制">'+o.orderNo+' <i data-lucide="copy" class="w-[12px] h-[12px] inline text-ink-muted"></i></span></div>';
+  html += '<div class="detail-row"><span class="detail-label">业务类型</span><span class="detail-value">'+o.bizType+'</span></div>';
+  html += '<div class="detail-row"><span class="detail-label">订单来源</span><span class="detail-value">'+o.source+'</span></div>';
+  html += '<div class="detail-row"><span class="detail-label">订单状态</span><span class="detail-value">'+getStatusBadge(o.status)+'</span></div>';
+  html += '<div class="detail-row"><span class="detail-label">创建时间</span><span class="detail-value font-mono text-[12px]">'+o.created+'</span></div>';
+  html += '<div class="detail-row"><span class="detail-label">更新时间</span><span class="detail-value font-mono text-[12px]">'+o.updated+'</span></div>';
+  html += '</div>';
+
+  // User info
+  html += '<div class="detail-group"><h4><i data-lucide="user" class="w-[15px] h-[15px] text-primary"></i>用户信息</h4>';
+  html += '<div class="detail-row"><span class="detail-label">手机号</span><span class="detail-value">'+o.user+'</span></div>';
+  html += '</div>';
+
+  // Cabinet/Locker
+  html += '<div class="detail-group"><h4><i data-lucide="hard-drive" class="w-[15px] h-[15px] text-primary"></i>柜机格口</h4>';
+  html += '<div class="detail-row"><span class="detail-label">机柜名称</span><span class="detail-value">'+o.cabinet+'</span></div>';
+  html += '<div class="detail-row"><span class="detail-label">格口编号</span><span class="detail-value font-mono">'+o.locker+'</span></div>';
+  html += '<div class="detail-row"><span class="detail-label">柜型</span><span class="detail-value">'+o.lockerType+' 型</span></div>';
+  html += '</div>';
+
+  // Fee info
+  html += '<div class="detail-group"><h4><i data-lucide="dollar-sign" class="w-[15px] h-[15px] text-primary"></i>费用信息</h4>';
+  html += '<div class="detail-row"><span class="detail-label">实付金额</span><span class="detail-value font-mono font-semibold">¥'+o.amount.toFixed(2)+'</span></div>';
+  html += '</div>';
+
+  // Status timeline (mock)
+  html += '<div class="detail-group" data-anno="7"><h4><i data-lucide="clock" class="w-[15px] h-[15px] text-primary"></i>状态流转</h4>';
+  html += '<div class="tl-item active"><div class="text-[13px] text-ink-body">下单</div><div class="text-[11px] text-ink-muted font-mono">'+o.created+'</div></div>';
+  if (o.status !== '待支付') html += '<div class="tl-item active"><div class="text-[13px] text-ink-body">支付成功</div><div class="text-[11px] text-ink-muted font-mono">'+o.updated+'</div></div>';
+  if (['已完成','已取消','已退款','异常'].indexOf(o.status)>=0) html += '<div class="tl-item current"><div class="text-[13px] text-ink-body">'+o.status+'</div><div class="text-[11px] text-ink-muted font-mono">'+o.updated+'</div></div>';
+  else html += '<div class="tl-item current"><div class="text-[13px] text-success font-medium">● 当前：'+o.status+'</div><div class="text-[11px] text-ink-muted font-mono">'+o.updated+'</div></div>';
+  html += '</div>';
+
+  body.innerHTML = html;
+  lucide.createIcons();
+  if (annoVisible) setTimeout(renderAnnoBadges, 100);
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('show');
+  document.getElementById('detailDrawer').classList.remove('open');
+  selectedOrder = null;
+  if (annoVisible) setTimeout(renderAnnoBadges, 50);
+}
+
+/* ================================================================
+   MARK ANOMALY
+   ================================================================ */
+function openAnomalyDialog(orderNo) {
+  anomalyTarget = orderNo;
+  document.getElementById('anomalyOrderNo').textContent = orderNo;
+  document.getElementById('anomalyDialogOverlay').classList.add('show');
+}
+
+function closeAnomalyDialog() {
+  document.getElementById('anomalyDialogOverlay').classList.remove('show');
+  anomalyTarget = null;
+}
+
+function markAnomaly() {
+  if (selectedOrder) openAnomalyDialog(selectedOrder.orderNo);
+}
+
+function confirmMarkAnomaly() {
+  if (anomalyTarget) {
+    var o = rawOrders.find(function(x){return x.orderNo===anomalyTarget;});
+    if (o) { o.status = '异常'; renderTable(); }
+  }
+  closeAnomalyDialog();
+  closeDetail();
+  alert('订单 '+anomalyTarget+' 已标记为异常，异常工单已生成。\n\n即将跳转至异常工单页面。');
+  setTimeout(function(){ navigate('异常工单.html'); }, 500);
+}
+
+/* ================================================================
+   MENU
+   ================================================================ */
+function menuSelect(el){if(el.classList.contains('l1'))handleL1(el);else if(el.classList.contains('l2'))handleL2(el);}
+function handleL1(el){var s=el.getAttribute('data-sub');if(s)handleL1Toggle(el,s);else selectL1NoChildren(el);}
+function handleL1Toggle(el,sid){var sub=document.getElementById(sid);if(!sub)return;var a=el.querySelector('.menu-arrow');if(!sub.classList.contains('collapsed')){sub.classList.add('collapsed');if(a)a.classList.remove('open');if(!sub.querySelector('.menu-item.active-l2'))el.classList.remove('active-l1');}else{collapseAllExcept(sid);sub.classList.remove('collapsed');if(a)a.classList.add('open');if(sub.querySelector('.menu-item.active-l2'))el.classList.add('active-l1');}}
+function selectL1NoChildren(el){collapseAllExcept(null);clearAllActive();if(!el.classList.contains('active-l1')){el.classList.add('active-l1');navigateToPage(el.getAttribute('data-page'));}}
+function handleL2(el){var ps=el.closest('.submenu'),pid=ps?ps.id:null;collapseAllExcept(pid);if(ps&&ps.classList.contains('collapsed'))ps.classList.remove('collapsed');clearAllActive();el.classList.add('active-l2');var pl=findParentL1BySubId(pid);if(pl){pl.classList.add('active-l1');var a=pl.querySelector('.menu-arrow');if(a)a.classList.add('open');}navigateToPage(el.getAttribute('data-page'));}
+function collapseAllExcept(k){document.querySelectorAll('.submenu').forEach(function(s){if(s.id===k)return;if(s.classList.contains('collapsed'))return;s.classList.add('collapsed');var l=findParentL1BySubId(s.id);if(l){var a=l.querySelector('.menu-arrow');if(a)a.classList.remove('open');if(!s.querySelector('.menu-item.active-l2'))l.classList.remove('active-l1');}});}
+function clearAllActive(){document.querySelectorAll('.menu-item').forEach(function(i){i.classList.remove('active-l1','active-l2');});}
+function findParentL1BySubId(id){return id?document.querySelector('.menu-item.l1[data-sub="'+id+'"]'):null;}
+function navigateToPage(p){if(!p)return;var f=p.split("/").pop(),c=window.location.pathname.split("/").pop();if(f===c)return;if(p.endsWith('.html'))window.location.href=p;else{document.getElementById('mainContent').innerHTML='<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6"><h2 class="text-[16px] font-semibold text-ink-title mb-2">'+p+'</h2><p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p></div></div>';}}
+function navigate(url){if(url==='#')return;var f=url.split("/").pop(),c=window.location.pathname.split("/").pop();if(f===c)return;window.location.href=url;}
+function toggleSidebar(){var s=document.getElementById('sidebar'),o=document.getElementById('sidebarOverlay');s.classList.toggle('open');o.classList.toggle('show');}
+
+/* ================================================================
+   PORTAL ANNOTATIONS
+   ================================================================ */
+var annotations = {
+  1: { title: '筛选区', desc: ['一行4个字段，表格式左对齐，超出换行','标签文字右对齐紧贴控件左侧，字号14px，黑色（#1A1D24）','标签末尾带中文冒号：，标签区宽度统一（保证同行控件起始列对齐）','搜索订单：按订单号或用户手机号模糊匹配（脱敏匹配）','订单状态：全部 + 本地映射的11种状态，支持工作台带筛选进入','业务类型：行李寄存 / 行李寄送','订单来源：自有小程序 / 小铁小程序','柜机：全部 / 指定柜机','创建时间：[开始时间 - 结束时间]，两个日期输入框合并在一个字段内，无默认值','查询 / 重置：应用或清空筛选']},
+  2: { title: '订单列表表格', desc: ['列：订单号/业务类型/用户/柜机/格口/柜型/订单状态/来源/金额/创建时间/更新时间/操作','订单号可点击复制（mono字体），金额右对齐mono字体','状态Badge使用本地映射，语义色：寄存中(success)/待支付(warning)/超时寄存中(danger)/异常(danger)/已完成(muted)/已取消(muted)','手机号脱敏展示（138****8888）','点击行或"详情"按钮→打开右侧订单详情抽屉','标记异常→确认弹窗→生成异常工单并跳转']},
+  3: { title: '订单列表标题', desc: ['区块D顶部左侧的列表区标题','标识当前区块为订单数据列表']},
+  4: { title: '导出按钮', desc: ['点击导出当前筛选结果为CSV文件','供运营与财务对账使用','V2可扩展为后台直接导出']},
+  5: { title: '分页器', desc: ['总条数 + 页码导航 + 每页条数（10/20/50）','≤7页全显示，>7页首尾+当前页±1+省略号']},
+  6: { title: '订单详情-基本信息', desc: ['展示订单号（可复制）、业务类型、来源、状态Badge、创建/更新时间','抽屉宽560px，右侧滑出，遮罩可关闭']},
+  7: { title: '订单详情-状态流转', desc: ['时间线展示订单从下单到当前状态的关键节点','当前状态用绿色圆点+阴影强调','一期后台不直接操作退款/改派，退款由系统触发或经售后工单流程']},
+};
+
+var annoVisible = true;
+function renderAnnoBadges(){
+  var l=document.getElementById('annoLayer');l.innerHTML='';if(!annoVisible)return;var vw=window.innerWidth;
+  document.querySelectorAll('[data-anno]').forEach(function(el){
+    var id=el.getAttribute('data-anno');if(el.offsetParent===null&&el.tagName!=='BODY')return;
+    var t=resolveAnnoTarget(el,vw),r=t.getBoundingClientRect();if(r.width===0&&r.height===0)return;
+    var b=document.createElement('div');b.className='anno-portal-badge';b.textContent=id;
+    b.style.top=(r.top-10)+'px';b.style.left=(r.right-10)+'px';
+    b.addEventListener('click',function(e){e.stopPropagation();showAnnoPopup(id);});l.appendChild(b);
+  });
+}
+function resolveAnnoTarget(el,vw){var r=el.getBoundingClientRect();if(r.width<800||r.width<vw*0.7)return el;var inner=el.querySelector('h1,h2,h3,h4,h5,h6,button,.btn,input,select,.card-title,[class*="title"]');if(inner){var ir=inner.getBoundingClientRect();if(ir.width<r.width*0.8)return inner;}var first=el.firstElementChild;if(first){var fr=first.getBoundingClientRect();if(fr.width<r.width*0.9)return first;}return el;}
+function showAnnoPopup(id){var a=annotations[id];if(!a)return;document.getElementById('annoPopupTitle').textContent='#'+id+' '+a.title;document.getElementById('annoPopupBody').innerHTML=a.desc.map(function(d){return'<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>'+d+'</span></li>';}).join('');var box=document.getElementById('annoPopupBox');box.style.top='50%';box.style.left='50%';box.style.transform='translate(-50%,-50%)';document.getElementById('annoPopup').classList.remove('hidden');}
+function closeAnnoPopup(){document.getElementById('annoPopup').classList.add('hidden');}
+var popupDrag={offX:0,offY:0,moved:false};
+function startDragPopup(e){if(e.target.closest('button'))return;popupDrag.moved=false;var box=document.getElementById('annoPopupBox'),r=box.getBoundingClientRect();popupDrag.offX=e.clientX-r.left;popupDrag.offY=e.clientY-r.top;document.addEventListener('mousemove',onDragPopup);document.addEventListener('mouseup',stopDragPopup);}
+function onDragPopup(e){var dx=Math.abs(e.clientX-popupDrag.offX-document.getElementById('annoPopupBox').getBoundingClientRect().left);if(dx<3&&!popupDrag.moved)return;popupDrag.moved=true;var box=document.getElementById('annoPopupBox');box.style.transform='none';box.style.top=Math.max(0,Math.min(window.innerHeight-100,e.clientY-popupDrag.offY))+'px';box.style.left=Math.max(0,Math.min(window.innerWidth-100,e.clientX-popupDrag.offX))+'px';document.getElementById('annoPopupDrag').style.cursor='grabbing';}
+function stopDragPopup(){document.removeEventListener('mousemove',onDragPopup);document.removeEventListener('mouseup',stopDragPopup);var h=document.getElementById('annoPopupDrag');if(h)h.style.cursor='grab';}
+document.getElementById('annoToggle').addEventListener('click',function(e){if(this.dataset.dragging==='1')return;annoVisible=!annoVisible;if(annoVisible){document.body.classList.remove('anno-hidden');document.getElementById('annoToggleIcon').setAttribute('data-lucide','eye');}else{document.body.classList.add('anno-hidden');document.getElementById('annoToggleIcon').setAttribute('data-lucide','eye-off');}lucide.createIcons({attrs:{class:'w-[13px] h-[13px]'}});renderAnnoBadges();});
+var dragToggleY=0,dragToggleMoved=false;
+function startDragToggle(e){dragToggleY=e.clientY;dragToggleMoved=false;document.addEventListener('mousemove',onDragToggle);document.addEventListener('mouseup',stopDragToggle);e.preventDefault();}
+function onDragToggle(e){if(Math.abs(e.clientY-dragToggleY)<5)return;dragToggleMoved=true;var w=document.getElementById('annoToggle');w.style.top=Math.max(60,Math.min(window.innerHeight-60,e.clientY-20))+'px';w.style.right='8px';w.style.cursor='grabbing';}
+function stopDragToggle(){document.removeEventListener('mousemove',onDragToggle);document.removeEventListener('mouseup',stopDragToggle);var w=document.getElementById('annoToggle');if(w){w.style.cursor='grab';w.dataset.dragging=dragToggleMoved?'1':'';}}
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded',function(){
+  initFilters();
+  filteredOrders = rawOrders.slice();
+  renderTable();
+  renderPagination();
+  lucide.createIcons();
+  renderAnnoBadges();
+  document.getElementById('mainContent').addEventListener('scroll',renderAnnoBadges);
+  window.addEventListener('resize',renderAnnoBadges);
+  // URL preset filter (from 工作台)
+  if (new URLSearchParams(window.location.search).get('status')) applyFilters();
+});
+</script>
+</body>
+</html>

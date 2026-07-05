@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>消息设置 - 游寄后台管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+  <style>
+    body{overflow:hidden;}
+    .toggle-sw{width:40px;height:22px;background:#C7CAD1;border-radius:11px;position:relative;cursor:pointer;transition:background .25s;display:inline-block;}
+    .toggle-sw.on{background:#0066FF;}
+    .toggle-slider{position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left .25s;box-shadow:0 2px 4px rgba(0,0,0,.1);}
+    .toggle-sw.on .toggle-slider{left:19px;}
+    .data-table{width:100%;border-collapse:collapse;}
+    .data-table th{text-align:left;font-weight:500;font-size:13px;color:#6E7685;padding:0 12px;height:48px;background:#F0F1F3;border-bottom:1px solid #DFE1E5;}
+    .data-table th:first-child{padding-left:0;}
+    .data-table td{padding:0 12px;height:56px;font-size:14px;color:#1A1D24;border-bottom:1px solid #F5F5F5;}
+    .data-table td:first-child{padding-left:0;}
+    .data-table tr:hover td{background:#FAFAFA;}
+    .data-table tr:last-child td{border-bottom:none;}
+    .tooltip-icon{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#BFBFBF;color:#fff;font-size:10px;cursor:help;font-family:monospace;margin-left:4px;}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;}
+    .btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}.btn-primary:hover{background:#0052CC;}
+    .btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}.btn-default:hover{border-color:#0066FF;color:#0066FF;}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;}
+    .modal{background:#fff;border-radius:8px;width:460px;max-width:90%;max-height:70vh;display:flex;flex-direction:column;box-shadow:0 6px 24px rgba(0,0,0,.12);}
+    .modal-sm{width:360px;}
+    .modal-header{padding:16px 20px;border-bottom:1px solid #DFE1E5;display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600;color:#1A1D24;}
+    .modal-body{padding:20px;overflow-y:auto;flex:1;}
+    .modal-footer{padding:12px 20px;border-top:1px solid #DFE1E5;display:flex;justify-content:flex-end;gap:8px;}
+.anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
+.anno-portal-badge:hover{transform:scale(1.2);}
+.anno-hidden .anno-portal-badge{display:none;}
+  
+.menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+.menu-item:hover{background:#F3F4F6;}
+.menu-item.l1{padding-left:20px;font-weight:500;}
+.menu-item.l2{padding-left:64px;font-size:13px;}
+.menu-item.active-l1{color:#0066FF;}
+.menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+.menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+.active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+.menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+.menu-arrow.open{transform:rotate(180deg);}
+.submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+.submenu.collapsed{max-height:0!important;opacity:0;}
+.new-tag{display:inline-block;padding:1px 7px;border-radius:8px;background:#0066FF;color:#fff;font-size:10px;font-weight:600;line-height:16px;margin-left:4px;}
+/* Topbar buttons */
+.topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
+.topbar-btn:hover{background:#E6F0FF;}
+.topbar-btn:hover svg{stroke:#0066FF;}
+.badge-dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:600;line-height:18px;text-align:center;}
+/* Sidebar toggle (mobile) */
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .sidebar.open{display:flex;position:fixed;top:56px;left:0;bottom:0;z-index:50;}
+  .sidebar-overlay{display:none;}
+  .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;}
+}
+
+</style>
+</head>
+<body class="font-sans flex flex-col h-screen overflow-hidden">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-4 md:px-6 flex-shrink-0 gap-3">
+  <!-- Mobile menu toggle -->
+  <button class="topbar-btn md:hidden" onclick="toggleSidebar()" title="菜单">
+    <i data-lucide="menu" class="w-[18px] h-[18px]"></i>
+  </button>
+  <!-- Logo + Name -->
+  <div class="flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigate('index.html')">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div>
+    <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
+  </div>
+  <!-- Right icons -->
+  <div class="ml-auto flex items-center gap-3 md:gap-5">
+    <button class="topbar-btn" title="任务列表" onclick="navigate('任务中心.html')">
+      <i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="taskBadge" style="display:none;">0</span>
+    </button>
+    <button class="topbar-btn" title="消息中心" onclick="navigate('消息中心.html')">
+      <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="msgBadge">5</span>
+    </button>
+    <button class="topbar-btn" title="账号信息" onclick="navigate('账号信息.html')">
+      <i data-lucide="user" class="w-[18px] h-[18px]"></i>
+    </button>
+  </div>
+</header>
+
+<!-- ===== BODY: SIDEBAR + CONTENT ===== -->
+<div class="flex flex-1 min-h-0">
+  <!-- Mobile overlay -->
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+    <!-- 工作台 -->
+    <div class="menu-item l1" data-page="工作台.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台
+    </div>
+
+    <!-- 数据概览 -->
+    <div class="menu-item l1" data-page="数据概览.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览
+    </div>
+
+    <!-- 订单管理 -->
+    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理
+    </div>
+
+    <!-- 异常工单 -->
+    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单
+    </div>
+
+    <!-- 柜机监控 -->
+    <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控
+    </div>
+
+    <!-- 对账中心 -->
+    <div class="menu-item l1" data-page="对账中心.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心
+    </div>
+
+    <!-- 运营配置 -->
+    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置
+    </div>
+
+    <!-- 系统设置（含二级菜单） -->
+    <div class="menu-item l1 active-l1" data-sub="sub-settings" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置
+      <span class="menu-arrow open">▼</span>
+    </div>
+    <div class="submenu" id="sub-settings" style="max-height:400px;">
+      <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
+      <div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div>
+      <div class="menu-item l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div>
+      <div class="menu-item l2 active-l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div>
+      <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
+    </div>
+  </aside>
+
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
+    <div class="p-4">
+  <!-- 消息设置卡片 -->
+  <div class="bg-white rounded-lg border border-line p-5 md:p-6">
+
+  <!-- Info Banner -->
+  <div class="flex justify-between items-start bg-warning-bg border-l-4 border-warning rounded-md px-5 py-4 mb-4" data-anno="1">
+    <div>
+      <div class="flex items-center gap-1.5 text-[14px] font-semibold mb-2" style="color:#E7772D"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i> 提示</div>
+      <p class="text-[13px] text-ink-sub leading-relaxed m-0">1、设置启用时，会受到系统的弹窗提醒或消息中心提醒。</p>
+      <p class="text-[13px] text-ink-sub leading-relaxed m-0">2、开启气泡提醒时默认开启消息中心提醒，关闭消息中心提醒默认关闭气泡提醒。</p>
+    </div>
+    <div class="flex items-center gap-4 flex-shrink-0 ml-4">
+      <button class="flex items-center gap-1 bg-transparent border-none text-[13px] text-ink-sub cursor-pointer hover:text-primary transition-colors p-0" onclick="showWechatModal()"><i data-lucide="message-circle" class="w-[15px] h-[15px]"></i> 绑定公众号</button>
+      <button class="flex items-center gap-1 bg-transparent border-none text-[13px] text-ink-sub cursor-pointer hover:text-primary transition-colors p-0" onclick="navigate('消息中心.html')"><i data-lucide="bell" class="w-[15px] h-[15px]"></i> 消息中心</button>
+    </div>
+  </div>
+
+  <!-- Message Config Table -->
+  <div data-anno="2">
+    <table class="data-table">
+      <thead><tr>
+        <th style="width:140px">消息标题</th>
+        <th>消息说明</th>
+        <th style="width:130px"><div class="flex items-center gap-1">气泡提醒<span class="tooltip-icon" title="在电脑端界面右上角，会以气泡弹窗样式弹出消息通知，气泡会在5秒后自动消失">?</span></div></th>
+        <th style="width:130px">消息中心提醒</th>
+        <th style="width:130px">通知方式</th>
+        <th style="width:130px">通知对象</th>
+        <th style="width:80px;text-align:right;">操作</th>
+      </tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  </div><!-- /消息设置卡片 -->
+    </div><!-- /p-4 -->
+  </main>
+</div><!-- /flex wrapper -->
+
+
+<!-- ===== EDIT MODAL ===== -->
+<div id="editModalOverlay" class="hidden modal-overlay" onclick="closeEditModal()"><div class="modal" onclick="event.stopPropagation()"><div class="modal-header"><span id="editModalTitle">编辑</span><button onclick="closeEditModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[16px] h-[16px]"></i></button></div><div class="modal-body"><div class="mb-5"><div class="text-[14px] font-medium text-ink-title mb-3">推送角色</div><div class="flex flex-wrap gap-4" id="editRoles"></div></div><div class="mb-5"><div class="text-[14px] font-medium text-ink-title mb-3">推送方式</div><div class="flex flex-wrap gap-4" id="editMethods"></div></div></div><div class="modal-footer"><button class="btn btn-default" onclick="closeEditModal()">取消</button><button class="btn btn-primary" onclick="saveEdit()">确定</button></div></div></div>
+
+<!-- ===== WECHAT MODAL ===== -->
+<div id="wechatModalOverlay" class="hidden modal-overlay" onclick="closeWechatModal()"><div class="modal" style="width:460px;" onclick="event.stopPropagation()"><div class="modal-header"><span>微信提醒设置</span><button onclick="closeWechatModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[16px] h-[16px]"></i></button></div><div class="modal-body flex flex-col items-center py-4"><div class="w-[120px] h-[120px] bg-bg-page rounded flex items-center justify-center mb-4 text-[12px] text-ink-muted">游寄<br>公众号二维码</div><p class="text-[15px] font-medium text-ink-title mb-1">请用微信"扫一扫"</p><p class="text-[13px] text-ink-muted mb-5">微信扫码关注"游寄"微信公众号</p><div class="w-full bg-bg-page rounded-md p-4"><p class="text-[13px] font-medium text-ink-sub mb-2">绑定微信公众号，您将获得以下功能：</p><div class="flex items-start gap-1.5 text-[13px] text-ink-sub mb-1.5"><i data-lucide="check" class="w-[14px] h-[14px] text-success flex-shrink-0 mt-0.5"></i> 柜机异常、行李超时等消息通知</div><div class="flex items-start gap-1.5 text-[13px] text-ink-sub"><i data-lucide="check" class="w-[14px] h-[14px] text-success flex-shrink-0 mt-0.5"></i> 订单状态变更、退款审核等消息通知</div></div></div></div></div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg text-white text-[13px] font-medium z-[200] opacity-0 transition-opacity duration-300 pointer-events-none whitespace-nowrap" style="background:#1A1D24;"></div>
+<div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
+<div id="annoToggle" class="fixed z-[150]" style="right:8px;bottom:40px;cursor:grab;" onmousedown="startDragToggle(event)">
+  <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] bg-white/90 backdrop-blur text-primary border border-primary/30 shadow-sm">
+    <i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i> 标注
+  </div>
+</div>
+<div id="annoPopup" class="hidden fixed inset-0 z-[9999]" style="background:rgba(0,0,0,.2);" onclick="closeAnnoPopup()">
+  <div id="annoPopupBox" class="fixed bg-white rounded-lg shadow-xl p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto"
+       style="top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 12px 40px rgba(0,0,0,.18);"
+       onclick="event.stopPropagation()">
+    <button onclick="closeAnnoPopup()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted z-10"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+    <div id="annoPopupDrag" class="flex items-center gap-2 mb-3 select-none" style="cursor:grab;" onmousedown="startDragPopup(event)" title="拖拽移动弹窗">
+      <i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i>
+      <h3 id="annoPopupTitle" class="text-[16px] font-semibold text-ink-title"></h3>
+    </div>
+    <ul id="annoPopupBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul>
+  </div>
+</div>
+
+<script>
+/* ===== DATA - 游寄业务消息类型 ===== */
+const messageConfigs = [
+  { id:1, title:'订单分配', description:'订单分配给运营人员后，推送提醒', bubble:true, msgCenter:true, methods:['系统消息'], roles:['所属运营'] },
+  { id:2, title:'订单转移', description:'订单转移给其他运营人员后，推送提醒', bubble:true, msgCenter:true, methods:['系统消息'], roles:['所属运营'] },
+  { id:3, title:'柜机异常告警', description:'柜机出现故障或通信异常，推送提醒', bubble:true, msgCenter:true, methods:['系统消息','公众号推送'], roles:['运营主管','系统管理员'] },
+  { id:4, title:'柜机即将满载', description:'柜机使用率达到85%即将满载，推送提醒', bubble:true, msgCenter:true, methods:['系统消息'], roles:['运营主管'] },
+  { id:5, title:'异常件待处理', description:'产生新的异常件工单，推送提醒', bubble:true, msgCenter:true, methods:['系统消息'], roles:['所属运营'] },
+  { id:6, title:'异常件处理完成', description:'异常件工单处理完毕，推送提醒', bubble:true, msgCenter:true, methods:['系统消息'], roles:['所属运营'] },
+  { id:7, title:'退款申请待审核', description:'用户提交退款申请，推送提醒', bubble:true, msgCenter:true, methods:['系统消息'], roles:['运营主管'] },
+  { id:8, title:'行李寄存到期提醒', description:'行李寄存即将到期（剩余1天），推送提醒', bubble:true, msgCenter:true, methods:['系统消息'], roles:['所属运营'] },
+  { id:9, title:'柜机故障告警', description:'柜机传感器或通信模块故障，推送提醒', bubble:true, msgCenter:true, methods:['系统消息','公众号推送'], roles:['系统管理员'] },
+  { id:10, title:'寄存超时未取件', description:'行李寄存到期后24小时仍未取件，推送提醒', bubble:true, msgCenter:true, methods:['系统消息'], roles:['所属运营'] },
+  { id:11, title:'行李超时未领取', description:'行李寄存到期后72小时未领取，升级告警', bubble:true, msgCenter:true, methods:['系统消息','公众号推送'], roles:['运营主管','系统管理员'] },
+  { id:12, title:'订单超时未完成', description:'订单创建72小时后未完成，推送提醒', bubble:true, msgCenter:true, methods:['系统消息'], roles:['所属运营'] },
+  { id:13, title:'柜机授权即将到期', description:'柜机授权剩余3天即将失效，推送提醒', bubble:true, msgCenter:true, methods:['系统消息'], roles:['系统管理员'] },
+  { id:14, title:'柜机授权已失效', description:'柜机授权已失效，柜机不可用，推送提醒', bubble:true, msgCenter:true, methods:['系统消息','公众号推送'], roles:['运营主管','系统管理员'] }
+];
+
+let editingItem = null;
+let editForm = { roles:[], methods:[] };
+
+function renderTable(){
+  let html = '';
+  messageConfigs.forEach(item => {
+    html += '<tr>';
+    html += '<td class="font-medium">'+item.title+'</td>';
+    html += '<td class="text-ink-sub">'+item.description+'</td>';
+    html += '<td><div class="toggle-sw'+(item.bubble?' on':'')+'" onclick="toggleBubble('+item.id+')"><div class="toggle-slider"></div></div></td>';
+    html += '<td><div class="toggle-sw'+(item.msgCenter?' on':'')+'" onclick="toggleMsgCenter('+item.id+')"><div class="toggle-slider"></div></div></td>';
+    html += '<td class="text-[13px]">'+item.methods.join('，')+'</td>';
+    html += '<td class="text-[13px]">'+item.roles.join('，')+'</td>';
+    html += '<td style="text-align:right;"><span class="text-[13px] text-primary cursor-pointer hover:underline" onclick="openEdit('+item.id+')">编辑</span></td>';
+    html += '</tr>';
+  });
+  document.getElementById('tableBody').innerHTML = html;
+}
+function toggleBubble(id){
+  const item = messageConfigs.find(m=>m.id===id);
+  if(!item)return;
+  item.bubble = !item.bubble;
+  if(item.bubble) item.msgCenter = true;
+  renderTable(); showToast('操作成功','success');
+}
+function toggleMsgCenter(id){
+  const item = messageConfigs.find(m=>m.id===id);
+  if(!item)return;
+  item.msgCenter = !item.msgCenter;
+  if(!item.msgCenter) item.bubble = false;
+  renderTable(); showToast('操作成功','success');
+}
+function openEdit(id){
+  editingItem = messageConfigs.find(m=>m.id===id);
+  if(!editingItem)return;
+  editForm.roles = [...editingItem.roles];
+  editForm.methods = [...editingItem.methods];
+  if(!editForm.methods.includes('系统消息')) editForm.methods.push('系统消息');
+  document.getElementById('editModalTitle').textContent = '编辑 - '+editingItem.title;
+  // Render checkboxes
+  const allRoles = ['所属运营','运营主管','系统管理员'];
+  document.getElementById('editRoles').innerHTML = allRoles.map(r=>'<label class="flex items-center gap-1.5 text-[13px] text-ink-body cursor-pointer"><input type="checkbox" value="'+r+'" '+(editForm.roles.includes(r)?'checked':'')+' onchange="toggleRole(\''+r+'\',this.checked)"> '+r+'</label>').join('');
+  document.getElementById('editMethods').innerHTML = [
+    {v:'系统消息',d:true,l:'系统消息'},
+    {v:'公众号推送',d:false,l:'公众号推送'}
+  ].map(m=>'<label class="flex items-center gap-1.5 text-[13px] text-ink-body cursor-pointer"><input type="checkbox" value="'+m.v+'" '+(editForm.methods.includes(m.v)?'checked':'')+' '+(m.d?'disabled':'')+' onchange="toggleMethod(\''+m.v+'\',this.checked)"> '+m.l+'</label>').join('');
+  document.getElementById('editModalOverlay').classList.remove('hidden');
+}
+function toggleRole(v,checked){ if(checked) editForm.roles.push(v); else{ const i=editForm.roles.indexOf(v); if(i>-1)editForm.roles.splice(i,1); } }
+function toggleMethod(v,checked){
+  if(v==='公众号推送'&&checked){ showToast('请先绑定公众号','warning'); showWechatModal(); return; }
+  if(checked) editForm.methods.push(v); else{ const i=editForm.methods.indexOf(v); if(i>-1)editForm.methods.splice(i,1); }
+}
+function closeEditModal(){ document.getElementById('editModalOverlay').classList.add('hidden'); }
+function saveEdit(){
+  if(editForm.roles.length===0){ showToast('配置角色不能为空','error'); return; }
+  if(editingItem){ editingItem.roles = [...editForm.roles]; editingItem.methods = [...editForm.methods]; }
+  closeEditModal(); renderTable(); showToast('保存成功','success');
+}
+function showWechatModal(){ document.getElementById('wechatModalOverlay').classList.remove('hidden'); }
+function closeWechatModal(){ document.getElementById('wechatModalOverlay').classList.add('hidden'); }
+
+/* ===== TOAST ===== */
+let toastTimer=null;
+function showToast(msg,type='info'){
+  if(toastTimer)clearTimeout(toastTimer);
+  const el=document.getElementById('toast');
+  const c={info:'#1A1D24',success:'#0FC060',error:'#D9001B',warning:'#E7772D'};
+  el.textContent=msg;el.style.background=c[type]||c.info;el.style.opacity='1';
+  toastTimer=setTimeout(()=>{el.style.opacity='0';},2500);
+}
+
+/* ===== ANNOTATIONS ===== */
+const annotations={
+  1:{title:'提示横幅',desc:['展示消息设置的使用规则：气泡提醒与消息中心提醒的联动关系','右侧按钮：绑定公众号（弹出二维码弹窗）、消息中心（跳转任务列表页）','绑定后可通过公众号接收柜机异常、行李超时等推送']},
+  2:{title:'消息配置表格',desc:['消息标题/说明：14种游寄业务消息类型（订单/柜机/异常件/行李/授权）','气泡提醒开关：控制桌面端右上角气泡弹窗通知（5秒自动消失）','消息中心提醒开关：控制消息中心是否记录该类型通知','联动规则：开气泡→自动开消息中心；关消息中心→自动关气泡','通知方式：系统消息（默认必选）/ 公众号推送（需先绑定）','通知对象：所属运营 / 运营主管 / 系统管理员','编辑：可修改每个消息类型的推送角色和推送方式']},
+};
+var annoVisible = true;
+function renderAnnoBadges() {
+  var layer = document.getElementById('annoLayer');
+  layer.innerHTML = '';
+  if (!annoVisible) return;
+  var vw = window.innerWidth;
+  document.querySelectorAll('[data-anno]').forEach(function(el) {
+    var id = el.getAttribute('data-anno');
+    if (el.offsetParent === null && el.tagName !== 'BODY') return;
+    var target = resolveAnnoTarget(el, vw);
+    var rect = target.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return;
+    var badge = document.createElement('div');
+    badge.className = 'anno-portal-badge';
+    badge.textContent = id;
+    badge.style.top  = (rect.top  - 10) + 'px';
+    badge.style.left = (rect.right - 10) + 'px';
+    badge.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showAnnoPopup(id);
+    });
+    layer.appendChild(badge);
+  });
+}
+
+/** Smart targeting: if data-anno is on a full-width container, drill down to the core inner element */
+function resolveAnnoTarget(el, vw) {
+  var rect = el.getBoundingClientRect();
+  if (rect.width < 800 || rect.width < vw * 0.7) return el;
+  var inner = el.querySelector('h1, h2, h3, h4, h5, h6, button, .btn, input, select, .card-title, [class*="title"]');
+  if (inner) {
+    var innerRect = inner.getBoundingClientRect();
+    if (innerRect.width < rect.width * 0.8) return inner;
+  }
+  var first = el.firstElementChild;
+  if (first) {
+    var firstRect = first.getBoundingClientRect();
+    if (firstRect.width < rect.width * 0.9) return first;
+  }
+  return el;
+}
+function showAnnoPopup(id) {
+  var a = annotations[id];
+  if (!a) return;
+  document.getElementById('annoPopupTitle').textContent = '#' + id + ' ' + a.title;
+  document.getElementById('annoPopupBody').innerHTML = a.desc.map(function(d) {
+    return '<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>' + d + '</span></li>';
+  }).join('');
+  var box = document.getElementById('annoPopupBox');
+  box.style.top = '50%'; box.style.left = '50%'; box.style.transform = 'translate(-50%,-50%)';
+  document.getElementById('annoPopup').classList.remove('hidden');
+}
+
+function closeAnnoPopup() {
+  document.getElementById('annoPopup').classList.add('hidden');
+}
+
+var popupDrag = { offX: 0, offY: 0, moved: false };
+function startDragPopup(e) {
+  if (e.target.closest('button')) return;
+  popupDrag.moved = false;
+  var box = document.getElementById('annoPopupBox');
+  var rect = box.getBoundingClientRect();
+  popupDrag.offX = e.clientX - rect.left;
+  popupDrag.offY = e.clientY - rect.top;
+  document.addEventListener('mousemove', onDragPopup);
+  document.addEventListener('mouseup', stopDragPopup);
+}
+function onDragPopup(e) {
+  var dx = Math.abs(e.clientX - popupDrag.offX - document.getElementById('annoPopupBox').getBoundingClientRect().left);
+  if (dx < 3 && !popupDrag.moved) return;
+  popupDrag.moved = true;
+  var box = document.getElementById('annoPopupBox');
+  box.style.transform = 'none';
+  box.style.top  = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - popupDrag.offY)) + 'px';
+  box.style.left = Math.max(0, Math.min(window.innerWidth  - 100, e.clientX - popupDrag.offX)) + 'px';
+  document.getElementById('annoPopupDrag').style.cursor = 'grabbing';
+}
+function stopDragPopup() {
+  document.removeEventListener('mousemove', onDragPopup);
+  document.removeEventListener('mouseup', stopDragPopup);
+  var h = document.getElementById('annoPopupDrag');
+  if (h) h.style.cursor = 'grab';
+}
+document.getElementById('annoToggle').addEventListener('click', function(e) {
+  if (this.dataset.dragging === '1') return;
+  annoVisible = !annoVisible;
+  if (annoVisible) { document.body.classList.remove('anno-hidden'); document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye'); }
+  else { document.body.classList.add('anno-hidden'); document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye-off'); }
+  lucide.createIcons({ attrs: { class: 'w-[13px] h-[13px]' } });
+  renderAnnoBadges();
+});
+var dragToggleY = 0, dragToggleMoved = false;
+function startDragToggle(e) {
+  dragToggleY = e.clientY; dragToggleMoved = false;
+  document.addEventListener('mousemove', onDragToggle);
+  document.addEventListener('mouseup', stopDragToggle); e.preventDefault();
+}
+function onDragToggle(e) {
+  if (Math.abs(e.clientY - dragToggleY) < 5) return; dragToggleMoved = true;
+  var w = document.getElementById('annoToggle');
+  w.style.top = Math.max(60, Math.min(window.innerHeight - 60, e.clientY - 20)) + 'px';
+  w.style.right = '8px'; w.style.cursor = 'grabbing';
+}
+function stopDragToggle() {
+  document.removeEventListener('mousemove', onDragToggle);
+  document.removeEventListener('mouseup', stopDragToggle);
+  var w = document.getElementById('annoToggle');
+  if (w) { w.style.cursor = 'grab'; w.dataset.dragging = dragToggleMoved ? '1' : ''; }
+}
+document.addEventListener('DOMContentLoaded',()=>{lucide.createIcons();renderTable();renderAnnoBadges();document.getElementById('mainContent').addEventListener('scroll', renderAnnoBadges);window.addEventListener('resize', renderAnnoBadges);});
+
+/* ================================================================
+   MENU SELECT — unified sidebar menu interaction handler
+   ================================================================ */
+function menuSelect(el) {
+  if (el.classList.contains('l1')) {
+    handleL1(el);
+  } else if (el.classList.contains('l2')) {
+    handleL2(el);
+  }
+}
+
+function handleL1(el) {
+  var subId = el.getAttribute('data-sub');
+  if (subId) {
+    handleL1Toggle(el, subId);
+  } else {
+    selectL1NoChildren(el);
+  }
+}
+
+function handleL1Toggle(el, subId) {
+  var sub = document.getElementById(subId);
+  if (!sub) return;
+  var arrow = el.querySelector('.menu-arrow');
+  var isExpanded = !sub.classList.contains('collapsed');
+  if (isExpanded) {
+    sub.classList.add('collapsed');
+    if (arrow) arrow.classList.remove('open');
+    if (!sub.querySelector('.menu-item.active-l2')) {
+      el.classList.remove('active-l1');
+    }
+  } else {
+    collapseAllExcept(subId);
+    sub.classList.remove('collapsed');
+    if (arrow) arrow.classList.add('open');
+    if (sub.querySelector('.menu-item.active-l2')) {
+      el.classList.add('active-l1');
+    }
+  }
+}
+
+function selectL1NoChildren(el) {
+  collapseAllExcept(null);
+  clearAllActive();
+  el.classList.add('active-l1');
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+function handleL2(el) {
+  var parentSub = el.closest('.submenu');
+  var parentSubId = parentSub ? parentSub.id : null;
+  collapseAllExcept(parentSubId);
+  if (parentSub && parentSub.classList.contains('collapsed')) {
+    parentSub.classList.remove('collapsed');
+  }
+  clearAllActive();
+  el.classList.add('active-l2');
+  var parentL1 = findParentL1BySubId(parentSubId);
+  if (parentL1) {
+    parentL1.classList.add('active-l1');
+    var arrow = parentL1.querySelector('.menu-arrow');
+    if (arrow) arrow.classList.add('open');
+  }
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+function collapseAllExcept(keepSubId) {
+  document.querySelectorAll('.submenu').forEach(function(sub) {
+    if (sub.id === keepSubId) return;
+    if (sub.classList.contains('collapsed')) return;
+    sub.classList.add('collapsed');
+    var l1 = findParentL1BySubId(sub.id);
+    if (l1) {
+      var arrow = l1.querySelector('.menu-arrow');
+      if (arrow) arrow.classList.remove('open');
+      if (!sub.querySelector('.menu-item.active-l2')) {
+        l1.classList.remove('active-l1');
+      }
+    }
+  });
+}
+
+function clearAllActive() {
+  document.querySelectorAll('.menu-item').forEach(function(item) {
+    item.classList.remove('active-l1', 'active-l2');
+  });
+}
+
+function findParentL1BySubId(subId) {
+  if (!subId) return null;
+  return document.querySelector('.menu-item.l1[data-sub="' + subId + '"]');
+}
+
+function navigateToPage(page) {
+  if (!page) return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = page.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  if (page.endsWith('.html')) {
+    window.location.href = page;
+  } else {
+    document.getElementById('mainContent').innerHTML =
+      '<div class="p-4">' +
+      '<div class="bg-white rounded-lg border border-line p-5 md:p-6">' +
+      '<h2 class="text-[16px] font-semibold text-ink-title mb-2">' + page + '</h2>' +
+      '<p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p>' +
+      '</div></div>';
+  }
+}
+
+/* ===== TOPBAR NAVIGATION ===== */
+function navigate(url) {
+  if (url === '#') return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = url.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  window.location.href = url;
+}
+
+/* ===== MOBILE SIDEBAR TOGGLE ===== */
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+</script>
+</body>
+</html>

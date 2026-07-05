@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>成员管理 - 游寄后台管理系统</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary:   { DEFAULT: '#0066FF', hover: '#0052CC', active: '#0047B3', bg: '#E6F0FF' },
+            ink:       { title: '#1A1D24', body: '#3A3F4A', sub: '#6E7685', muted: '#9DA2AC' },
+            line:      { DEFAULT: '#DFE1E5', light: '#E8EAED', lighter: '#F0F1F3' },
+            bg:        { page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6' },
+            success:   { DEFAULT: '#0FC060', bg: '#E7F9F0' },
+            warning:   { DEFAULT: '#E7772D', bg: '#FDF2E9' },
+            danger:    { DEFAULT: '#D9001B', bg: '#FFE8EB' },
+            info:      { DEFAULT: '#0091D5', bg: '#E4F4FB' },
+          },
+          borderRadius: { DEFAULT: '4px', md: '6px', lg: '8px' },
+          fontFamily: {
+            sans: ['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],
+            mono: ['JetBrains Mono','monospace'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ===== Custom styles ===== */
+    body{overflow:hidden;}
+    .tree-node { cursor: pointer; user-select: none; transition: background .12s; }
+    .tree-node:hover { background: #F3F4F6; }
+    .tree-node.active { background: #E6F0FF; }
+    .tree-node .node-more { opacity: 0; transition: opacity .15s; }
+    .tree-node:hover .node-more { opacity: 1; }
+    .tree-children { overflow: hidden; transition: max-height .25s ease; }
+    .tree-children.collapsed { max-height: 0 !important; }
+    .tree-arrow { transition: transform .2s; font-size: 10px; color: #9DA2AC; }
+    .tree-arrow.open { transform: rotate(90deg); }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th { text-align: left; font-weight: 600; font-size: 12px; color: #6E7685; padding: 9px 12px; background: #F0F1F3; border-bottom: 1px solid #DFE1E5; white-space: nowrap; }
+    .data-table td { padding: 9px 12px; border-bottom: 1px solid #F0F1F3; color: #3A3F4A; }
+    .data-table tr:hover td { background: #F3F4F6; }
+    .data-table .col-mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+
+    .action-link { color: #0066FF; cursor: pointer; font-size: 13px; transition: opacity .12s; }
+    .action-link:hover { opacity: .8; text-decoration: underline; }
+    .action-link.danger { color: #D9001B; margin-left: 12px; }
+
+    /* Member avatar */
+    .member-avatar { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0; }
+
+    /* Toggle switch */
+    .toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; cursor: pointer; }
+    .toggle-switch input { display: none; }
+    .toggle-slider { position: absolute; inset: 0; border-radius: 22px; background: #C7CAD1; transition: .2s; }
+    .toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 2px; bottom: 2px; border-radius: 50%; background: #fff; transition: .2s; }
+    .toggle-switch input:checked + .toggle-slider { background: #0066FF; }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    /* Modal — 对齐 design.md §5.6：760px宽 / 遮罩rgba(0,0,0,.3) / 内容区padding 32px 24px */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 100; display: flex; align-items: center; justify-content: center; }
+    .modal { background: #fff; border-radius: 8px; width: 760px; max-width: 92vw; max-height: 70vh; display: flex; flex-direction: column; box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+    .modal-sm { width: 600px; }
+    .modal-header { padding: 16px 24px; border-bottom: 1px solid #DFE1E5; display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 600; color: #1A1D24; }
+    .modal-body { padding: 32px 24px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; align-items: center; }
+    .modal-footer { padding: 12px 24px; border-top: 1px solid #DFE1E5; display: flex; justify-content: flex-end; gap: 8px; }
+
+    /* Form — 对齐 design.md §5.6/§5.9：label 90px 右对齐 + 控件 400px 宽 30px 高 */
+    .form-group { display: flex; align-items: flex-start; margin-bottom: 16px; }
+    .form-group label { width: 90px; text-align: right; font-size: 13px; color: #3A3F4A; padding-top: 6px; font-weight: 500; flex-shrink: 0; margin-right: 12px; }
+    .form-group .required { color: #D9001B; margin-right: 2px; }
+    .form-input { width: 400px; height: 30px; padding: 0 12px; font-size: 13px; border: 1px solid #DFE1E5; border-radius: 4px; color: #3A3F4A; outline: none; transition: border-color .15s; box-sizing: border-box; background: #fff; }
+    .form-input:focus { border-color: #0066FF; box-shadow: 0 0 0 2px rgba(0,102,255,.12); }
+    .form-input.error { border-color: #D9001B; }
+    .form-select { width: 400px; height: 30px; padding: 0 32px 0 12px; font-size: 13px; border: 1px solid #DFE1E5; border-radius: 4px; color: #3A3F4A; outline: none; appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239DA2AC' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center; cursor: pointer; }
+    .form-select:focus { border-color: #0066FF; box-shadow: 0 0 0 2px rgba(0,102,255,.12); }
+    .form-error { display: block; color: #D9001B; font-size: 12px; margin-top: 4px; }
+    .form-control-wrap { display: flex; flex-direction: column; width: 400px; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 14px; font-size: 13px; font-weight: 500; border-radius: 4px; border: 1px solid transparent; cursor: pointer; transition: all .15s; outline: none; }
+    .btn-primary { background: #0066FF; color: #fff; border-color: #0066FF; }
+    .btn-primary:hover { background: #0052CC; }
+    .btn-default { background: #fff; color: #3A3F4A; border-color: #DFE1E5; }
+    .btn-default:hover { border-color: #0066FF; color: #0066FF; }
+    .btn-danger { background: #fff; color: #D9001B; border-color: #DFE1E5; }
+    .btn-danger:hover { border-color: #D9001B; background: #FFE8EB; }
+    .btn-sm { height: 28px; padding: 0 10px; font-size: 12px; }
+
+    /* Dialog — 对齐设计系统.html §5.8：600px宽/250px高/无标题栏/ICO圆形图标 */
+    .dialog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 1200; display: flex; align-items: center; justify-content: center; }
+    .dialog-box { background: #fff; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,.12); width: 600px; max-width: 92vw; height: 250px; display: flex; flex-direction: column; position: relative; animation: ds-modal-in .15s ease; }
+    .dialog-close { position: absolute; top: 14px; right: 18px; font-size: 20px; color: #9DA2AC; cursor: pointer; line-height: 1; z-index: 1; background: none; border: none; padding: 0; }
+    .dialog-body { flex: 1; display: flex; align-items: center; padding: 0 24px; }
+    .dialog-ico { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; font-weight: 700; }
+    .dialog-footer { padding: 0 24px 20px; display: flex; justify-content: flex-end; gap: 12px; }
+    .dialog-btn-cancel { font: 500 13px inherit; padding: 6px 20px; border-radius: 4px; background: #fff; color: #3A3F4A; border: 1px solid #DFE1E5; cursor: pointer; }
+    .dialog-btn-confirm { font: 500 13px inherit; padding: 6px 20px; border-radius: 4px; border: 1px solid transparent; cursor: pointer; background: #0066FF; color: #fff; }
+    .dialog-btn-confirm.danger { background: #D9001B; }
+
+    /* Pagination — 严格对齐设计系统.html 分页器 */
+    .pg-btn { min-width: 30px; height: 30px; padding: 0 8px; font: 500 12px inherit; color: #3A3F4A; background: #fff; border: 1px solid #DFE1E5; border-radius: 4px; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; outline: none; }
+    .pg-btn:hover:not(.pg-current):not(:disabled) { color: #0066FF; border-color: #0066FF; }
+    .pg-btn:disabled { color: #C7CAD1; background: #F7F8FA; cursor: not-allowed; border-color: #DFE1E5; }
+    .pg-current { background: #0066FF; border-color: #0066FF; color: #fff; cursor: default; }
+    .pg-current:hover { background: #0066FF; border-color: #0066FF; color: #fff; }
+    .pg-ellipsis { min-width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; color: #9DA2AC; font-size: 13px; }
+    .pg-select { font: 12px inherit; height: 30px; padding: 0 28px 0 8px; border-radius: 4px; border: 1px solid #DFE1E5; color: #3A3F4A; background: #fff; cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; }
+    .pg-select-wrap { position: relative; display: inline-flex; align-items: center; }
+    .pg-select-wrap::after { content: '▼'; position: absolute; right: 8px; font-size: 8px; color: #9DA2AC; pointer-events: none; }
+    .pg-jump-input { font: 12px inherit; width: 44px; height: 30px; text-align: center; border-radius: 4px; border: 1px solid #DFE1E5; color: #3A3F4A; outline: none; transition: border-color .15s; }
+    .pg-jump-input:focus { border-color: #0066FF; box-shadow: 0 0 0 2px rgba(0,102,255,.12); }
+    .pg-stats { color: #9DA2AC; white-space: nowrap; }
+
+    .anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
+    .anno-portal-badge:hover{transform:scale(1.2);}
+    .anno-hidden .anno-portal-badge{display:none;}
+
+    @media (max-width: 1024px) {
+      .member-layout { flex-direction: column; }
+      .dept-tree-section { width: 100% !important; max-height: 240px; }
+    }
+    @media (max-width: 768px) {
+      #sidebar, .sidebar { display: none; }
+      #sidebar.open, .sidebar.open { display: flex; position: fixed; top: 56px; left: 0; bottom: 0; z-index: 50; }
+      .sidebar-overlay { display: none; }
+      .sidebar-overlay.show { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 49; }
+    }
+
+    /* Topbar icon buttons */
+    .topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
+    .topbar-btn:hover{background:#E6F0FF;}
+    .topbar-btn:hover svg{stroke:#0066FF;}
+    .badge-dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:600;line-height:18px;text-align:center;}
+  
+.menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+.menu-item:hover{background:#F3F4F6;}
+.menu-item.l1{padding-left:20px;font-weight:500;}
+.menu-item.l2{padding-left:64px;}
+.menu-item.active-l1{color:#0066FF;}
+.menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+.menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+.active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+.menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+.menu-arrow.open{transform:rotate(180deg);}
+.submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+.submenu.collapsed{max-height:0!important;opacity:0;}
+.new-tag{display:inline-block;padding:1px 7px;border-radius:8px;background:#0066FF;color:#fff;font-size:10px;font-weight:600;line-height:16px;margin-left:4px;}
+
+</style>
+</head>
+<body class="font-sans flex flex-col h-screen overflow-hidden">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-4 md:px-6 flex-shrink-0 gap-3">
+  <!-- Mobile menu toggle -->
+  <button class="topbar-btn md:hidden" onclick="toggleSidebar()" title="菜单">
+    <i data-lucide="menu" class="w-[18px] h-[18px]"></i>
+  </button>
+  <!-- Logo + Name -->
+  <div class="flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigate('index.html')">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div>
+    <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
+  </div>
+  <!-- Right icons -->
+  <div class="ml-auto flex items-center gap-3 md:gap-5">
+    <button class="topbar-btn" title="任务列表" onclick="navigate('任务中心.html')">
+      <i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="taskBadge" style="display:none;">0</span>
+    </button>
+    <button class="topbar-btn" title="消息中心" onclick="navigate('消息中心.html')">
+      <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="msgBadge">5</span>
+    </button>
+    <button class="topbar-btn" title="账号信息" onclick="navigate('账号信息.html')">
+      <i data-lucide="user" class="w-[18px] h-[18px]"></i>
+    </button>
+  </div>
+</header>
+
+<!-- ===== BODY: SIDEBAR + CONTENT ===== -->
+<div class="flex flex-1 min-h-0">
+  <!-- Mobile overlay -->
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- ===== SIDEBAR NAVIGATION ===== -->
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+    <!-- 工作台 -->
+    <div class="menu-item l1" data-page="工作台.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台
+    </div>
+
+    <!-- 数据概览 -->
+    <div class="menu-item l1" data-page="数据概览.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览
+    </div>
+
+    <!-- 订单管理 -->
+    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理
+    </div>
+
+    <!-- 异常工单 -->
+    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单
+    </div>
+
+    <!-- 柜机监控 -->
+    <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控
+    </div>
+
+    <!-- 对账中心 -->
+    <div class="menu-item l1" data-page="对账中心.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心
+    </div>
+
+    <!-- 运营配置 -->
+    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置
+    </div>
+
+    <!-- 系统设置（含二级菜单） -->
+    <div class="menu-item l1 active-l1" data-sub="sub-settings" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置
+      <span class="menu-arrow open">▼</span>
+    </div>
+    <div class="submenu" id="sub-settings" style="max-height:400px;">
+      <div class="menu-item l2 active-l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
+      <div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div>
+      <div class="menu-item l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div>
+      <div class="menu-item l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div>
+      <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
+    </div>
+  </aside>
+
+
+  <!-- ===== MAIN CONTENT AREA ===== -->
+  <main class="flex-1 bg-bg-page min-h-0 flex flex-col" id="mainContent">
+    <div class="p-4 flex-1 min-h-0">
+      <div class="member-layout flex gap-0 h-full">
+
+        <!-- ===== Organization Tree ===== -->
+        <aside class="dept-tree-section w-[260px] bg-white rounded-lg rounded-r-none border border-line border-r-0 flex flex-col flex-shrink-0 overflow-hidden h-full">
+          <div class="flex-1 overflow-y-auto p-3" id="deptTree" data-anno="1"></div>
+        </aside>
+
+        <!-- ===== Member List ===== -->
+        <div class="flex-1 bg-white rounded-lg rounded-l-none flex flex-col min-w-0 border border-line overflow-hidden h-full">
+          <!-- Title bar -->
+          <div class="px-4 py-3 flex items-center gap-4">
+            <span class="text-[15px] font-semibold text-ink-title" id="currentDeptName" data-anno="2">游寄科技</span>
+            <span class="text-[12px] text-ink-muted" id="memberCount">部门人数：0 / 0</span>
+          </div>
+
+          <!-- Filter bar（无下框线） -->
+          <div class="px-4 py-2 flex items-center justify-between gap-3 flex-wrap" id="filterBar">
+            <div class="flex items-center gap-3 flex-wrap">
+              <!-- 搜索成员 -->
+              <div class="relative">
+                <i data-lucide="search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-[14px] h-[14px] text-ink-muted pointer-events-none"></i>
+                <input type="text" id="searchInput" placeholder="搜索成员" class="form-input pl-8 w-[180px] h-[32px]" data-anno="3">
+              </div>
+              <!-- 角色筛选 -->
+              <select id="filterRole" class="form-select w-[140px] h-[32px]" data-anno="9"><option value="">全部角色</option></select>
+              <!-- 状态筛选 -->
+              <select id="filterStatus" class="form-select w-[130px] h-[32px]" data-anno="10">
+                <option value="">全部</option>
+                <option value="enabled">已启用</option>
+                <option value="disabled">已禁用</option>
+              </select>
+              <!-- 数据范围 -->
+              <select id="filterScope" class="form-select w-[190px] h-[32px]" data-anno="11">
+                <option value="all">展示全部成员</option>
+                <option value="direct">仅展示部门的直属成员</option>
+              </select>
+              <!-- 查询 / 重置 -->
+              <button class="btn btn-primary h-[32px]" onclick="applyFilter()">查询</button>
+              <button class="btn btn-default h-[32px]" onclick="resetFilter()">重置</button>
+            </div>
+            <!-- 添加成员（居右） -->
+            <button class="btn btn-primary" onclick="openMemberDialog()" data-anno="8"><i data-lucide="plus" class="w-[15px] h-[15px]"></i> 添加成员</button>
+          </div>
+          <!-- Table（与筛选区间距 pt-4） -->
+          <div class="flex-1 overflow-auto px-4 pt-4" id="tableContainer" data-anno="4">
+            <table class="data-table" id="memberTable"></table>
+            <!-- 分页器 — 紧贴 data-table 下方，20px 间距 -->
+            <div class="pt-5 pb-3 flex items-center justify-end flex-wrap gap-4 text-[12px]" id="pagination" data-anno="7"></div>
+          </div>
+          <div id="emptyState" class="hidden flex items-center justify-center min-h-[300px] text-[13px] text-ink-muted">暂无成员</div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg text-white text-[13px] font-medium z-[200] opacity-0 transition-opacity duration-300 pointer-events-none whitespace-nowrap" style="background:#1A1D24;"></div>
+
+<!-- ===== PORTAL ANNOTATION LAYER ===== -->
+<div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
+<div id="annoToggle" class="fixed z-[150]" style="right:8px;bottom:40px;cursor:grab;" onmousedown="startDragToggle(event)">
+  <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] bg-white/90 backdrop-blur text-primary border border-primary/30 shadow-sm">
+    <i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i> 标注
+  </div>
+</div>
+<div id="annoPopup" class="hidden fixed inset-0 z-[9999]" style="background:rgba(0,0,0,.2);" onclick="closeAnnoPopup()">
+  <div id="annoPopupBox" class="fixed bg-white rounded-lg shadow-xl p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto"
+       style="top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 12px 40px rgba(0,0,0,.18);"
+       onclick="event.stopPropagation()">
+    <button onclick="closeAnnoPopup()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted z-10"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+    <div id="annoPopupDrag" class="flex items-center gap-2 mb-3 select-none" style="cursor:grab;" onmousedown="startDragPopup(event)" title="拖拽移动弹窗">
+      <i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i>
+      <h3 id="annoPopupTitle" class="text-[16px] font-semibold text-ink-title"></h3>
+    </div>
+    <ul id="annoPopupBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Department Modal -->
+<div id="deptModalOverlay" class="hidden modal-overlay" onclick="closeDeptModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span id="deptModalTitle">添加部门</span><button onclick="closeDeptModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label><span class="required">*</span>部门名称：</label><div class="form-control-wrap"><input type="text" id="deptName" class="form-input" placeholder="请输入部门名称" maxlength="20"><span id="deptNameError" class="form-error hidden"></span></div></div>
+      <div class="form-group"><label><span class="required">*</span>上级部门：</label><div class="form-control-wrap"><select id="deptParent" class="form-select"></select></div></div>
+      <div class="form-group"><label>负责人：</label><div class="form-control-wrap"><select id="deptLeader" class="form-select" multiple size="3"><option value="">（可选）</option></select></div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeDeptModal()">取消</button><button class="btn btn-primary" onclick="confirmDept()">确定</button></div>
+  </div>
+</div>
+
+<!-- Delete Department Dialog -->
+<div id="deleteDeptModalOverlay" class="hidden dialog-overlay" onclick="closeDeleteDeptModal()">
+  <div class="dialog-box" onclick="event.stopPropagation()">
+    <button class="dialog-close" onclick="closeDeleteDeptModal()">×</button>
+    <div class="dialog-body">
+      <div style="display:flex;align-items:flex-start;gap:12px;width:100%;">
+        <div class="dialog-ico" style="background:#FDF2E9;color:#E7772D;">?</div>
+        <div>
+          <div style="font-size:16px;font-weight:600;color:#1A1D24;">确认删除该部门吗？</div>
+          <div style="font-size:14px;color:#6E7685;margin-top:6px;">删除后，该部门及其所有子部门将被删除。<br>该部门的成员将被移除。</div>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn-cancel" onclick="closeDeleteDeptModal()">取消</button>
+      <button class="dialog-btn-confirm danger" onclick="confirmDeleteDept()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- Member Modal -->
+<div id="memberModalOverlay" class="hidden modal-overlay" onclick="closeMemberModal()">
+  <div class="modal" onclick="event.stopPropagation()" data-anno="6">
+    <div class="modal-header"><span id="memberModalTitle">添加成员</span><button onclick="closeMemberModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label><span class="required">*</span>成员名称：</label><div class="form-control-wrap"><input type="text" id="mbrName" class="form-input" placeholder="请输入成员名称" maxlength="50"><span id="mbrNameError" class="form-error hidden"></span></div></div>
+      <div class="form-group"><label>昵称：</label><div class="form-control-wrap"><input type="text" id="mbrNick" class="form-input" placeholder="请输入昵称" maxlength="50"></div></div>
+      <div class="form-group"><label><span class="required">*</span>手机号：</label><div class="form-control-wrap"><input type="tel" id="mbrPhone" class="form-input" placeholder="请输入手机号" maxlength="11"><span id="mbrPhoneError" class="form-error hidden"></span></div></div>
+      <div class="form-group"><label>国家：</label><div class="form-control-wrap"><select id="mbrCountry" class="form-select"><option>中国</option><option>美国</option><option>英国</option><option>日本</option></select></div></div>
+      <div class="form-group"><label><span class="required">*</span>所属部门：</label><div class="form-control-wrap"><select id="mbrDept" class="form-select"></select><span id="mbrDeptError" class="form-error hidden"></span></div></div>
+      <div class="form-group"><label><span class="required">*</span>所属角色：</label><div class="form-control-wrap"><select id="mbrRole" class="form-select"><option value="">请选择所属角色</option><option value="r1">超级管理员</option><option value="r2">普通成员</option><option value="r3">部门管理员</option></select><span id="mbrRoleError" class="form-error hidden"></span></div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeMemberModal()">取消</button><button class="btn btn-primary" onclick="confirmMember()">确定</button></div>
+  </div>
+</div>
+
+<!-- Delete Member Dialog -->
+<div id="deleteMemberModalOverlay" class="hidden dialog-overlay" onclick="closeDeleteMemberModal()">
+  <div class="dialog-box" onclick="event.stopPropagation()">
+    <button class="dialog-close" onclick="closeDeleteMemberModal()">×</button>
+    <div class="dialog-body">
+      <div style="display:flex;align-items:flex-start;gap:12px;width:100%;">
+        <div class="dialog-ico" style="background:#FDF2E9;color:#E7772D;">?</div>
+        <div>
+          <div style="font-size:16px;font-weight:600;color:#1A1D24;">确认删除该成员吗？</div>
+          <div style="font-size:14px;color:#6E7685;margin-top:6px;">删除后，该成员的所有权限将被收回。</div>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn-cancel" onclick="closeDeleteMemberModal()">取消</button>
+      <button class="dialog-btn-confirm danger" onclick="confirmDeleteMember()">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== DATA ===== */
+const deptTreeData = [
+  { id:'d0', name:'游寄科技', memberCount:12, children:[
+    { id:'d1', name:'运营部', memberCount:5, children:[
+      { id:'d1-1', name:'运营一组', memberCount:2, children:[] },
+      { id:'d1-2', name:'运营二组', memberCount:3, children:[] }
+    ]},
+    { id:'d2', name:'客服部', memberCount:3, children:[
+      { id:'d2-1', name:'投诉处理组', memberCount:3, children:[] }
+    ]},
+    { id:'d3', name:'技术部', memberCount:4, children:[] }
+  ]}
+];
+
+const allMembers = [
+  { id:'m1', name:'张伟', nickname:'小张', phone:'13812345678', roleId:'r1', roleName:'超级管理员', country:'中国', deptId:'d1', deptName:'运营部', deptPath:'游寄科技 > 运营部', fixedAssets:0, createDate:'2026-04-01', entryDate:'2026-04-01', lastUpdateTime:'2026-07-03 10:30:00', status:true },
+  { id:'m2', name:'李娜', nickname:'小李', phone:'13923456789', roleId:'r2', roleName:'普通成员', country:'中国', deptId:'d1', deptName:'运营部', deptPath:'游寄科技 > 运营部', fixedAssets:5000.00, createDate:'2026-04-05', entryDate:'2026-04-05', lastUpdateTime:'2026-07-03 11:20:00', status:true },
+  { id:'m3', name:'王强', nickname:'老王', phone:'13734567890', roleId:'r2', roleName:'普通成员', country:'中国', deptId:'d1-1', deptName:'运营一组', deptPath:'游寄科技 > 运营部 > 运营一组', fixedAssets:0, createDate:'2026-04-10', entryDate:'2026-04-10', lastUpdateTime:'2026-07-03 09:15:00', status:false },
+  { id:'m4', name:'赵敏', nickname:'小赵', phone:'13645678901', roleId:'r2', roleName:'普通成员', country:'中国', deptId:'d1-2', deptName:'运营二组', deptPath:'游寄科技 > 运营部 > 运营二组', fixedAssets:1200.00, createDate:'2026-04-12', entryDate:'2026-04-12', lastUpdateTime:'2026-07-03 14:45:00', status:true },
+  { id:'m5', name:'钱明', nickname:'钱多多', phone:'13556789012', roleId:'r2', roleName:'普通成员', country:'美国', deptId:'d2', deptName:'客服部', deptPath:'游寄科技 > 客服部', fixedAssets:0, createDate:'2026-04-15', entryDate:'2026-04-15', lastUpdateTime:'2026-07-03 16:30:00', status:true },
+  { id:'m6', name:'孙丽', nickname:'小孙', phone:'13467890123', roleId:'r2', roleName:'普通成员', country:'中国', deptId:'d2-1', deptName:'投诉处理组', deptPath:'游寄科技 > 客服部 > 投诉处理组', fixedAssets:3000.00, createDate:'2026-04-18', entryDate:'2026-04-18', lastUpdateTime:'2026-07-03 13:00:00', status:false },
+  { id:'m7', name:'周磊', nickname:'老周', phone:'13378901234', roleId:'r1', roleName:'超级管理员', country:'中国', deptId:'d3', deptName:'技术部', deptPath:'游寄科技 > 技术部', fixedAssets:0, createDate:'2026-04-20', entryDate:'2026-04-20', lastUpdateTime:'2026-07-03 08:00:00', status:true },
+  { id:'m8', name:'吴芳', nickname:'小吴', phone:'13289012345', roleId:'r2', roleName:'普通成员', country:'中国', deptId:'d3', deptName:'技术部', deptPath:'游寄科技 > 技术部', fixedAssets:8000.00, createDate:'2026-04-22', entryDate:'2026-04-22', lastUpdateTime:'2026-07-03 17:00:00', status:true },
+  { id:'m9', name:'郑浩', nickname:'浩哥', phone:'13156789012', roleId:'r3', roleName:'部门管理员', country:'中国', deptId:'d1', deptName:'运营部', deptPath:'游寄科技 > 运营部', fixedAssets:2500.00, createDate:'2026-05-01', entryDate:'2026-05-01', lastUpdateTime:'2026-07-02 11:00:00', status:true },
+  { id:'m10', name:'陈静', nickname:'静静', phone:'13067890123', roleId:'r2', roleName:'普通成员', country:'中国', deptId:'d3', deptName:'技术部', deptPath:'游寄科技 > 技术部', fixedAssets:0, createDate:'2026-05-10', entryDate:'2026-05-10', lastUpdateTime:'2026-07-01 15:30:00', status:true },
+];
+
+/* ===== STATE ===== */
+let selectedDeptId = 'd0';
+let filterKeyword = '';
+let filterRole = '';
+let filterStatus = '';
+let filterScope = 'all';
+let currentDeptAction = null;
+let currentDeleteDept = null;
+let currentMemberAction = null;
+let currentDeleteMember = null;
+
+/* ===== HELPERS ===== */
+function findDeptById(depts, id) {
+  for (const d of depts) { if (d.id === id) return d; if (d.children) { const f = findDeptById(d.children, id); if (f) return f; } }
+  return null;
+}
+function getDeptAndChildrenIds(deptId) {
+  const ids = [deptId]; const d = findDeptById(deptTreeData, deptId);
+  if (d && d.children) d.children.forEach(c => { ids.push(...getDeptAndChildrenIds(c.id)); });
+  return ids;
+}
+function findParentDeptId(depts, childId, parentId = null) {
+  for (const d of depts) { if (d.id === childId) return parentId; if (d.children) { const f = findParentDeptId(d.children, childId, d.id); if (f !== null) return f; } }
+  return null;
+}
+function deleteDeptFromTree(depts, deptId) {
+  for (let i = 0; i < depts.length; i++) { if (depts[i].id === deptId) { depts.splice(i, 1); return true; } if (depts[i].children && deleteDeptFromTree(depts[i].children, deptId)) return true; }
+  return false;
+}
+function updateDeptCount(depts, deptId, delta) {
+  for (const d of depts) { if (d.id === deptId) { d.memberCount = Math.max(0, d.memberCount + delta); return; } if (d.children) updateDeptCount(d.children, deptId, delta); }
+}
+const avatarColors = ['#0066FF','#0FC060','#E7772D','#0091D5','#7C5CFC','#E91E63','#00BCD4','#FF9800','#4CAF50','#9C27B0'];
+function getAvatarColor(name) { let h = 0; for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h); return avatarColors[Math.abs(h) % avatarColors.length]; }
+function formatPhone(p) { return p ? p.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '-'; }
+function calcWorkDays(entryDate) {
+  if (!entryDate) return '-'; const diff = Math.floor((new Date() - new Date(entryDate)) / 864e5);
+  return diff === 0 ? '今天' : diff + '天';
+}
+function formatDt(d) {
+  if (!d) return '-'; const dt = new Date(d); return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')+' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0')+':'+String(dt.getSeconds()).padStart(2,'0');
+}
+
+/* ===== RENDER TREE ===== */
+function renderTree() {
+  const container = document.getElementById('deptTree');
+  function renderNode(dept, level) {
+    const hasChildren = dept.children && dept.children.length > 0;
+    const isSelected = dept.id === selectedDeptId;
+    const isRoot = level === 0;
+    // 根节点(游寄科技) 16px，部门节点 14px
+    const nameSize = isRoot ? '16px' : '14px';
+    let html = '<div class="tree-node rounded py-1.5 px-2 flex items-center gap-1.5 '+(isSelected?'active':'')+'" data-dept-id="'+dept.id+'" style="padding-left:'+(8+level*16)+'px">';
+    // 箭头：仅非根节点显示；根节点无展开/收起箭头
+    if (!isRoot) {
+      html += '<span class="tree-arrow inline-flex items-center justify-center w-4 h-4 flex-shrink-0 open '+(hasChildren?'':'invisible')+'">▶</span>';
+    }
+    // 名称 + 成员数包裹在 flex-1 容器中，数字紧跟在名称右边
+    html += '<span class="flex-1 flex items-center gap-1 min-w-0">';
+    html += '<span class="truncate" style="font-size:'+nameSize+';color:#3A3F4A;">'+dept.name+'</span>';
+    html += '<span class="flex-shrink-0" style="font-size:14px;color:#9DA2AC;">'+dept.memberCount+'</span>';
+    html += '</span>';
+    html += '<span class="node-more flex-shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-line-lighter text-ink-sub" data-dept-id="'+dept.id+'" onclick="event.stopPropagation();openDeptMenu(event,\''+dept.id+'\')"><i data-lucide="more-horizontal" class="w-[14px] h-[14px]"></i></span>';
+    html += '</div>';
+    if (hasChildren) {
+      html += '<div class="tree-children" style="max-height:800px">';
+      dept.children.forEach(c => { html += renderNode(c, level+1); });
+      html += '</div>';
+    }
+    return html;
+  }
+  let html = '';
+  deptTreeData.forEach(d => { html += renderNode(d, 0); });
+  container.innerHTML = html;
+  lucide.createIcons({ attrs: { class:'w-[14px] h-[14px]' } });
+  // Bind tree click events
+  container.querySelectorAll('.tree-node').forEach(node => {
+    node.addEventListener('click', function(e) {
+      if (e.target.closest('.node-more')) return;
+      const deptId = this.getAttribute('data-dept-id');
+      selectedDeptId = deptId;
+      renderTree();
+      renderTable();
+      updateHeader();
+    });
+  });
+  // Expand/collapse arrows
+  container.querySelectorAll('.tree-arrow').forEach(arrow => {
+    arrow.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const node = this.parentElement;
+      const children = node.nextElementSibling;
+      if (children && children.classList.contains('tree-children')) {
+        const isCollapsed = children.classList.contains('collapsed');
+        if (isCollapsed) { children.classList.remove('collapsed'); this.classList.add('open'); }
+        else { children.classList.add('collapsed'); this.classList.remove('open'); }
+      }
+    });
+  });
+}
+
+/* ===== PAGINATION STATE ===== */
+let currentPage = 1;
+let currentPageSize = 10;
+
+/* ===== RENDER TABLE ===== */
+function renderTable() {
+  const tbody = document.getElementById('memberTable');
+  const empty = document.getElementById('emptyState');
+  // Filter: department
+  let list = allMembers.slice();
+  if (selectedDeptId !== 'd0') {
+    if (filterScope === 'direct') {
+      list = list.filter(m => m.deptId === selectedDeptId);
+    } else {
+      const ids = getDeptAndChildrenIds(selectedDeptId);
+      list = list.filter(m => ids.includes(m.deptId));
+    }
+  }
+  // Filter: keyword
+  if (filterKeyword) {
+    const kw = filterKeyword.toLowerCase();
+    list = list.filter(m => m.name.toLowerCase().includes(kw) || (m.nickname||'').toLowerCase().includes(kw) || m.phone.includes(kw));
+  }
+  // Filter: role
+  if (filterRole) { list = list.filter(m => m.roleId === filterRole); }
+  // Filter: status
+  if (filterStatus === 'enabled') { list = list.filter(m => m.status === true); }
+  else if (filterStatus === 'disabled') { list = list.filter(m => m.status === false); }
+  // Empty state
+  if (list.length === 0) { tbody.innerHTML = ''; empty.classList.remove('hidden'); renderPagination(0); return; }
+  empty.classList.add('hidden');
+  // Pagination
+  const totalPages = Math.ceil(list.length / currentPageSize);
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * currentPageSize;
+  const pageItems = list.slice(start, start + currentPageSize);
+  // Table header
+  let html = '<thead><tr>';
+  ['成员名称','所属角色','手机号','所在部门','添加日期','入职时间/工龄','最近修改时间','状态'].forEach(h => { html += '<th>'+h+'</th>'; });
+  html += '<th data-anno="5">操作</th>';
+  html += '</tr></thead><tbody>';
+  pageItems.forEach(m => {
+    html += '<tr>';
+    html += '<td><div style="display:flex;align-items:center;gap:8px;"><span class="member-avatar" style="background:'+getAvatarColor(m.name)+';">'+m.name.charAt(0)+'</span>'+m.name+'</div></td>';
+    html += '<td>'+m.roleName+'</td>';
+    html += '<td class="col-mono">'+formatPhone(m.phone)+'</td>';
+    html += '<td>'+m.deptPath+'</td>';
+    html += '<td class="col-mono">'+(m.createDate||'-')+'</td>';
+    html += '<td class="col-mono">'+(m.entryDate ? m.entryDate+' | '+calcWorkDays(m.entryDate) : '-')+'</td>';
+    html += '<td class="col-mono">'+m.lastUpdateTime+'</td>';
+    html += '<td><label class="toggle-switch"><input type="checkbox" '+(m.status?'checked':'')+' onchange="toggleStatus(\''+m.id+'\',this.checked)"><span class="toggle-slider"></span></label></td>';
+    html += '<td><span class="action-link" onclick="openMemberDialog(\'edit\',\''+m.id+'\')">编辑</span><span class="action-link danger" onclick="openDeleteMember(\''+m.id+'\')">删除</span></td>';
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  tbody.innerHTML = html;
+  setTimeout(renderAnnoBadges, 50);
+  renderPagination(list.length, totalPages);
+}
+
+function updateHeader() {
+  const dept = findDeptById(deptTreeData, selectedDeptId);
+  document.getElementById('currentDeptName').textContent = dept ? dept.name : '全部';
+  const ids = selectedDeptId === 'd0' ? [] : getDeptAndChildrenIds(selectedDeptId);
+  const deptCount = selectedDeptId === 'd0' ? allMembers.length : allMembers.filter(m => ids.includes(m.deptId)).length;
+  document.getElementById('memberCount').textContent = '部门人数：'+deptCount+' / '+allMembers.length;
+}
+
+/* ===== DEPT MENU ===== */
+function openDeptMenu(e, deptId) {
+  const menu = document.createElement('div');
+  menu.className = 'absolute bg-white border border-line rounded-md shadow-[0_2px_8px_rgba(0,0,0,.06)] z-50 py-1 min-w-[140px]';
+  menu.style.left = e.clientX+'px'; menu.style.top = e.clientY+'px';
+  const items = [
+    { label:'编辑部门', action:()=>{ openDeptDialog('edit',deptId); closeMenu(); } },
+    { label:'添加子部门', action:()=>{ openDeptDialog('add',deptId); closeMenu(); } },
+    { label:'删除部门', action:()=>{ if(deptId==='d0'){ showToast('根部门不能删除','warning'); closeMenu(); return; } currentDeleteDept = deptId; document.getElementById('deleteDeptModalOverlay').classList.remove('hidden'); closeMenu(); }, danger:true },
+  ];
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'px-3 py-1.5 text-[13px] cursor-pointer hover:bg-bg-hover '+(item.danger?'text-danger':'text-ink-body');
+    div.textContent = item.label;
+    div.onclick = item.action;
+    menu.appendChild(div);
+  });
+  document.body.appendChild(menu);
+  function closeMenu() { menu.remove(); document.removeEventListener('click', closeMenu); }
+  setTimeout(() => document.addEventListener('click', closeMenu), 0);
+}
+/* ===== DEPT DIALOG ===== */
+function openDeptDialog(type, deptId) {
+  currentDeptAction = { type, deptId };
+  document.getElementById('deptModalTitle').textContent = type === 'edit' ? '编辑部门' : '添加子部门';
+  document.getElementById('deptNameError').classList.add('hidden');
+  const dept = findDeptById(deptTreeData, deptId);
+  if (type === 'edit') {
+    document.getElementById('deptName').value = dept ? dept.name : '';
+    const parentId = findParentDeptId(deptTreeData, deptId);
+    buildDeptSelect(parentId || 'd0');
+  } else {
+    document.getElementById('deptName').value = '';
+    buildDeptSelect(deptId);
+  }
+  document.getElementById('deptModalOverlay').classList.remove('hidden');
+}
+function closeDeptModal() { document.getElementById('deptModalOverlay').classList.add('hidden'); }
+function buildDeptSelect(selectedId) {
+  const sel = document.getElementById('deptParent');
+  sel.innerHTML = '';
+  function addOpts(depts, level) {
+    depts.forEach(d => {
+      sel.innerHTML += '<option value="'+d.id+'" '+(d.id===selectedId?'selected':'')+'>'+'　'.repeat(level)+d.name+'</option>';
+      if (d.children) addOpts(d.children, level+1);
+    });
+  }
+  addOpts(deptTreeData, 0);
+}
+function confirmDept() {
+  const name = document.getElementById('deptName').value.trim();
+  const parentId = document.getElementById('deptParent').value;
+  const errEl = document.getElementById('deptNameError');
+  if (!name) { errEl.textContent = '请输入部门名称'; errEl.classList.remove('hidden'); return; }
+  if (name.length > 20) { errEl.textContent = '部门名称不能超过20字'; errEl.classList.remove('hidden'); return; }
+  errEl.classList.add('hidden');
+  if (currentDeptAction.type === 'edit') {
+    const d = findDeptById(deptTreeData, currentDeptAction.deptId);
+    if (d) d.name = name;
+    showToast('编辑成功', 'success');
+  } else {
+    const parent = findDeptById(deptTreeData, parentId);
+    if (parent) {
+      if (!parent.children) parent.children = [];
+      parent.children.push({ id:'d'+Date.now(), name, memberCount:0, children:[] });
+    }
+    showToast('添加成功', 'success');
+  }
+  closeDeptModal();
+  renderTree();
+}
+function closeDeleteDeptModal() { document.getElementById('deleteDeptModalOverlay').classList.add('hidden'); }
+function confirmDeleteDept() {
+  const ids = getDeptAndChildrenIds(currentDeleteDept);
+  for (let i = allMembers.length-1; i >= 0; i--) { if (ids.includes(allMembers[i].deptId)) allMembers.splice(i,1); }
+  deleteDeptFromTree(deptTreeData, currentDeleteDept);
+  showToast('删除成功', 'success');
+  closeDeleteDeptModal();
+  renderTree(); renderTable(); updateHeader();
+}
+
+/* ===== MEMBER DIALOG ===== */
+function openMemberDialog(type, memberId) {
+  currentMemberAction = { type, memberId };
+  document.getElementById('memberModalTitle').textContent = type === 'edit' ? '编辑成员' : '添加成员';
+  ['mbrNameError','mbrPhoneError','mbrDeptError','mbrRoleError'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  // Build dept select
+  const deptSel = document.getElementById('mbrDept');
+  deptSel.innerHTML = '';
+  function addDeptOpts(depts, level) { depts.forEach(d => { deptSel.innerHTML += '<option value="'+d.id+'">'+'　'.repeat(level)+d.name+'</option>'; if(d.children) addDeptOpts(d.children, level+1); }); }
+  addDeptOpts(deptTreeData, 0);
+  if (type === 'edit') {
+    const m = allMembers.find(x => x.id === memberId);
+    if (m) {
+      document.getElementById('mbrName').value = m.name;
+      document.getElementById('mbrNick').value = m.nickname || '';
+      document.getElementById('mbrPhone').value = m.phone;
+      document.getElementById('mbrCountry').value = m.country;
+      deptSel.value = m.deptId;
+      document.getElementById('mbrRole').value = m.roleId;
+    }
+  } else {
+    document.getElementById('mbrName').value = '';
+    document.getElementById('mbrNick').value = '';
+    document.getElementById('mbrPhone').value = '';
+    document.getElementById('mbrCountry').value = '中国';
+    deptSel.value = selectedDeptId === 'd0' ? '' : selectedDeptId;
+    document.getElementById('mbrRole').value = '';
+  }
+  document.getElementById('memberModalOverlay').classList.remove('hidden');
+  setTimeout(renderAnnoBadges, 50);
+}
+function closeMemberModal() { document.getElementById('memberModalOverlay').classList.add('hidden'); renderAnnoBadges(); }
+function confirmMember() {
+  const name = document.getElementById('mbrName').value.trim();
+  const nick = document.getElementById('mbrNick').value.trim();
+  const phone = document.getElementById('mbrPhone').value.trim();
+  const country = document.getElementById('mbrCountry').value;
+  const deptId = document.getElementById('mbrDept').value;
+  const roleId = document.getElementById('mbrRole').value;
+  let hasErr = false;
+  if (!name) { document.getElementById('mbrNameError').textContent='请输入成员名称'; document.getElementById('mbrNameError').classList.remove('hidden'); hasErr=true; }
+  if (!phone) { document.getElementById('mbrPhoneError').textContent='请输入手机号'; document.getElementById('mbrPhoneError').classList.remove('hidden'); hasErr=true; }
+  else if (!/^1[3-9]\d{9}$/.test(phone)) { document.getElementById('mbrPhoneError').textContent='手机号格式错误'; document.getElementById('mbrPhoneError').classList.remove('hidden'); hasErr=true; }
+  if (!deptId) { document.getElementById('mbrDeptError').textContent='请选择所属部门'; document.getElementById('mbrDeptError').classList.remove('hidden'); hasErr=true; }
+  if (!roleId) { document.getElementById('mbrRoleError').textContent='请选择所属角色'; document.getElementById('mbrRoleError').classList.remove('hidden'); hasErr=true; }
+  if (hasErr) return;
+  const dept = findDeptById(deptTreeData, deptId);
+  const roleMap = { r1:'超级管理员', r2:'普通成员', r3:'部门管理员' };
+  if (currentMemberAction.type === 'edit') {
+    const idx = allMembers.findIndex(m => m.id === currentMemberAction.memberId);
+    if (idx !== -1) {
+      const oldDeptId = allMembers[idx].deptId;
+      allMembers[idx] = { ...allMembers[idx], name, nickname:nick, phone, country, deptId, deptName:dept?dept.name:'', deptPath:dept?dept.name:'', roleId, roleName:roleMap[roleId]||'', lastUpdateTime:formatDt(new Date()) };
+      if (oldDeptId !== deptId) { updateDeptCount(deptTreeData, oldDeptId, -1); updateDeptCount(deptTreeData, deptId, 1); }
+    }
+    showToast('编辑成功', 'success');
+  } else {
+    const nm = { id:'m'+Date.now(), name, nickname:nick, phone, country, deptId, deptName:dept?dept.name:'', deptPath:dept?dept.name:'', roleId, roleName:roleMap[roleId]||'', fixedAssets:0, createDate:new Date().toISOString().slice(0,10), entryDate:new Date().toISOString().slice(0,10), lastUpdateTime:formatDt(new Date()), status:true };
+    allMembers.push(nm);
+    updateDeptCount(deptTreeData, deptId, 1);
+    showToast('添加成功', 'success');
+  }
+  closeMemberModal();
+  renderTree(); renderTable(); updateHeader();
+}
+function openDeleteMember(memberId) { currentDeleteMember = memberId; document.getElementById('deleteMemberModalOverlay').classList.remove('hidden'); }
+function closeDeleteMemberModal() { document.getElementById('deleteMemberModalOverlay').classList.add('hidden'); }
+function confirmDeleteMember() {
+  const idx = allMembers.findIndex(m => m.id === currentDeleteMember);
+  if (idx !== -1) { const deptId = allMembers[idx].deptId; allMembers.splice(idx,1); updateDeptCount(deptTreeData, deptId, -1); }
+  showToast('删除成功', 'success');
+  closeDeleteMemberModal();
+  renderTree(); renderTable(); updateHeader();
+}
+
+/* ===== STATUS TOGGLE ===== */
+function toggleStatus(memberId, checked) {
+  const m = allMembers.find(x => x.id === memberId);
+  if (m) { m.status = checked; m.lastUpdateTime = formatDt(new Date()); showToast(checked?'已启用':'已禁用', 'success'); renderTable(); }
+}
+
+/* ===== FILTER ===== */
+function populateRoleFilter() {
+  const sel = document.getElementById('filterRole');
+  const seen = new Set();
+  allMembers.forEach(m => {
+    if (!seen.has(m.roleId)) { seen.add(m.roleId); sel.innerHTML += '<option value="'+m.roleId+'">'+m.roleName+'</option>'; }
+  });
+}
+function applyFilter() {
+  filterKeyword = document.getElementById('searchInput').value.trim();
+  filterRole = document.getElementById('filterRole').value;
+  filterStatus = document.getElementById('filterStatus').value;
+  filterScope = document.getElementById('filterScope').value;
+  currentPage = 1;
+  renderTable();
+}
+function resetFilter() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('filterRole').value = '';
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterScope').value = 'all';
+  filterKeyword = '';
+  filterRole = '';
+  filterStatus = '';
+  filterScope = 'all';
+  currentPage = 1;
+  renderTable();
+}
+
+/* ===== PAGINATION — 严格对齐设计系统.html ===== */
+function renderPagination(total, totalPages) {
+  const container = document.getElementById('pagination');
+  if (total === 0) { container.innerHTML = ''; return; }
+
+  // Build page button HTML
+  function buildPageButtons() {
+    let html = '';
+    // Prev
+    html += '<button class="pg-btn" ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage - 1) + ')">‹</button>';
+    // Page buttons
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        html += '<button class="pg-btn' + (i === currentPage ? ' pg-current' : '') + '" onclick="goToPage(' + i + ')">' + i + '</button>';
+      }
+    } else {
+      html += '<button class="pg-btn' + (1 === currentPage ? ' pg-current' : '') + '" onclick="goToPage(1)">1</button>';
+      if (currentPage > 3) html += '<span class="pg-ellipsis">…</span>';
+      let startP = Math.max(2, currentPage - 1);
+      let endP = Math.min(totalPages - 1, currentPage + 1);
+      if (currentPage <= 3) { endP = Math.min(5, totalPages - 1); }
+      if (currentPage >= totalPages - 2) { startP = Math.max(totalPages - 4, 2); }
+      for (let i = startP; i <= endP; i++) {
+        html += '<button class="pg-btn' + (i === currentPage ? ' pg-current' : '') + '" onclick="goToPage(' + i + ')">' + i + '</button>';
+      }
+      if (currentPage < totalPages - 2) html += '<span class="pg-ellipsis">…</span>';
+      html += '<button class="pg-btn' + (totalPages === currentPage ? ' pg-current' : '') + '" onclick="goToPage(' + totalPages + ')">' + totalPages + '</button>';
+    }
+    // Next
+    html += '<button class="pg-btn" ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage + 1) + ')">›</button>';
+    return html;
+  }
+
+  let html = '';
+  // 左：页码导航
+  html += '<div id="pg-nav" style="display:flex;align-items:center;gap:4px;">' + buildPageButtons() + '</div>';
+  // 中：条/页选择
+  html += '<div class="pg-select-wrap"><select class="pg-select" onchange="changePageSize(this.value)">';
+  [10, 20, 50].forEach(function(n) {
+    html += '<option value="' + n + '"' + (n === currentPageSize ? ' selected' : '') + '>' + n + '条/页</option>';
+  });
+  html += '</select></div>';
+  // 右：跳页 + 统计
+  html += '<div style="display:flex;align-items:center;gap:4px;">';
+  html += '<span style="color:#9DA2AC;">跳至</span>';
+  html += '<input type="text" class="pg-jump-input" id="jumpPageInput" value="' + currentPage + '" maxlength="4" onkeydown="if(event.key===\'Enter\')jumpToPage()">';
+  html += '<span style="color:#9DA2AC;">页</span>';
+  html += '</div>';
+  html += '<span class="pg-stats">共 ' + total + ' 条记录　第 ' + currentPage + '/' + totalPages + ' 页</span>';
+
+  container.innerHTML = html;
+}
+
+function goToPage(p) {
+  currentPage = p;
+  renderTable();
+  document.getElementById('tableContainer').scrollTop = 0;
+}
+
+function jumpToPage() {
+  var input = document.getElementById('jumpPageInput');
+  var p = parseInt(input.value, 10);
+  // Calculate total pages from current filtered data
+  var list = allMembers.slice();
+  if (selectedDeptId !== 'd0') {
+    if (filterScope === 'direct') { list = list.filter(function(m) { return m.deptId === selectedDeptId; }); }
+    else { var ids = getDeptAndChildrenIds(selectedDeptId); list = list.filter(function(m) { return ids.includes(m.deptId); }); }
+  }
+  if (filterKeyword) { var kw = filterKeyword.toLowerCase(); list = list.filter(function(m) { return m.name.toLowerCase().includes(kw) || (m.nickname||'').toLowerCase().includes(kw) || m.phone.includes(kw); }); }
+  if (filterRole) { list = list.filter(function(m) { return m.roleId === filterRole; }); }
+  if (filterStatus === 'enabled') { list = list.filter(function(m) { return m.status === true; }); }
+  else if (filterStatus === 'disabled') { list = list.filter(function(m) { return m.status === false; }); }
+  var totalPages = Math.ceil(list.length / currentPageSize);
+  if (isNaN(p) || p < 1 || p > totalPages) { showToast('请输入 1–' + totalPages + ' 之间的页码', 'warning'); return; }
+  goToPage(p);
+}
+
+function changePageSize(ps) {
+  currentPageSize = parseInt(ps);
+  currentPage = 1;
+  renderTable();
+}
+
+/* ===== TOAST ===== */
+let toastTimer = null;
+function showToast(msg, type = 'info') {
+  if (toastTimer) clearTimeout(toastTimer);
+  const el = document.getElementById('toast');
+  const colors = { info:{bg:'#1A1D24',c:'#fff'}, success:{bg:'#0FC060',c:'#fff'}, error:{bg:'#D9001B',c:'#fff'}, warning:{bg:'#E7772D',c:'#fff'} };
+  const t = colors[type] || colors.info;
+  el.textContent = msg; el.style.background = t.bg; el.style.color = t.c; el.style.opacity = '1';
+  toastTimer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
+}
+
+/* ===== ANNOTATIONS ===== */
+const annotations = {
+  1: { title:'组织架构树', desc:[
+  '触发：点击部门节点选中，点击箭头▶展开/收起子部门',
+  '响应：右侧成员列表按所选部门过滤（含子部门）',
+  '根节点(游寄科技)：字号16px，无展开/收起箭头，点击可选中展示全公司成员',
+  '规则：根部门不可删除；选中部门高亮 primary-bg 背景',
+  '状态：每节点显示成员数量，14px，紧跟在部门名称右边'
+  ]},
+  2: { title:'部门信息头', desc:[
+  '触发：页面加载 / 点击组织树节点',
+  '响应：显示当前选中部门名称 + 部门人数/总人数统计',
+  '规则：根部门显示全部成员数'
+  ]},
+  3: { title:'筛选栏-搜索成员', desc:[
+  '触发：在搜索框输入关键字后点击[查询]按钮',
+  '响应：前端过滤成员列表（按名称/昵称/手机号匹配）',
+  '规则：与角色、状态、数据范围条件叠加过滤'
+  ]},
+  4: { title:'成员表格', desc:[
+  '触发：页面加载 / 选择部门 / 筛选后渲染',
+  '响应：展示当前部门（含子部门）成员列表，12列数据',
+  '规则：数字列（固定资产）用 mono 字体右对齐；hover 行高亮 bg-hover；空状态显示"暂无成员"',
+  '交互：表头固定；表格横向可滚动（overflow-x:auto）；分页器位于表格右下'
+  ]},
+  5: { title:'成员操作列', desc:[
+  '编辑：弹出编辑弹窗，回填当前数据，修改后保存',
+  '删除：弹出确认弹窗，确认后移除成员，部门人数-1',
+  '状态开关：点击切换启用/禁用，即时生效，更新时间戳'
+  ]},
+  6: { title:'成员弹窗（添加/编辑）', desc:[
+  '触发：点击"添加成员"按钮或表格操作列"编辑"',
+  '响应：弹出成员表单弹窗，760px宽',
+  '校验：成员名称必填、手机号必填且格式1开头11位、部门必选、角色必选',
+  '添加成功：成员加入列表，部门人数+1，toast提示；编辑成功：列表刷新，toast提示'
+  ]},
+  7: { title:'分页器', desc:[
+  '触发：页面加载 / 筛选后 / 切换每页条数 / 输入跳页',
+  '响应：按每页条数分页展示成员列表，当前页高亮 primary 底白字',
+  '规则：总记录数 + 条/页选择 + 页码导航 + 跳页输入；≤7页全显示，>7页显示省略号',
+  '交互：点击页码跳页、选择条/页重新分页、输入页码跳页'
+  ]},
+  8: { title:'添加成员', desc:[
+  '触发：点击标题栏右侧"添加成员"按钮',
+  '响应：弹出添加成员弹窗',
+  '校验：名称必填、手机号必填且格式1开头11位、部门必选、角色必选',
+  '成功后：成员加入列表，部门人数+1，toast 提示'
+  ]},
+  9: { title:'筛选栏-角色', desc:[
+  '触发：选择角色下拉选项后点击[查询]',
+  '响应：按所选角色过滤成员列表',
+  '规则：与搜索、状态、数据范围条件叠加过滤'
+  ]},
+  10: { title:'筛选栏-状态', desc:[
+  '触发：选择状态下拉（全部/已启用/已禁用）后点击[查询]',
+  '响应：按启用/禁用状态过滤成员列表',
+  '规则：与搜索、角色、数据范围条件叠加过滤'
+  ]},
+  11: { title:'筛选栏-数据范围', desc:[
+  '触发：选择数据范围（展示全部成员/仅展示直属成员）后点击[查询]',
+  '响应：全部=显示选中部门及其所有子部门成员；直属=仅显示选中部门直接归属的成员',
+  '规则：选中根节点时两种模式等效；与其他筛选条件叠加'
+  ]},
+};
+
+/* ===== PORTAL ANNOTATION SYSTEM ===== */
+var annoVisible = true;
+function renderAnnoBadges() {
+  var layer = document.getElementById('annoLayer');
+  layer.innerHTML = '';
+  if (!annoVisible) return;
+  var vw = window.innerWidth;
+  document.querySelectorAll('[data-anno]').forEach(function(el) {
+    var id = el.getAttribute('data-anno');
+    if (el.offsetParent === null && el.tagName !== 'BODY') return;
+    var target = resolveAnnoTarget(el, vw);
+    var rect = target.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return;
+    var badge = document.createElement('div');
+    badge.className = 'anno-portal-badge';
+    badge.textContent = id;
+    badge.style.top  = (rect.top  - 10) + 'px';
+    badge.style.left = (rect.right - 10) + 'px';
+    badge.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showAnnoPopup(id);
+    });
+    layer.appendChild(badge);
+  });
+}
+
+/** Smart targeting: if data-anno is on a full-width container, drill down to the core inner element */
+function resolveAnnoTarget(el, vw) {
+  var rect = el.getBoundingClientRect();
+  if (rect.width < 800 || rect.width < vw * 0.7) return el;
+  var inner = el.querySelector('h1, h2, h3, h4, h5, h6, button, .btn, input, select, .card-title, [class*="title"]');
+  if (inner) {
+    var innerRect = inner.getBoundingClientRect();
+    if (innerRect.width < rect.width * 0.8) return inner;
+  }
+  var first = el.firstElementChild;
+  if (first) {
+    var firstRect = first.getBoundingClientRect();
+    if (firstRect.width < rect.width * 0.9) return first;
+  }
+  return el;
+}
+function showAnnoPopup(id) {
+  var a = annotations[id];
+  if (!a) return;
+  document.getElementById('annoPopupTitle').textContent = '#' + id + ' ' + a.title;
+  document.getElementById('annoPopupBody').innerHTML = a.desc.map(function(d) {
+    return '<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>' + d + '</span></li>';
+  }).join('');
+  var box = document.getElementById('annoPopupBox');
+  box.style.top = '50%'; box.style.left = '50%'; box.style.transform = 'translate(-50%,-50%)';
+  document.getElementById('annoPopup').classList.remove('hidden');
+}
+
+function closeAnnoPopup() {
+  document.getElementById('annoPopup').classList.add('hidden');
+}
+
+var popupDrag = { offX: 0, offY: 0, moved: false };
+function startDragPopup(e) {
+  if (e.target.closest('button')) return;
+  popupDrag.moved = false;
+  var box = document.getElementById('annoPopupBox');
+  var rect = box.getBoundingClientRect();
+  popupDrag.offX = e.clientX - rect.left;
+  popupDrag.offY = e.clientY - rect.top;
+  document.addEventListener('mousemove', onDragPopup);
+  document.addEventListener('mouseup', stopDragPopup);
+}
+function onDragPopup(e) {
+  var dx = Math.abs(e.clientX - popupDrag.offX - document.getElementById('annoPopupBox').getBoundingClientRect().left);
+  if (dx < 3 && !popupDrag.moved) return;
+  popupDrag.moved = true;
+  var box = document.getElementById('annoPopupBox');
+  box.style.transform = 'none';
+  box.style.top  = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - popupDrag.offY)) + 'px';
+  box.style.left = Math.max(0, Math.min(window.innerWidth  - 100, e.clientX - popupDrag.offX)) + 'px';
+  document.getElementById('annoPopupDrag').style.cursor = 'grabbing';
+}
+function stopDragPopup() {
+  document.removeEventListener('mousemove', onDragPopup);
+  document.removeEventListener('mouseup', stopDragPopup);
+  var h = document.getElementById('annoPopupDrag');
+  if (h) h.style.cursor = 'grab';
+}
+document.getElementById('annoToggle').addEventListener('click', function(e) {
+  if (this.dataset.dragging === '1') return;
+  annoVisible = !annoVisible;
+  if (annoVisible) { document.body.classList.remove('anno-hidden'); document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye'); }
+  else { document.body.classList.add('anno-hidden'); document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye-off'); }
+  lucide.createIcons({ attrs: { class: 'w-[13px] h-[13px]' } });
+  renderAnnoBadges();
+});
+var dragToggleY = 0, dragToggleMoved = false;
+function startDragToggle(e) {
+  dragToggleY = e.clientY; dragToggleMoved = false;
+  document.addEventListener('mousemove', onDragToggle);
+  document.addEventListener('mouseup', stopDragToggle); e.preventDefault();
+}
+function onDragToggle(e) {
+  if (Math.abs(e.clientY - dragToggleY) < 5) return; dragToggleMoved = true;
+  var w = document.getElementById('annoToggle');
+  w.style.top = Math.max(60, Math.min(window.innerHeight - 60, e.clientY - 20)) + 'px';
+  w.style.right = '8px'; w.style.cursor = 'grabbing';
+}
+function stopDragToggle() {
+  document.removeEventListener('mousemove', onDragToggle);
+  document.removeEventListener('mouseup', stopDragToggle);
+  var w = document.getElementById('annoToggle');
+  if (w) { w.style.cursor = 'grab'; w.dataset.dragging = dragToggleMoved ? '1' : ''; }
+}
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded', function() {
+  lucide.createIcons();
+  renderAnnoBadges();
+  document.getElementById('mainContent').addEventListener('scroll', renderAnnoBadges);
+  window.addEventListener('resize', renderAnnoBadges);
+  populateRoleFilter();
+  renderTree();
+  renderTable();
+  updateHeader();
+});
+
+
+
+/* ================================================================
+   MENU SELECT — unified sidebar menu interaction handler
+   - L1 without children → select + navigate
+   - L1 with children    → toggle expand/collapse only (no nav)
+   - L2                   → select self + parent L1 + navigate
+   - Only one submenu expanded at a time
+   - Clicking already-selected L2 re-navigates
+   ================================================================ */
+function menuSelect(el) {
+  if (el.classList.contains('l1')) {
+    handleL1(el);
+  } else if (el.classList.contains('l2')) {
+    handleL2(el);
+  }
+}
+
+/* ---- L1: handle both leaf and expandable ---- */
+function handleL1(el) {
+  var subId = el.getAttribute('data-sub');
+  if (subId) {
+    handleL1Toggle(el, subId);
+  } else {
+    selectL1NoChildren(el);
+  }
+}
+
+/* L1 with children — toggle expand / collapse */
+function handleL1Toggle(el, subId) {
+  var sub = document.getElementById(subId);
+  if (!sub) return;
+  var arrow = el.querySelector('.menu-arrow');
+  var isExpanded = !sub.classList.contains('collapsed');
+
+  if (isExpanded) {
+    // Collapse this submenu
+    sub.classList.add('collapsed');
+    if (arrow) arrow.classList.remove('open');
+    // Remove active-l1 only if no child is selected
+    if (!sub.querySelector('.menu-item.active-l2')) {
+      el.classList.remove('active-l1');
+    }
+  } else {
+    // Collapse all other submenus first (exclusive expand)
+    collapseAllExcept(subId);
+    // Expand this submenu
+    sub.classList.remove('collapsed');
+    if (arrow) arrow.classList.add('open');
+    // If a child was previously selected, restore parent active state
+    if (sub.querySelector('.menu-item.active-l2')) {
+      el.classList.add('active-l1');
+    }
+  }
+}
+
+/* L1 without children — select and navigate */
+function selectL1NoChildren(el) {
+  collapseAllExcept(null);
+  clearAllActive();
+  el.classList.add('active-l1');
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+/* ---- L2: select self + parent, then navigate ---- */
+function handleL2(el) {
+  var parentSub = el.closest('.submenu');
+  var parentSubId = parentSub ? parentSub.id : null;
+
+  // Keep parent submenu expanded, collapse others
+  collapseAllExcept(parentSubId);
+
+  // Ensure parent submenu is expanded
+  if (parentSub && parentSub.classList.contains('collapsed')) {
+    parentSub.classList.remove('collapsed');
+  }
+
+  // Clear all, then set self + parent active
+  clearAllActive();
+  el.classList.add('active-l2');
+
+  var parentL1 = findParentL1BySubId(parentSubId);
+  if (parentL1) {
+    parentL1.classList.add('active-l1');
+    var arrow = parentL1.querySelector('.menu-arrow');
+    if (arrow) arrow.classList.add('open');
+  }
+
+  // Navigate
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+/* ---- Helpers ---- */
+
+/** Collapse all submenus except the one with keepSubId */
+function collapseAllExcept(keepSubId) {
+  document.querySelectorAll('.submenu').forEach(function(sub) {
+    if (sub.id === keepSubId) return;
+    if (sub.classList.contains('collapsed')) return;
+    sub.classList.add('collapsed');
+    // Reset parent L1 arrow and active state
+    var l1 = findParentL1BySubId(sub.id);
+    if (l1) {
+      var arrow = l1.querySelector('.menu-arrow');
+      if (arrow) arrow.classList.remove('open');
+      if (!sub.querySelector('.menu-item.active-l2')) {
+        l1.classList.remove('active-l1');
+      }
+    }
+  });
+}
+
+/** Remove all active-l1 / active-l2 classes */
+function clearAllActive() {
+  document.querySelectorAll('.menu-item').forEach(function(item) {
+    item.classList.remove('active-l1', 'active-l2');
+  });
+}
+
+/** Find the parent L1 element by submenu ID */
+function findParentL1BySubId(subId) {
+  if (!subId) return null;
+  return document.querySelector('.menu-item.l1[data-sub="' + subId + '"]');
+}
+
+/** Navigate: .html → page jump; otherwise → show placeholder in content area */
+function navigateToPage(page) {
+  if (!page) return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = page.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  if (page.endsWith('.html')) {
+    window.location.href = page;
+  } else {
+    // Placeholder — render inline
+    document.getElementById('mainContent').innerHTML =
+      '<div class="p-4">' +
+      '<div class="bg-white rounded-lg border border-line p-5 md:p-6">' +
+      '<h2 class="text-[16px] font-semibold text-ink-title mb-2">' + page + '</h2>' +
+      '<p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p>' +
+      '</div></div>';
+  }
+}
+
+/* ===== TOPBAR NAVIGATION ===== */
+function navigate(url) {
+  if (url === '#') return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = url.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  window.location.href = url;
+}
+
+/* ===== MOBILE SIDEBAR TOGGLE ===== */
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+</script>
+</body>
+</html>

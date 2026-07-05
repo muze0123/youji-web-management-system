@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>异常工单 - 游寄后台管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+  <style>
+    body{overflow:hidden;}
+    /* Sidebar */
+    .menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+    .menu-item:hover{background:#F3F4F6;}
+    .menu-item.l1{padding-left:20px;font-weight:500;}
+    .menu-item.l2{padding-left:64px;font-size:13px;}
+    .menu-item.active-l1{color:#0066FF;}
+    .menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+    .menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+    .active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+    .menu-arrow.open{transform:rotate(180deg);}
+    .submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+    .submenu.collapsed{max-height:0!important;opacity:0;}
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;}
+    .btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+    .btn-primary:hover{background:#0052CC;}
+    .btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+    .btn-default:hover{border-color:#0066FF;color:#0066FF;}
+    .btn-sm{height:28px;padding:0 10px;font-size:12px;}
+    .btn-danger{background:#D9001B;color:#fff;border-color:#D9001B;}
+    .btn-danger:hover{background:#B80015;}
+    /* Data table */
+    .data-table{width:100%;border-collapse:collapse;font-size:13px;}
+    .data-table thead th{background:#F0F1F3;color:#6E7685;font-weight:600;font-size:12px;padding:9px 12px;text-align:left;border-bottom:1px solid #DFE1E5;white-space:nowrap;}
+    .data-table tbody td{padding:9px 12px;color:#3A3F4A;border-bottom:1px solid #E8EAED;}
+    .data-table tbody tr{transition:background .12s;}
+    .data-table tbody tr:hover{background:#F3F4F6;}
+    .data-table tbody tr.row-p0{background:#FFF5F5;}
+    .data-table tbody tr.row-p0:hover{background:#FFE8EB;}
+    /* Badge */
+    .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:500;white-space:nowrap;}
+    .badge-warning{color:#E7772D;background:#FDF2E9;}
+    .badge-info{color:#0091D5;background:#E4F4FB;}
+    .badge-success{color:#0FC060;background:#E7F9F0;}
+    .badge-muted{color:#9DA2AC;background:#F0F1F3;}
+    /* Filter tabs */
+    .filter-tab{padding:6px 16px;font-size:13px;color:#6E7685;cursor:pointer;border-radius:4px;transition:all .15s;white-space:nowrap;border:1px solid transparent;}
+    .filter-tab:hover{color:#0066FF;background:#E6F0FF;}
+    .filter-tab.active{background:#0066FF;color:#fff;font-weight:500;}
+    /* Filter controls */
+    .filter-select{height:32px;padding:0 28px 0 10px;font-size:13px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;}
+    .filter-input{height:32px;padding:0 10px;font-size:13px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;width:180px;}
+    .filter-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .filter-input::placeholder{color:#9DA2AC;}
+    .select-wrap{position:relative;display:inline-flex;align-items:center;}
+    .select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+    /* Date range */
+    .date-range{display:inline-flex;align-items:center;gap:6px;}
+    .date-range input[type="date"]{height:32px;padding:0 8px;font-size:13px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;font-family:inherit;}
+    .date-range input[type="date"]:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    /* P0 marker */
+    .p0-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#D9001B;margin-right:4px;flex-shrink:0;}
+    /* Drawer */
+    .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1100;display:none;}
+    .drawer-overlay.show{display:block;}
+    .drawer{position:fixed;top:0;right:0;bottom:0;width:800px;max-width:100%;background:#fff;z-index:1101;box-shadow:-4px 0 24px rgba(0,0,0,.1);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease;}
+    .drawer.open{transform:translateX(0);}
+    .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #DFE1E5;flex-shrink:0;}
+    .drawer-body{flex:1;overflow-y:auto;padding:24px;}
+    .drawer-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:16px 24px;border-top:1px solid #DFE1E5;flex-shrink:0;}
+    /* Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1200;display:none;align-items:center;justify-content:center;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);width:760px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;animation:ds-modal-in .15s ease;}
+    @keyframes ds-modal-in{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;}
+    .modal-body{flex:1;overflow-y:auto;padding:24px;}
+    .modal-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 24px 20px;flex-shrink:0;}
+    /* Dialog */
+    .dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1300;display:none;align-items:center;justify-content:center;}
+    .dialog-overlay.show{display:flex;}
+    .dialog{width:600px;max-width:92vw;height:250px;background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);display:flex;flex-direction:column;position:relative;animation:ds-modal-in .15s ease;}
+    /* Timeline */
+    .timeline-item{position:relative;padding-left:24px;padding-bottom:20px;border-left:2px solid #E8EAED;}
+    .timeline-item:last-child{border-left-color:transparent;padding-bottom:0;}
+    .timeline-item::before{content:'';position:absolute;left:-5px;top:4px;width:8px;height:8px;border-radius:50%;background:#DFE1E5;}
+    .timeline-item:first-child::before{background:#0066FF;}
+    /* Section title */
+    .section-title{font-size:14px;font-weight:600;color:#1A1D24;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #E8EAED;display:flex;align-items:center;gap:6px;}
+    /* Info grid */
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;}
+    .info-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;}
+    .info-label{color:#6E7685;flex-shrink:0;white-space:nowrap;}
+    .info-value{color:#3A3F4A;word-break:break-all;}
+    /* Link */
+    .link{color:#0066FF;cursor:pointer;text-decoration:none;}
+    .link:hover{text-decoration:underline;color:#0052CC;}
+    /* Operation links */
+    .op-link{color:#0066FF;cursor:pointer;font-size:13px;margin-right:12px;text-decoration:none;}
+    .op-link:hover{text-decoration:underline;}
+    .op-link:last-child{margin-right:0;}
+    /* Portal annotation */
+    .anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
+    .anno-portal-badge:hover{transform:scale(1.2);}
+    .anno-hidden .anno-portal-badge{display:none;}
+    /* Topbar */
+    .topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
+    .topbar-btn:hover{background:#E6F0FF;}
+    .topbar-btn:hover svg{stroke:#0066FF;}
+    .badge-dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:600;line-height:18px;text-align:center;}
+    /* Pagination */
+    .pg-btn{min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
+    .pg-btn:hover:not(.pg-current):not(:disabled){color:#0066FF;border-color:#0066FF;}
+    .pg-current{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .pg-btn:disabled{color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;border-color:#DFE1E5;}
+    .pg-ellipsis{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;font-size:13px;}
+    .pg-select{font:12px inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;}
+    .pg-select-wrap{position:relative;display:inline-flex;align-items:center;}
+    .pg-select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+    .pg-jump-input{font:12px inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+    .pg-jump-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .pg-stats{color:#9DA2AC;white-space:nowrap;}
+    /* Form */
+    .form-group{display:flex;align-items:flex-start;margin-bottom:16px;}
+    .form-label{width:90px;text-align:right;padding-right:12px;font-size:13px;color:#3A3F4A;line-height:30px;flex-shrink:0;}
+    .form-label.required::before{content:'*';color:#D9001B;margin-right:2px;}
+    .form-control{width:400px;max-width:100%;}
+    .form-input{width:100%;height:30px;padding:0 10px;font-size:13px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+    .form-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .form-select{width:100%;height:30px;padding:0 28px 0 10px;font-size:13px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;}
+    .form-textarea{width:100%;min-height:80px;padding:8px 10px;font-size:13px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;resize:vertical;font-family:inherit;}
+    .form-textarea:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .form-error{font-size:12px;color:#D9001B;margin-top:2px;display:none;}
+    .form-group.error .form-input,.form-group.error .form-select,.form-group.error .form-textarea{border-color:#D9001B;}
+    .form-group.error .form-error{display:block;}
+    /* Responsive */
+    @media(max-width:768px){
+      .sidebar{display:none;}
+      .sidebar.open{display:flex;position:fixed;top:56px;left:0;bottom:0;z-index:50;}
+      .sidebar-overlay{display:none;}
+      .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;}
+      .info-grid{grid-template-columns:1fr;}
+      .drawer{width:100%;}
+    }
+  </style>
+</head>
+<body class="font-sans flex flex-col h-screen">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-4 md:px-6 flex-shrink-0 gap-3">
+  <button class="topbar-btn md:hidden" onclick="toggleSidebar()" title="菜单">
+    <i data-lucide="menu" class="w-[18px] h-[18px]"></i>
+  </button>
+  <div class="flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigate('index.html')">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div>
+    <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
+  </div>
+  <div class="ml-auto flex items-center gap-3 md:gap-5">
+    <button class="topbar-btn" title="任务列表" onclick="navigate('任务中心.html')">
+      <i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="taskBadge">3</span>
+    </button>
+    <button class="topbar-btn" title="消息中心" onclick="navigate('消息中心.html')">
+      <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="msgBadge">5</span>
+    </button>
+    <button class="topbar-btn" title="账号信息" onclick="navigate('账号信息.html')">
+      <i data-lucide="user" class="w-[18px] h-[18px]"></i>
+    </button>
+  </div>
+</header>
+
+<!-- ===== BODY: SIDEBAR + CONTENT ===== -->
+<div class="flex flex-1 min-h-0">
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+    <!-- 工作台 -->
+    <div class="menu-item l1" data-page="工作台.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台
+    </div>
+
+    <!-- 数据概览 -->
+    <div class="menu-item l1" data-page="数据概览.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览
+    </div>
+
+    <!-- 订单管理 -->
+    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理
+    </div>
+
+    <!-- 异常工单 -->
+    <div class="menu-item l1 active-l1" data-page="异常工单.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单
+    </div>
+
+    <!-- 柜机监控 -->
+    <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控
+    </div>
+
+    <!-- 对账中心 -->
+    <div class="menu-item l1" data-page="对账中心.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心
+    </div>
+
+    <!-- 运营配置 -->
+    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置
+    </div>
+
+    <!-- 系统设置（含二级菜单） -->
+    <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置
+      <span class="menu-arrow">▼</span>
+    </div>
+    <div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
+      <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
+      <div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div>
+      <div class="menu-item l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div>
+      <div class="menu-item l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div>
+      <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
+    </div>
+  </aside>
+
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
+    <div class="p-4">
+
+      <!-- ===== 区块A：页面头 + 统计概览 ===== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <h1 class="text-[20px] font-bold text-ink-title inline-block" data-anno="1">异常工单</h1>
+          <button class="btn btn-primary" onclick="openMarkModal()" data-anno="7">
+            <i data-lucide="alert-triangle" class="w-[14px] h-[14px]"></i> 标记异常
+          </button>
+        </div>
+        <!-- 统计卡片 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4" data-anno="2">
+          <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-primary-bg flex items-center justify-center flex-shrink-0">
+              <i data-lucide="ticket" class="w-[18px] h-[18px] text-primary"></i>
+            </div>
+            <div>
+              <div class="text-[12px] text-ink-sub">全部工单</div>
+              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statTotal">15</div>
+            </div>
+          </div>
+          <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-warning-bg flex items-center justify-center flex-shrink-0">
+              <i data-lucide="clock" class="w-[18px] h-[18px] text-warning"></i>
+            </div>
+            <div>
+              <div class="text-[12px] text-ink-sub">待处理</div>
+              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statPending">5</div>
+            </div>
+          </div>
+          <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-info-bg flex items-center justify-center flex-shrink-0">
+              <i data-lucide="loader" class="w-[18px] h-[18px] text-info"></i>
+            </div>
+            <div>
+              <div class="text-[12px] text-ink-sub">处理中</div>
+              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statProcessing">4</div>
+            </div>
+          </div>
+          <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3" data-anno="13">
+            <div class="w-10 h-10 rounded-lg bg-danger-bg flex items-center justify-center flex-shrink-0">
+              <i data-lucide="alert-circle" class="w-[18px] h-[18px] text-danger"></i>
+            </div>
+            <div>
+              <div class="text-[12px] text-ink-sub">P0 紧急</div>
+              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statP0">3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 区块B：筛选区 ===== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+        <!-- 状态 Tab -->
+        <div class="flex items-center gap-2 mb-4 flex-wrap" data-anno="3">
+          <span class="text-[13px] text-ink-sub mr-1">工单状态：</span>
+          <div class="flex items-center gap-1 flex-wrap" id="statusTabs">
+            <span class="filter-tab active" data-status="all" onclick="filterByStatus(this)">全部</span>
+            <span class="filter-tab" data-status="pending" onclick="filterByStatus(this)">待处理</span>
+            <span class="filter-tab" data-status="processing" onclick="filterByStatus(this)">处理中</span>
+            <span class="filter-tab" data-status="resolved" onclick="filterByStatus(this)">已处理</span>
+            <span class="filter-tab" data-status="closed" onclick="filterByStatus(this)">已关闭</span>
+          </div>
+        </div>
+        <!-- 筛选行 -->
+        <div class="flex items-center gap-3 flex-wrap">
+          <div class="flex items-center gap-2" data-anno="4">
+            <span class="text-[13px] text-ink-sub">异常类型：</span>
+            <div class="select-wrap">
+              <select class="filter-select" id="filterType" onchange="applyFilters()">
+                <option value="all">全部</option>
+                <option value="延误">延误</option>
+                <option value="损坏">损坏</option>
+                <option value="遗失">遗失</option>
+                <option value="取件码/存储码错误">取件码/存储码错误</option>
+                <option value="支付异常">支付异常</option>
+                <option value="锁柜失败">锁柜失败</option>
+                <option value="开柜异常">开柜异常</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center gap-2" data-anno="5">
+            <span class="text-[13px] text-ink-sub">来源：</span>
+            <div class="select-wrap">
+              <select class="filter-select" id="filterSource" onchange="applyFilters()">
+                <option value="all">全部</option>
+                <option value="运营标记">运营标记</option>
+                <option value="用户售后">用户售后</option>
+                <option value="系统生成">系统生成</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center gap-2" data-anno="6">
+            <span class="text-[13px] text-ink-sub">日期：</span>
+            <div class="date-range">
+              <input type="date" id="filterDateFrom" onchange="applyFilters()">
+              <span class="text-ink-muted text-[13px]">至</span>
+              <input type="date" id="filterDateTo" onchange="applyFilters()">
+            </div>
+          </div>
+          <input type="text" class="filter-input" id="filterKeyword" placeholder="工单号 / 关联订单号" onkeydown="if(event.key==='Enter')applyFilters()">
+          <button class="btn btn-primary btn-sm" onclick="applyFilters()"><i data-lucide="search" class="w-[13px] h-[13px]"></i> 查询</button>
+          <button class="btn btn-default btn-sm" onclick="resetFilters()"><i data-lucide="rotate-ccw" class="w-[13px] h-[13px]"></i> 重置</button>
+        </div>
+      </div>
+
+      <!-- ===== 区块C + D：工单表格 + 分页 ===== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6">
+        <div class="overflow-x-auto">
+          <table class="data-table" data-anno="8">
+            <thead>
+              <tr>
+                <th>工单号</th>
+                <th>关联订单</th>
+                <th>异常类型</th>
+                <th>来源</th>
+                <th>工单状态</th>
+                <th>处理人</th>
+                <th>创建时间 <i data-lucide="arrow-up-down" class="w-[12px] h-[12px] inline-block ml-1 cursor-pointer text-ink-muted" onclick="sortTable('createdAt')"></i></th>
+                <th>更新时间 <i data-lucide="arrow-up-down" class="w-[12px] h-[12px] inline-block ml-1 cursor-pointer text-ink-muted" onclick="sortTable('updatedAt')"></i></th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div id="emptyState" class="hidden text-center py-16">
+            <i data-lucide="inbox" class="w-[48px] h-[48px] text-ink-muted mx-auto mb-3"></i>
+            <p class="text-[14px] text-ink-muted">暂无匹配的工单记录</p>
+            <p class="text-[12px] text-ink-muted mt-1">请调整筛选条件后重试</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]" id="pagination" data-anno="17"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ===== DRAWER：工单详情/处理面板 ===== -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h2 class="text-[16px] font-semibold text-ink-title flex items-center gap-2">
+      <i data-lucide="file-text" class="w-[18px] h-[18px] text-primary"></i> 工单详情
+    </h2>
+    <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted" onclick="closeDrawer()">
+      <i data-lucide="x" class="w-[20px] h-[20px]"></i>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <!-- 工单信息 -->
+    <div class="mb-6">
+      <div class="section-title" data-anno="9"><i data-lucide="info" class="w-[14px] h-[14px]"></i> 工单信息</div>
+      <div class="info-grid" id="drawerTicketInfo"></div>
+    </div>
+    <!-- 关联订单摘要 -->
+    <div class="mb-6">
+      <div class="section-title" data-anno="10"><i data-lucide="package" class="w-[14px] h-[14px]"></i> 关联订单摘要</div>
+      <div class="info-grid" id="drawerOrderInfo"></div>
+    </div>
+    <!-- 用户诉求 -->
+    <div class="mb-6 hidden" id="drawerUserAppeal">
+      <div class="section-title" data-anno="11"><i data-lucide="message-square" class="w-[14px] h-[14px]"></i> 用户诉求</div>
+      <div id="drawerAppealContent" class="text-[13px] text-ink-body leading-relaxed"></div>
+      <div class="flex gap-2 mt-2" id="drawerAppealImages"></div>
+    </div>
+    <!-- 处理记录 -->
+    <div class="mb-6">
+      <div class="section-title" data-anno="12"><i data-lucide="clock" class="w-[14px] h-[14px]"></i> 处理记录</div>
+      <div id="drawerRecords" class="text-[13px]"></div>
+    </div>
+    <!-- 处理操作 -->
+    <div class="mb-6 hidden" id="drawerOps">
+      <div class="section-title"><i data-lucide="settings" class="w-[14px] h-[14px]"></i> 处理操作</div>
+      <div class="flex items-center gap-3 mb-4" data-anno="14">
+        <span class="text-[13px] text-ink-sub">变更状态：</span>
+        <div class="select-wrap">
+          <select class="filter-select" id="drawerStatusSelect" onchange="onStatusChange()">
+            <option value="">-- 选择目标状态 --</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 mb-4" data-anno="15">
+        <span class="text-[13px] text-ink-sub">指派处理人：</span>
+        <div class="select-wrap">
+          <select class="filter-select" id="drawerAssigneeSelect" onchange="onAssigneeChange()">
+            <option value="">-- 选择处理人 --</option>
+            <option value="张管理">张管理</option>
+            <option value="李运营">李运营</option>
+            <option value="王运营">王运营</option>
+            <option value="赵运营">赵运营</option>
+            <option value="刘客服">刘客服</option>
+          </select>
+        </div>
+      </div>
+      <div class="mb-3" data-anno="16">
+        <textarea class="form-textarea" id="drawerNoteInput" placeholder="输入处理备注（追加后不可删除，作为纠纷证据链）" rows="3"></textarea>
+        <div class="flex items-center gap-2 mt-2">
+          <button class="btn btn-primary btn-sm" onclick="addProcessingNote()"><i data-lucide="plus" class="w-[13px] h-[13px]"></i> 添加备注</button>
+          <span class="text-[12px] text-ink-muted">备注一经提交不可删除</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn btn-default" onclick="closeDrawer()">关闭</button>
+    <button class="btn btn-primary hidden" id="drawerBtnProcess" onclick="startProcess()">受理工单</button>
+    <button class="btn btn-primary hidden" id="drawerBtnResolve" onclick="resolveTicket()">标记已处理</button>
+    <button class="btn btn-default hidden" id="drawerBtnClose" onclick="closeTicket()">关闭工单</button>
+    <button class="btn btn-default hidden" id="drawerBtnReopen" onclick="reopenTicket()">重开工单</button>
+  </div>
+</div>
+
+<!-- ===== MODAL：标记异常弹窗 ===== -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeMarkModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="text-[16px] font-semibold text-ink-title flex items-center gap-2">
+        <i data-lucide="alert-triangle" class="w-[18px] h-[18px] text-warning"></i> 标记异常
+      </h2>
+      <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted" onclick="closeMarkModal()">
+        <i data-lucide="x" class="w-[20px] h-[20px]"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="text-[13px] text-ink-sub mb-4">对订单标记异常，将自动生成一条待处理的异常工单。</p>
+      <div class="form-group" data-anno="18">
+        <label class="form-label">关联订单：</label>
+        <div class="form-control">
+          <input type="text" class="form-input font-mono" id="modalOrderNo" placeholder="请输入关联订单号">
+        </div>
+      </div>
+      <div class="form-group" id="fgModalType" data-anno="19">
+        <label class="form-label required">异常类型：</label>
+        <div class="form-control">
+          <div class="select-wrap">
+            <select class="form-select" id="modalType">
+              <option value="">-- 请选择异常类型 --</option>
+              <option value="延误">延误</option>
+              <option value="损坏">损坏</option>
+              <option value="遗失">遗失</option>
+              <option value="取件码/存储码错误">取件码/存储码错误</option>
+              <option value="支付异常">支付异常</option>
+              <option value="锁柜失败">锁柜失败</option>
+              <option value="开柜异常">开柜异常</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+          <span class="form-error">请选择异常类型</span>
+        </div>
+      </div>
+      <div class="form-group" id="fgModalNote" data-anno="20">
+        <label class="form-label required">处理备注：</label>
+        <div class="form-control">
+          <textarea class="form-textarea" id="modalNote" placeholder="请描述异常问题，将作为工单首条处理记录"></textarea>
+          <span class="form-error">请输入处理备注</span>
+        </div>
+      </div>
+      <div class="form-group" data-anno="21">
+        <label class="form-label">指派处理人：</label>
+        <div class="form-control">
+          <div class="select-wrap">
+            <select class="form-select" id="modalAssignee">
+              <option value="">-- 选填 --</option>
+              <option value="张管理">张管理</option>
+              <option value="李运营">李运营</option>
+              <option value="王运营">王运营</option>
+              <option value="赵运营">赵运营</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeMarkModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitMarkException()"><i data-lucide="check" class="w-[14px] h-[14px]"></i> 提交生成工单</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DIALOG：确认弹窗 ===== -->
+<div class="dialog-overlay" id="dialogOverlay" onclick="closeDialog()">
+  <div class="dialog" onclick="event.stopPropagation()">
+    <button class="absolute top-[14px] right-[18px] text-[20px] text-ink-muted cursor-pointer z-[1]" style="background:none;border:none;padding:0;line-height:1;" onclick="closeDialog()">&times;</button>
+    <div class="flex-1 flex items-center px-6">
+      <div class="flex items-start gap-3 w-full">
+        <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" id="dialogIcon" style="background:#FDF2E9;color:#E7772D;font-size:12px;font-weight:700;">?</div>
+        <div>
+          <div class="text-[16px] font-semibold text-ink-title" id="dialogTitle">确认操作</div>
+          <div class="text-[14px] text-ink-sub mt-1.5" id="dialogMsg">确定要执行此操作吗？</div>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 pb-5 flex justify-end gap-3">
+      <button class="btn btn-default" onclick="closeDialog()">取消</button>
+      <button class="btn btn-primary" id="dialogConfirmBtn" onclick="dialogConfirm()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PORTAL ANNOTATION LAYER ===== -->
+<div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
+
+<div id="annoToggle" class="fixed z-[150]" style="right:8px;bottom:40px;cursor:grab;" onmousedown="startDragToggle(event)">
+  <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] bg-white/90 backdrop-blur text-primary border border-primary/30 shadow-sm">
+    <i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i> 标注
+  </div>
+</div>
+
+<div id="annoPopup" class="hidden fixed inset-0 z-[9999]" style="background:rgba(0,0,0,.2);" onclick="closeAnnoPopup()">
+  <div id="annoPopupBox" class="fixed bg-white rounded-lg shadow-xl p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto"
+       style="top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 12px 40px rgba(0,0,0,.18);"
+       onclick="event.stopPropagation()">
+    <button onclick="closeAnnoPopup()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted z-10"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+    <div id="annoPopupDrag" class="flex items-center gap-2 mb-3 select-none" style="cursor:grab;" onmousedown="startDragPopup(event)" title="拖拽移动弹窗">
+      <i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i>
+      <h3 id="annoPopupTitle" class="text-[16px] font-semibold text-ink-title"></h3>
+    </div>
+    <ul id="annoPopupBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   MOCK DATA — 15条工单，覆盖4状态×8类型×3来源
+   ================================================================ */
+var mockTickets = [
+  { id:'TK20260701001', orderNo:'YK20260701001', type:'锁柜失败', source:'系统生成', status:'pending', assignee:'--', createdAt:'2026-07-01 09:15:22', updatedAt:'2026-07-01 09:15:22', p0:true, appeal:null, orderSummary:{bizType:'寄存',locker:'西湖景区A-03',orderStatus:'异常'}, records:[{op:'系统',time:'2026-07-01 09:15:22',content:'系统检测到支付成功后锁柜失败，自动生成异常工单'}] },
+  { id:'TK20260701002', orderNo:'YK20260701002', type:'开柜异常', source:'用户售后', status:'pending', assignee:'--', createdAt:'2026-07-01 10:30:45', updatedAt:'2026-07-01 10:30:45', p0:true, appeal:{desc:'扫码后柜门没有打开，但已经计时了，请帮忙处理！',images:['locker-fail-1','locker-fail-2']}, orderSummary:{bizType:'寄送',locker:'湖滨银泰B-12',orderStatus:'进行中'}, records:[{op:'用户',time:'2026-07-01 10:30:45',content:'用户在售后提交：扫码后柜门没有打开，但已经计时了'}] },
+  { id:'TK20260701003', orderNo:'YK20260701003', type:'延误', source:'运营标记', status:'processing', assignee:'李运营', createdAt:'2026-07-01 11:42:18', updatedAt:'2026-07-03 14:20:05', p0:false, appeal:null, orderSummary:{bizType:'寄送',locker:'灵隐寺C-07',orderStatus:'进行中'}, records:[{op:'张管理',time:'2026-07-01 11:42:18',content:'订单寄送超时，标记为延误异常'},{op:'李运营',time:'2026-07-02 09:15:30',content:'已联系物流确认，预计延迟1天送达'}] },
+  { id:'TK20260701004', orderNo:'YK20260701004', type:'损坏', source:'用户售后', status:'processing', assignee:'张管理', createdAt:'2026-07-01 14:08:33', updatedAt:'2026-07-04 10:12:45', p0:false, appeal:{desc:'取件时发现行李箱的轮子掉了，应该是运输过程中损坏的，要求赔偿',images:['damage-1']}, orderSummary:{bizType:'寄送',locker:'西湖景区A-05',orderStatus:'已完成'}, records:[{op:'用户',time:'2026-07-01 14:08:33',content:'用户反馈：行李箱轮子掉落，要求赔偿处理'},{op:'张管理',time:'2026-07-02 16:30:00',content:'已受理，联系用户核实损失情况，待定损'}] },
+  { id:'TK20260702001', orderNo:'YK20260702001', type:'支付异常', source:'用户售后', status:'pending', assignee:'--', createdAt:'2026-07-02 08:55:10', updatedAt:'2026-07-02 08:55:10', p0:false, appeal:{desc:'已经扣了钱但订单还是显示待支付，余额少了28块',images:['pay-error-1']}, orderSummary:{bizType:'寄存',locker:'雷峰塔D-02',orderStatus:'待支付'}, records:[{op:'用户',time:'2026-07-02 08:55:10',content:'用户反馈：已扣款但订单状态未更新，金额¥28.00'}] },
+  { id:'TK20260702002', orderNo:'YK20260702002', type:'锁柜失败', source:'系统生成', status:'processing', assignee:'王运营', createdAt:'2026-07-02 12:20:00', updatedAt:'2026-07-03 09:45:00', p0:true, appeal:null, orderSummary:{bizType:'寄存',locker:'湖滨银泰B-08',orderStatus:'异常'}, records:[{op:'系统',time:'2026-07-02 12:20:00',content:'系统检测到支付成功但锁柜指令执行失败，自动生成工单'},{op:'王运营',time:'2026-07-02 12:35:00',content:'手动远程锁柜成功，用户行李已安全存放'}] },
+  { id:'TK20260702003', orderNo:'YK20260702003', type:'取件码/存储码错误', source:'用户售后', status:'processing', assignee:'李运营', createdAt:'2026-07-02 15:40:22', updatedAt:'2026-07-04 08:20:11', p0:false, appeal:{desc:'取件码一直提示错误，试了5次了，怕被锁住',images:[]}, orderSummary:{bizType:'寄存',locker:'西湖景区A-11',orderStatus:'进行中'}, records:[{op:'用户',time:'2026-07-02 15:40:22',content:'用户反馈取件码无效，已尝试5次'},{op:'李运营',time:'2026-07-02 15:50:00',content:'已核实，为用户端显示缓存问题，已重新推码'}] },
+  { id:'TK20260703001', orderNo:'YK20260703001', type:'遗失', source:'用户售后', status:'resolved', assignee:'张管理', createdAt:'2026-07-03 09:10:00', updatedAt:'2026-07-04 17:30:00', p0:false, appeal:{desc:'在柜子里存了一个包，取的时候发现包不见了',images:['lost-1','lost-2']}, orderSummary:{bizType:'寄存',locker:'灵隐寺C-03',orderStatus:'已完成'}, records:[{op:'用户',time:'2026-07-03 09:10:00',content:'用户反馈物品遗失，背包'},{op:'张管理',time:'2026-07-03 10:00:00',content:'已调取监控核实，确认被其他用户误取'},{op:'张管理',time:'2026-07-04 14:00:00',content:'已联系误取用户归还，物品已归还原主'},{op:'张管理',time:'2026-07-04 17:30:00',content:'用户确认物品完好，协商补偿¥200已达成'}] },
+  { id:'TK20260703002', orderNo:'YK20260703002', type:'开柜异常', source:'运营标记', status:'resolved', assignee:'王运营', createdAt:'2026-07-03 11:25:40', updatedAt:'2026-07-04 09:15:00', p0:true, appeal:null, orderSummary:{bizType:'寄送',locker:'雷峰塔D-08',orderStatus:'已完成'}, records:[{op:'王运营',time:'2026-07-03 11:25:40',content:'巡检发现D-08柜门卡住无法正常开启'},{op:'王运营',time:'2026-07-03 13:00:00',content:'已报修，维修人员现场处理中'},{op:'王运营',time:'2026-07-04 09:15:00',content:'维修完成，柜门恢复正常，测试通过'}] },
+  { id:'TK20260703003', orderNo:'YK20260703003', type:'其他', source:'运营标记', status:'resolved', assignee:'赵运营', createdAt:'2026-07-03 14:50:00', updatedAt:'2026-07-03 16:20:00', p0:false, appeal:null, orderSummary:{bizType:'寄存',locker:'湖滨银泰B-15',orderStatus:'已完成'}, records:[{op:'赵运营',time:'2026-07-03 14:50:00',content:'用户反馈柜内有异味，怀疑之前存放过食品'},{op:'赵运营',time:'2026-07-03 16:20:00',content:'已安排清洁消毒处理，用户满意'}] },
+  { id:'TK20260704001', orderNo:'YK20260704001', type:'延误', source:'系统生成', status:'pending', assignee:'--', createdAt:'2026-07-04 08:30:00', updatedAt:'2026-07-04 08:30:00', p0:false, appeal:null, orderSummary:{bizType:'寄送',locker:'西湖景区A-02',orderStatus:'进行中'}, records:[{op:'系统',time:'2026-07-04 08:30:00',content:'系统检测寄送订单超过预估时效，自动生成延误工单'}] },
+  { id:'TK20260704002', orderNo:'YK20260704002', type:'损坏', source:'运营标记', status:'pending', assignee:'--', createdAt:'2026-07-04 10:12:00', updatedAt:'2026-07-04 10:12:00', p0:false, appeal:null, orderSummary:{bizType:'寄送',locker:'灵隐寺C-09',orderStatus:'已完成'}, records:[{op:'李运营',time:'2026-07-04 10:12:00',content:'用户到店反馈包裹外包装破损，内部物品有挤压痕迹'}] },
+  { id:'TK20260704003', orderNo:'YK20260704003', type:'支付异常', source:'系统生成', status:'closed', assignee:'张管理', createdAt:'2026-07-04 13:00:00', updatedAt:'2026-07-05 10:00:00', p0:false, appeal:null, orderSummary:{bizType:'寄存',locker:'雷峰塔D-05',orderStatus:'已完成'}, records:[{op:'系统',time:'2026-07-04 13:00:00',content:'系统检测到重复扣款，自动生成工单'},{op:'张管理',time:'2026-07-04 14:30:00',content:'确认重复扣款¥45.00，已发起退款'},{op:'张管理',time:'2026-07-05 09:45:00',content:'退款到账，用户确认已收到'},{op:'张管理',time:'2026-07-05 10:00:00',content:'工单关闭归档'}] },
+  { id:'TK20260705001', orderNo:'YK20260705001', type:'取件码/存储码错误', source:'运营标记', status:'closed', assignee:'李运营', createdAt:'2026-07-05 09:20:00', updatedAt:'2026-07-05 15:00:00', p0:false, appeal:null, orderSummary:{bizType:'寄存',locker:'湖滨银泰B-03',orderStatus:'已完成'}, records:[{op:'李运营',time:'2026-07-05 09:20:00',content:'运维巡检发现B-03存储码扫描设备故障'},{op:'李运营',time:'2026-07-05 11:00:00',content:'设备已更换，恢复正常'},{op:'李运营',time:'2026-07-05 15:00:00',content:'工单关闭'}] },
+  { id:'TK20260705002', orderNo:'YK20260705002', type:'开柜异常', source:'用户售后', status:'resolved', assignee:'赵运营', createdAt:'2026-07-05 10:45:00', updatedAt:'2026-07-05 16:30:00', p0:true, appeal:{desc:'柜门打开了但里面是空的，我确定没有取走过',images:['empty-1']}, orderSummary:{bizType:'寄存',locker:'西湖景区A-09',orderStatus:'已完成'}, records:[{op:'用户',time:'2026-07-05 10:45:00',content:'用户反馈柜门打开后为空'},{op:'赵运营',time:'2026-07-05 11:20:00',content:'调取监控核实，用户之前已取走物品后再次扫码'},{op:'赵运营',time:'2026-07-05 16:30:00',content:'向用户出示监控记录，用户确认是自己遗忘，工单处理完毕'}] }
+];
+
+/* ================================================================
+   GLOBAL STATE
+   ================================================================ */
+var currentFilters = { status:'all', type:'all', source:'all', dateFrom:'', dateTo:'', keyword:'' };
+var currentSort = { field:'createdAt', order:'desc' };
+var currentPage = 1, pageSize = 10;
+var currentTicket = null;
+var dialogCallback = null;
+
+/* ================================================================
+   STATUS MAP
+   ================================================================ */
+var statusMap = {
+  'pending':    { label:'待处理', cls:'badge-warning' },
+  'processing': { label:'处理中', cls:'badge-info' },
+  'resolved':   { label:'已处理', cls:'badge-success' },
+  'closed':     { label:'已关闭', cls:'badge-muted' }
+};
+
+/* ================================================================
+   FILTER & RENDER
+   ================================================================ */
+function getFilteredTickets() {
+  var f = currentFilters;
+  return mockTickets.filter(function(t) {
+    if (f.status !== 'all' && t.status !== f.status) return false;
+    if (f.type !== 'all' && t.type !== f.type) return false;
+    if (f.source !== 'all' && t.source !== f.source) return false;
+    if (f.dateFrom && t.createdAt.slice(0,10) < f.dateFrom) return false;
+    if (f.dateTo   && t.createdAt.slice(0,10) > f.dateTo) return false;
+    if (f.keyword) {
+      var kw = f.keyword.toLowerCase();
+      if (t.id.toLowerCase().indexOf(kw) === -1 && t.orderNo.toLowerCase().indexOf(kw) === -1) return false;
+    }
+    return true;
+  });
+}
+
+function renderTable() {
+  var filtered = getFilteredTickets();
+  filtered.sort(function(a, b) {
+    var va = a[currentSort.field], vb = b[currentSort.field];
+    return (va < vb ? -1 : 1) * (currentSort.order === 'asc' ? 1 : -1);
+  });
+  var total = filtered.length;
+  var totalPages = Math.ceil(total / pageSize) || 1;
+  if (currentPage > totalPages) currentPage = totalPages;
+  var start = (currentPage - 1) * pageSize;
+  var pageData = filtered.slice(start, start + pageSize);
+
+  var tbody = document.getElementById('tableBody');
+  var empty = document.getElementById('emptyState');
+  var table = document.querySelector('.data-table');
+
+  if (total === 0) {
+    empty.classList.remove('hidden');
+    if (table) table.classList.add('hidden');
+  } else {
+    empty.classList.add('hidden');
+    if (table) table.classList.remove('hidden');
+  }
+
+  tbody.innerHTML = pageData.map(function(t) {
+    var st = statusMap[t.status] || { label:t.status, cls:'badge-muted' };
+    var rowCls = t.p0 ? 'row-p0' : '';
+    var p0Dot = t.p0 ? '<span class="p0-dot" title="P0 高优先级"></span>' : '';
+    return '<tr class="' + rowCls + ' cursor-pointer" onclick="openDrawer(\'' + t.id + '\')">' +
+      '<td class="font-mono text-ink-body">' + p0Dot + '<span class="link">' + t.id + '</span></td>' +
+      '<td class="font-mono"><span class="link" onclick="event.stopPropagation();goToOrder(\'' + t.orderNo + '\')">' + t.orderNo + '</span></td>' +
+      '<td>' + t.type + '</td>' +
+      '<td>' + t.source + '</td>' +
+      '<td><span class="badge ' + st.cls + '">' + st.label + '</span></td>' +
+      '<td>' + t.assignee + '</td>' +
+      '<td class="font-mono text-ink-muted text-[12px]">' + t.createdAt.slice(5) + '</td>' +
+      '<td class="font-mono text-ink-muted text-[12px]">' + t.updatedAt.slice(5) + '</td>' +
+      '<td onclick="event.stopPropagation()"><span class="op-link" onclick="openDrawer(\'' + t.id + '\')">' + (t.status==='pending'||t.status==='processing'?'处理':'查看') + '</span></td>' +
+      '</tr>';
+  }).join('');
+
+  renderPagination(total, totalPages);
+  updateStats(filtered);
+  lucide.createIcons();
+  renderAnnoBadges();
+}
+
+function updateStats(filtered) {
+  document.getElementById('statTotal').textContent = filtered.length;
+  document.getElementById('statPending').textContent = filtered.filter(function(t){return t.status==='pending';}).length;
+  document.getElementById('statProcessing').textContent = filtered.filter(function(t){return t.status==='processing';}).length;
+  document.getElementById('statP0').textContent = filtered.filter(function(t){return t.p0 && t.status!=='closed';}).length;
+}
+
+/* ================================================================
+   PAGINATION
+   ================================================================ */
+function renderPagination(total, totalPages) {
+  var pg = document.getElementById('pagination');
+  if (total === 0) { pg.innerHTML = ''; return; }
+  var html = '<div style="display:flex;align-items:center;gap:4px;">';
+  html += '<button class="pg-btn" ' + (currentPage===1?'disabled':'') + ' onclick="goToPage(' + (currentPage-1) + ')">‹</button>';
+  getPageNumbers(totalPages).forEach(function(p) {
+    if (p === '...') html += '<span class="pg-ellipsis">…</span>';
+    else html += '<button class="pg-btn' + (p===currentPage?' pg-current':'') + '" onclick="goToPage(' + p + ')">' + p + '</button>';
+  });
+  html += '<button class="pg-btn" ' + (currentPage===totalPages?'disabled':'') + ' onclick="goToPage(' + (currentPage+1) + ')">›</button>';
+  html += '</div>';
+  html += '<div class="pg-select-wrap"><select class="pg-select" onchange="changePageSize(this.value)">';
+  [10,20,50].forEach(function(n){ html += '<option value="' + n + '"' + (pageSize===n?' selected':'') + '>' + n + ' 条/页</option>'; });
+  html += '</select></div>';
+  html += '<span class="pg-stats" style="display:flex;align-items:center;gap:8px;">跳至 <input class="pg-jump-input" id="pgJumpInput" value="' + currentPage + '" onkeydown="if(event.key===\'Enter\')jumpToPage()"> 页　共 <b style="color:#3A3F4A;">' + total + '</b> 条记录　第 <b style="color:#3A3F4A;">' + currentPage + '</b>/<b style="color:#3A3F4A;">' + totalPages + '</b> 页</span>';
+  pg.innerHTML = html;
+}
+
+function getPageNumbers(tp) {
+  if (tp <= 7) { var a = []; for (var i = 1; i <= tp; i++) a.push(i); return a; }
+  var p = [1];
+  if (currentPage > 3) p.push('...');
+  var s = Math.max(2, currentPage - 1), e = Math.min(tp - 1, currentPage + 1);
+  for (var i = s; i <= e; i++) p.push(i);
+  if (currentPage < tp - 2) p.push('...');
+  p.push(tp);
+  return p;
+}
+
+function goToPage(p) {
+  var tp = Math.ceil(getFilteredTickets().length / pageSize) || 1;
+  if (p < 1 || p > tp) return;
+  currentPage = p;
+  renderTable();
+  document.getElementById('mainContent').scrollTop = 0;
+}
+
+function jumpToPage() {
+  var v = parseInt(document.getElementById('pgJumpInput').value);
+  if (isNaN(v)) return;
+  goToPage(v);
+}
+
+function changePageSize(ps) {
+  pageSize = parseInt(ps);
+  currentPage = 1;
+  renderTable();
+}
+
+/* ================================================================
+   FILTER ACTIONS
+   ================================================================ */
+function filterByStatus(el) {
+  document.querySelectorAll('#statusTabs .filter-tab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  currentFilters.status = el.getAttribute('data-status');
+  currentPage = 1;
+  renderTable();
+}
+
+function applyFilters() {
+  currentFilters.type = document.getElementById('filterType').value;
+  currentFilters.source = document.getElementById('filterSource').value;
+  currentFilters.dateFrom = document.getElementById('filterDateFrom').value;
+  currentFilters.dateTo = document.getElementById('filterDateTo').value;
+  currentFilters.keyword = document.getElementById('filterKeyword').value.trim();
+  currentPage = 1;
+  renderTable();
+}
+
+function resetFilters() {
+  document.querySelectorAll('#statusTabs .filter-tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelector('#statusTabs .filter-tab[data-status="all"]').classList.add('active');
+  currentFilters = { status:'all', type:'all', source:'all', dateFrom:'', dateTo:'', keyword:'' };
+  document.getElementById('filterType').value = 'all';
+  document.getElementById('filterSource').value = 'all';
+  document.getElementById('filterDateFrom').value = '';
+  document.getElementById('filterDateTo').value = '';
+  document.getElementById('filterKeyword').value = '';
+  currentPage = 1;
+  renderTable();
+}
+
+function sortTable(field) {
+  if (currentSort.field === field) {
+    currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.field = field;
+    currentSort.order = 'desc';
+  }
+  renderTable();
+}
+
+/* ================================================================
+   DRAWER — 工单详情
+   ================================================================ */
+function openDrawer(ticketId) {
+  currentTicket = mockTickets.find(function(t){return t.id === ticketId;});
+  if (!currentTicket) return;
+  var st = statusMap[currentTicket.status];
+  var isClosed = currentTicket.status === 'closed';
+
+  // 工单信息
+  document.getElementById('drawerTicketInfo').innerHTML =
+    '<div class="info-item"><span class="info-label">工单号：</span><span class="info-value font-mono">' + currentTicket.id + '</span></div>' +
+    '<div class="info-item"><span class="info-label">异常类型：</span><span class="info-value">' + (currentTicket.p0?'<span class="p0-dot"></span>':'') + currentTicket.type + (currentTicket.p0?' <span class="badge badge-warning" style="font-size:11px;">P0 高优</span>':'') + '</span></div>' +
+    '<div class="info-item"><span class="info-label">来源：</span><span class="info-value">' + currentTicket.source + '</span></div>' +
+    '<div class="info-item"><span class="info-label">工单状态：</span><span class="info-value"><span class="badge ' + st.cls + '">' + st.label + '</span></span></div>' +
+    '<div class="info-item"><span class="info-label">创建时间：</span><span class="info-value font-mono">' + currentTicket.createdAt + '</span></div>' +
+    '<div class="info-item"><span class="info-label">更新时间：</span><span class="info-value font-mono">' + currentTicket.updatedAt + '</span></div>';
+
+  // 关联订单
+  var os = currentTicket.orderSummary;
+  document.getElementById('drawerOrderInfo').innerHTML =
+    '<div class="info-item"><span class="info-label">订单号：</span><span class="info-value font-mono"><span class="link" onclick="goToOrder(\'' + currentTicket.orderNo + '\')">' + currentTicket.orderNo + '</span></span></div>' +
+    '<div class="info-item"><span class="info-label">业务类型：</span><span class="info-value">' + os.bizType + '</span></div>' +
+    '<div class="info-item"><span class="info-label">柜机位置：</span><span class="info-value">' + os.locker + '</span></div>' +
+    '<div class="info-item"><span class="info-label">订单状态：</span><span class="info-value">' + os.orderStatus + '</span></div>';
+
+  // 用户诉求
+  var appealDiv = document.getElementById('drawerUserAppeal');
+  if (currentTicket.appeal) {
+    appealDiv.classList.remove('hidden');
+    document.getElementById('drawerAppealContent').innerHTML = '<p class="bg-bg-page rounded p-3">' + currentTicket.appeal.desc + '</p>';
+    var imgs = '';
+    currentTicket.appeal.images.forEach(function(img){
+      imgs += '<div class="w-24 h-24 rounded border border-line bg-bg-page flex items-center justify-center"><i data-lucide="image" class="w-[24px] h-[24px] text-ink-muted"></i></div>';
+    });
+    document.getElementById('drawerAppealImages').innerHTML = imgs;
+  } else {
+    appealDiv.classList.add('hidden');
+  }
+
+  // 处理记录
+  document.getElementById('drawerRecords').innerHTML = currentTicket.records.length > 0
+    ? currentTicket.records.map(function(r){
+        return '<div class="timeline-item"><div class="text-[13px] text-ink-body">' + r.content + '</div><div class="text-[12px] text-ink-muted mt-1">' + r.op + ' · ' + r.time + '</div></div>';
+      }).join('')
+    : '<p class="text-[13px] text-ink-muted">暂无处理记录</p>';
+
+  // 状态选择器
+  var ss = document.getElementById('drawerStatusSelect');
+  var nextStatuses = getNextStatuses(currentTicket.status);
+  ss.innerHTML = '<option value="">-- 选择目标状态 --</option>';
+  nextStatuses.forEach(function(s){ ss.innerHTML += '<option value="' + s + '">' + statusMap[s].label + '</option>'; });
+  ss.value = '';
+
+  document.getElementById('drawerAssigneeSelect').value = '';
+  document.getElementById('drawerNoteInput').value = '';
+
+  // 底部按钮
+  var opsDiv = document.getElementById('drawerOps');
+  var pBtn = document.getElementById('drawerBtnProcess');
+  var rBtn = document.getElementById('drawerBtnResolve');
+  var cBtn = document.getElementById('drawerBtnClose');
+  var reBtn = document.getElementById('drawerBtnReopen');
+  pBtn.classList.add('hidden'); rBtn.classList.add('hidden'); cBtn.classList.add('hidden'); reBtn.classList.add('hidden');
+
+  if (isClosed) {
+    opsDiv.classList.add('hidden');
+    reBtn.classList.remove('hidden');
+  } else {
+    opsDiv.classList.remove('hidden');
+    if (currentTicket.status === 'pending') pBtn.classList.remove('hidden');
+    if (currentTicket.status === 'processing') rBtn.classList.remove('hidden');
+    if (currentTicket.status === 'resolved') cBtn.classList.remove('hidden');
+  }
+
+  document.getElementById('drawerOverlay').classList.add('show');
+  document.getElementById('drawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  lucide.createIcons();
+  setTimeout(renderAnnoBadges, 100);
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('show');
+  document.getElementById('drawer').classList.remove('open');
+  document.body.style.overflow = '';
+  currentTicket = null;
+  renderAnnoBadges();
+}
+
+function getNextStatuses(s) {
+  var flow = { pending:['processing'], processing:['resolved','closed'], resolved:['closed'], closed:[] };
+  return flow[s] || [];
+}
+
+function startProcess() {
+  if (!currentTicket || currentTicket.status !== 'pending') return;
+  showDialog('confirm','确认受理工单','确定要受理工单 <span class="font-mono">' + currentTicket.id + '</span> 吗？受理后状态将变更为"处理中"。', function(){
+    if (currentTicket.assignee === '--') currentTicket.assignee = '张管理';
+    currentTicket.status = 'processing';
+    currentTicket.updatedAt = now();
+    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'受理工单，开始处理'});
+    openDrawer(currentTicket.id);
+    renderTable();
+  });
+}
+
+function resolveTicket() {
+  if (!currentTicket || currentTicket.status !== 'processing') return;
+  showDialog('confirm','确认标记已处理','确定将工单 <span class="font-mono">' + currentTicket.id + '</span> 标记为"已处理"吗？', function(){
+    currentTicket.status = 'resolved';
+    currentTicket.updatedAt = now();
+    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'工单处理完成，标记为已处理'});
+    openDrawer(currentTicket.id);
+    renderTable();
+  });
+}
+
+function closeTicket() {
+  if (!currentTicket || currentTicket.status !== 'resolved') return;
+  showDialog('confirm','确认关闭工单','确定关闭工单 <span class="font-mono">' + currentTicket.id + '</span> 吗？关闭后仅可查看，如需操作需重开。', function(){
+    currentTicket.status = 'closed';
+    currentTicket.updatedAt = now();
+    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'工单关闭归档'});
+    openDrawer(currentTicket.id);
+    renderTable();
+  });
+}
+
+function reopenTicket() {
+  if (!currentTicket || currentTicket.status !== 'closed') return;
+  showDialog('confirm','确认重开工单','确定重开工单 <span class="font-mono">' + currentTicket.id + '</span> 吗？重开后状态将回到"处理中"。', function(){
+    currentTicket.status = 'processing';
+    currentTicket.updatedAt = now();
+    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'重开工单'});
+    openDrawer(currentTicket.id);
+    renderTable();
+  });
+}
+
+function onStatusChange() {
+  var ns = document.getElementById('drawerStatusSelect').value;
+  if (!ns || !currentTicket || ns === currentTicket.status) return;
+  var labels = {processing:'处理中',resolved:'已处理',closed:'已关闭'};
+  showDialog('confirm','变更工单状态','确定将状态从"' + statusMap[currentTicket.status].label + '"变更为"' + labels[ns] + '"吗？', function(){
+    currentTicket.status = ns;
+    currentTicket.updatedAt = now();
+    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'变更工单状态 → ' + labels[ns]});
+    openDrawer(currentTicket.id);
+    renderTable();
+  });
+}
+
+function onAssigneeChange() {
+  var a = document.getElementById('drawerAssigneeSelect').value;
+  if (!a || !currentTicket) return;
+  showDialog('confirm','指派处理人','确定将工单 <span class="font-mono">' + currentTicket.id + '</span> 指派给 <b>' + a + '</b> 吗？', function(){
+    currentTicket.assignee = a;
+    currentTicket.updatedAt = now();
+    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'指派处理人 → ' + a});
+    openDrawer(currentTicket.id);
+    renderTable();
+  });
+}
+
+function addProcessingNote() {
+  var note = document.getElementById('drawerNoteInput').value.trim();
+  if (!note) {
+    var ta = document.getElementById('drawerNoteInput');
+    ta.style.borderColor = '#D9001B';
+    setTimeout(function(){ ta.style.borderColor = '#DFE1E5'; }, 2000);
+    return;
+  }
+  if (!currentTicket) return;
+  currentTicket.records.push({op:'张管理',time:now(),content:note});
+  currentTicket.updatedAt = now();
+  document.getElementById('drawerNoteInput').value = '';
+  openDrawer(currentTicket.id);
+  renderTable();
+}
+
+/* ================================================================
+   MODAL — 标记异常
+   ================================================================ */
+function openMarkModal() {
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('modalType').value = '';
+  document.getElementById('modalNote').value = '';
+  document.getElementById('modalAssignee').value = '';
+  document.getElementById('modalOrderNo').value = 'YK2026070' + (Math.floor(Math.random()*900+100));
+  document.getElementById('fgModalType').classList.remove('error');
+  document.getElementById('fgModalNote').classList.remove('error');
+  document.body.style.overflow = 'hidden';
+  lucide.createIcons();
+  setTimeout(renderAnnoBadges, 100);
+}
+
+function closeMarkModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+  renderAnnoBadges();
+}
+
+function submitMarkException() {
+  var type = document.getElementById('modalType').value;
+  var note = document.getElementById('modalNote').value.trim();
+  var orderNo = document.getElementById('modalOrderNo').value.trim();
+  var assignee = document.getElementById('modalAssignee').value;
+  var valid = true;
+  document.getElementById('fgModalType').classList.remove('error');
+  document.getElementById('fgModalNote').classList.remove('error');
+  if (!type) { document.getElementById('fgModalType').classList.add('error'); valid = false; }
+  if (!note) { document.getElementById('fgModalNote').classList.add('error'); valid = false; }
+  if (!valid) return;
+
+  var nowStr = now();
+  var p0Types = ['锁柜失败','开柜异常'];
+  var newId = 'TK' + nowStr.replace(/[^0-9]/g,'').slice(0,12);
+  mockTickets.unshift({
+    id: newId, orderNo: orderNo, type: type, source: '运营标记', status: 'pending',
+    assignee: assignee || '--', createdAt: nowStr, updatedAt: nowStr,
+    p0: p0Types.indexOf(type) !== -1, appeal: null,
+    orderSummary: { bizType:'寄存', locker:'西湖景区A-03', orderStatus:'进行中' },
+    records: [{ op:'张管理', time:nowStr, content: note }]
+  });
+  closeMarkModal();
+  showDialog('success','工单生成成功','异常工单 <span class="font-mono">' + newId + '</span> 已生成，状态为"待处理"。', function(){
+    openDrawer(newId);
+  }, '查看工单');
+  renderTable();
+}
+
+/* ================================================================
+   DIALOG
+   ================================================================ */
+function showDialog(type, title, msg, cb, confirmText) {
+  var iconMap = {
+    confirm: { ico:'?', bg:'#FDF2E9', color:'#E7772D' },
+    success: { ico:'✓', bg:'#E7F9F0', color:'#0FC060' },
+    warning: { ico:'!', bg:'#FDF2E9', color:'#E7772D' },
+    danger:  { ico:'✕', bg:'#FFE8EB', color:'#D9001B' }
+  };
+  var icon = iconMap[type] || iconMap.confirm;
+  document.getElementById('dialogIcon').style.background = icon.bg;
+  document.getElementById('dialogIcon').style.color = icon.color;
+  document.getElementById('dialogIcon').textContent = icon.ico;
+  document.getElementById('dialogTitle').innerHTML = title;
+  document.getElementById('dialogMsg').innerHTML = msg;
+  document.getElementById('dialogConfirmBtn').textContent = confirmText || '确定';
+  document.getElementById('dialogConfirmBtn').className = 'btn ' + (type === 'danger' ? 'btn-danger' : 'btn-primary');
+  dialogCallback = cb;
+  document.getElementById('dialogOverlay').classList.add('show');
+}
+
+function closeDialog() {
+  document.getElementById('dialogOverlay').classList.remove('show');
+  dialogCallback = null;
+}
+
+function dialogConfirm() {
+  document.getElementById('dialogOverlay').classList.remove('show');
+  if (typeof dialogCallback === 'function') { var cb = dialogCallback; dialogCallback = null; cb(); }
+}
+
+/* ================================================================
+   NAVIGATION
+   ================================================================ */
+function goToOrder(orderNo) {
+  showDialog('info','跳转订单详情','将跳转到订单 <span class="font-mono">' + orderNo + '</span> 的详情页面。<br><br><span class="text-ink-muted">原型阶段模拟跳转行为</span>', function(){
+    window.location.href = '订单管理.html';
+  }, '跳转');
+}
+
+/* ================================================================
+   UTILITIES
+   ================================================================ */
+function now() {
+  var d = new Date();
+  var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+
+/* ================================================================
+   SIDEBAR MENU
+   ================================================================ */
+function menuSelect(el) {
+  if (el.classList.contains('l1')) { handleL1(el); }
+  else if (el.classList.contains('l2')) { handleL2(el); }
+}
+
+function handleL1(el) {
+  var subId = el.getAttribute('data-sub');
+  if (subId) { handleL1Toggle(el, subId); }
+  else { selectL1NoChildren(el); }
+}
+
+function handleL1Toggle(el, subId) {
+  var sub = document.getElementById(subId);
+  if (!sub) return;
+  var arrow = el.querySelector('.menu-arrow');
+  var isExpanded = !sub.classList.contains('collapsed');
+  if (isExpanded) {
+    sub.classList.add('collapsed');
+    if (arrow) arrow.classList.remove('open');
+    if (!sub.querySelector('.menu-item.active-l2')) { el.classList.remove('active-l1'); }
+  } else {
+    collapseAllExcept(subId);
+    sub.classList.remove('collapsed');
+    if (arrow) arrow.classList.add('open');
+    if (sub.querySelector('.menu-item.active-l2')) { el.classList.add('active-l1'); }
+  }
+}
+
+function selectL1NoChildren(el) {
+  collapseAllExcept(null);
+  clearAllActive();
+  el.classList.add('active-l1');
+  navigateToPage(el.getAttribute('data-page'));
+}
+
+function handleL2(el) {
+  var parentSub = el.closest('.submenu');
+  var parentSubId = parentSub ? parentSub.id : null;
+  collapseAllExcept(parentSubId);
+  if (parentSub && parentSub.classList.contains('collapsed')) { parentSub.classList.remove('collapsed'); }
+  clearAllActive();
+  el.classList.add('active-l2');
+  var parentL1 = findParentL1BySubId(parentSubId);
+  if (parentL1) {
+    parentL1.classList.add('active-l1');
+    var arrow = parentL1.querySelector('.menu-arrow');
+    if (arrow) arrow.classList.add('open');
+  }
+  navigateToPage(el.getAttribute('data-page'));
+}
+
+function collapseAllExcept(keepSubId) {
+  document.querySelectorAll('.submenu').forEach(function(sub){
+    if (sub.id === keepSubId) return;
+    if (sub.classList.contains('collapsed')) return;
+    sub.classList.add('collapsed');
+    var l1 = findParentL1BySubId(sub.id);
+    if (l1) {
+      var arrow = l1.querySelector('.menu-arrow');
+      if (arrow) arrow.classList.remove('open');
+      if (!sub.querySelector('.menu-item.active-l2')) { l1.classList.remove('active-l1'); }
+    }
+  });
+}
+
+function clearAllActive() {
+  document.querySelectorAll('.menu-item').forEach(function(i){ i.classList.remove('active-l1','active-l2'); });
+}
+
+function findParentL1BySubId(subId) {
+  if (!subId) return null;
+  return document.querySelector('.menu-item.l1[data-sub="' + subId + '"]');
+}
+
+function navigateToPage(page) {
+  if (!page) return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = page.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  if (page.endsWith('.html')) { window.location.href = page; }
+  else {
+    document.getElementById('mainContent').innerHTML = '<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6"><h2 class="text-[16px] font-semibold text-ink-title mb-2">' + page + '</h2><p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p></div></div>';
+  }
+}
+
+function navigate(url) { if (url === "#") return; var fname = url.split("/").pop(); var cur = window.location.pathname.split("/").pop(); if (fname === cur) return; window.location.href = url; }
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+/* ================================================================
+   INIT SIDEBAR — highlight 异常工单
+   ================================================================ */
+function initSidebarActive() {
+  // Active state already set inline on the L1 element
+  // This function exists for consistency with the framework pattern
+}
+
+/* ================================================================
+   PORTAL ANNOTATION SYSTEM
+   ================================================================ */
+var annotations = {
+  1: { title:'异常工单页面标题', desc:[
+    '页面主标题，标识当前为异常工单管理模块',
+    '右侧"标记异常"按钮可快速创建工单（见标注 #7）'
+  ]},
+  2: { title:'工单统计概览', desc:[
+    '展示当前筛选范围内工单的汇总统计',
+    '全部工单 / 待处理 / 处理中 / P0 紧急四个维度',
+    '数字用 mono 字体，P0 紧急用 danger 色图标突出',
+    'P0 工单包含锁柜失败、开柜异常两类，为高优先级跟踪项'
+  ]},
+  3: { title:'工单状态筛选 Tab', desc:[
+    '触发：点击状态 Tab（全部/待处理/处理中/已处理/已关闭）',
+    '响应：表格按所选状态前端过滤刷新',
+    '状态 Badge 语义色：待处理=warning / 处理中=info / 已处理=success / 已关闭=ink-muted',
+    '默认：进入页面默认"全部"',
+    '工作台带筛选进入时可自动应用对应状态过滤'
+  ]},
+  4: { title:'异常类型筛选', desc:[
+    '触发：选择异常类型下拉选项',
+    '响应：表格按所选异常类型过滤',
+    '枚举：延误、损坏、遗失、取件码/存储码错误、支付异常、锁柜失败(P0)、开柜异常(P0)、其他',
+    'P0 类型（锁柜失败/开柜异常）在表格中以 danger 底色和红点突出'
+  ]},
+  5: { title:'来源筛选', desc:[
+    '触发：选择来源下拉选项',
+    '响应：表格按工单来源过滤',
+    '运营标记：运营在订单管理"标记异常"生成',
+    '用户售后：用户端"客服/售后"提交自动生成，详情中展示用户诉求',
+    '系统生成：系统检测到锁柜失败等异常自动生成'
+  ]},
+  6: { title:'日期与关键词搜索', desc:[
+    '日期范围：选择起止日期筛选该时间段内创建的工单',
+    '关键词：按工单号 / 关联订单号模糊搜索，回车或查询按钮触发',
+    '查询：应用所有筛选条件并刷新表格',
+    '重置：清空所有筛选恢复默认（状态=全部，其他=空）'
+  ]},
+  7: { title:'标记异常按钮', desc:[
+    '触发：点击页面头右侧"标记异常"按钮',
+    '响应：打开标记异常弹窗（见标注 #18-21），从订单管理触发时自动带入订单号',
+    '提交后自动生成一条待处理工单，可跳转查看'
+  ]},
+  8: { title:'工单列表表格', desc:[
+    '列：工单号(mono)、关联订单(mono,可点击跳转)、异常类型、来源、工单状态(Badge)、处理人、创建时间(mono)、更新时间(mono)、操作',
+    '所有列左对齐，数字编码列用 JetBrains Mono 字体',
+    'P0 工单行（锁柜失败/开柜异常）用 danger 浅底色高亮，左侧红点标记',
+    'hover 行 → bg-hover 高亮',
+    '点击行或操作列 → 打开详情抽屉',
+    '关联订单号点击 → 跳转订单详情（工单↔订单双向跳转）',
+    '创建时间/更新时间列头支持排序切换'
+  ]},
+  9: { title:'工单详情 — 工单信息', desc:[
+    '展示工单基本信息：工单号、异常类型、来源、工单状态、创建/更新时间',
+    'P0 工单额外显示"P0 高优"warning Badge',
+    '状态以对应语义色 Badge 展示',
+    '工单号和时间为 mono 字体'
+  ]},
+  10: { title:'工单详情 — 关联订单摘要', desc:[
+    '展示关联订单关键信息：订单号(可点击跳转)、业务类型、柜机位置、订单状态',
+    '订单号点击跳转订单详情页，实现工单↔订单双向跳转'
+  ]},
+  11: { title:'工单详情 — 用户诉求', desc:[
+    '仅当工单来源为"用户售后"时显示',
+    '展示用户提交的问题描述和上传图片（原型用图标占位），为售后工单处理提供上下文'
+  ]},
+  12: { title:'工单详情 — 处理记录', desc:[
+    '时间线样式展示所有处理留痕',
+    '每条含：操作人 + 时间 + 内容，首条节点为 primary 色',
+    '处理记录作为纠纷证据链，仅可追加，不可删除',
+    '追加时自动记录当前操作人和时间戳'
+  ]},
+  13: { title:'P0 紧急统计', desc:[
+    '统计当前筛选范围内 P0 类型（锁柜失败/开柜异常）且未关闭的工单数',
+    'P0 工单需优先处理，在表格中以 danger 底色突出，左侧带红色圆点'
+  ]},
+  14: { title:'工单详情 — 状态变更', desc:[
+    '触发：选择目标状态',
+    '响应：弹出确认弹窗 → 确认后变更状态并自动追加记录',
+    '流转顺序：待处理(warning)→处理中(info)→已处理(success)→已关闭(ink-muted)',
+    '仅可按序流转，不可跳跃',
+    '已关闭工单不可再操作（除重开外）'
+  ]},
+  15: { title:'工单详情 — 指派处理人', desc:[
+    '触发：选择处理人 → 确认',
+    '响应：更新处理人并追加记录',
+    '可选人员：张管理、李运营、王运营、赵运营、刘客服',
+    '常见逻辑补充功能'
+  ]},
+  16: { title:'工单详情 — 添加处理备注', desc:[
+    '触发：输入备注内容 → 点击"添加备注"',
+    '响应：追加一条处理记录（自动记录操作人+时间+内容）',
+    '规则：备注一经提交不可删除，仅可追加，作为纠纷证据链',
+    '空内容提交时输入框边框变红提示'
+  ]},
+  17: { title:'分页器', desc:[
+    '触发：点击页码 / 上/下页 / 输入跳转页码 / 更改每页条数',
+    '≤7页全部显示，>7页首尾+当前页±1+省略号',
+    '默认每页10条，可选20/50条',
+    '显示总记录数和当前页码'
+  ]},
+  18: { title:'标记异常 — 关联订单', desc:[
+    '从订单管理触发时自动带入订单号，本页手动发起预填随机订单号',
+    '可手动修改为其他订单号'
+  ]},
+  19: { title:'标记异常 — 异常类型(必填)', desc:[
+    '必填，提交时校验，选项为8种异常类型',
+    '选择 P0 类型时生成工单标记为 P0 高优先级'
+  ]},
+  20: { title:'标记异常 — 处理备注(必填)', desc:[
+    '必填，提交时校验，描述异常问题详情',
+    '将作为工单首条处理记录，提交后不可删除'
+  ]},
+  21: { title:'标记异常 — 指派处理人(选填)', desc:[
+    '选填，可指定运营人员处理，不选时处理人为"--"，后续可在详情中指派'
+  ]}
+};
+
+var annoVisible = true;
+
+function renderAnnoBadges() {
+  var layer = document.getElementById('annoLayer');
+  layer.innerHTML = '';
+  if (!annoVisible) return;
+  var vw = window.innerWidth;
+  document.querySelectorAll('[data-anno]').forEach(function(el) {
+    if (el.offsetParent === null && el.tagName !== 'BODY') return;
+    var target = resolveAnnoTarget(el, vw);
+    var rect = target.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return;
+    var badge = document.createElement('div');
+    badge.className = 'anno-portal-badge';
+    badge.textContent = el.getAttribute('data-anno');
+    badge.style.top  = (rect.top  - 10) + 'px';
+    badge.style.left = (rect.right - 10) + 'px';
+    badge.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showAnnoPopup(el.getAttribute('data-anno'));
+    });
+    layer.appendChild(badge);
+  });
+}
+
+function resolveAnnoTarget(el, vw) {
+  var rect = el.getBoundingClientRect();
+  if (rect.width < 800 || rect.width < vw * 0.7) return el;
+  var inner = el.querySelector('h1, h2, h3, h4, h5, h6, button, .btn, input, select, .filter-tab.active');
+  if (inner) { var ir = inner.getBoundingClientRect(); if (ir.width < rect.width * 0.8) return inner; }
+  var first = el.firstElementChild;
+  if (first) { var fr = first.getBoundingClientRect(); if (fr.width < rect.width * 0.9) return first; }
+  return el;
+}
+
+function showAnnoPopup(id) {
+  var a = annotations[id];
+  if (!a) return;
+  document.getElementById('annoPopupTitle').textContent = '#' + id + ' ' + a.title;
+  document.getElementById('annoPopupBody').innerHTML = a.desc.map(function(d) {
+    return '<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>' + d + '</span></li>';
+  }).join('');
+  var box = document.getElementById('annoPopupBox');
+  box.style.top = '50%'; box.style.left = '50%'; box.style.transform = 'translate(-50%,-50%)';
+  document.getElementById('annoPopup').classList.remove('hidden');
+}
+
+function closeAnnoPopup() { document.getElementById('annoPopup').classList.add('hidden'); }
+
+var popupDrag = { offX:0, offY:0, moved:false };
+function startDragPopup(e) {
+  if (e.target.closest('button')) return;
+  popupDrag.moved = false;
+  var box = document.getElementById('annoPopupBox'), rect = box.getBoundingClientRect();
+  popupDrag.offX = e.clientX - rect.left;
+  popupDrag.offY = e.clientY - rect.top;
+  document.addEventListener('mousemove', onDragPopup);
+  document.addEventListener('mouseup', stopDragPopup);
+}
+function onDragPopup(e) {
+  var dx = Math.abs(e.clientX - popupDrag.offX - document.getElementById('annoPopupBox').getBoundingClientRect().left);
+  if (dx < 3 && !popupDrag.moved) return;
+  popupDrag.moved = true;
+  var box = document.getElementById('annoPopupBox');
+  box.style.transform = 'none';
+  box.style.top  = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - popupDrag.offY)) + 'px';
+  box.style.left = Math.max(0, Math.min(window.innerWidth  - 100, e.clientX - popupDrag.offX)) + 'px';
+  document.getElementById('annoPopupDrag').style.cursor = 'grabbing';
+}
+function stopDragPopup() {
+  document.removeEventListener('mousemove', onDragPopup);
+  document.removeEventListener('mouseup', stopDragPopup);
+  var h = document.getElementById('annoPopupDrag');
+  if (h) h.style.cursor = 'grab';
+}
+
+document.getElementById('annoToggle').addEventListener('click', function(e) {
+  if (this.dataset.dragging === '1') return;
+  annoVisible = !annoVisible;
+  if (annoVisible) {
+    document.body.classList.remove('anno-hidden');
+    document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye');
+  } else {
+    document.body.classList.add('anno-hidden');
+    document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye-off');
+  }
+  lucide.createIcons({ attrs: { class: 'w-[13px] h-[13px]' } });
+  renderAnnoBadges();
+});
+
+var dragToggleY = 0, dragToggleMoved = false;
+function startDragToggle(e) {
+  dragToggleY = e.clientY; dragToggleMoved = false;
+  document.addEventListener('mousemove', onDragToggle);
+  document.addEventListener('mouseup', stopDragToggle); e.preventDefault();
+}
+function onDragToggle(e) {
+  if (Math.abs(e.clientY - dragToggleY) < 5) return;
+  dragToggleMoved = true;
+  var w = document.getElementById('annoToggle');
+  w.style.top = Math.max(60, Math.min(window.innerHeight - 60, e.clientY - 20)) + 'px';
+  w.style.right = '8px'; w.style.cursor = 'grabbing';
+}
+function stopDragToggle() {
+  document.removeEventListener('mousemove', onDragToggle);
+  document.removeEventListener('mouseup', stopDragToggle);
+  var w = document.getElementById('annoToggle');
+  if (w) { w.style.cursor = 'grab'; w.dataset.dragging = dragToggleMoved ? '1' : ''; }
+}
+
+/* ================================================================
+   INIT
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', function() {
+  initSidebarActive();
+  var d = new Date();
+  var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
+  // Proper date arithmetic: subtract 6 days from today
+  var fromDate = new Date(d);
+  fromDate.setDate(d.getDate() - 6);
+  document.getElementById('filterDateFrom').value = fromDate.getFullYear() + '-' + pad(fromDate.getMonth()+1) + '-' + pad(fromDate.getDate());
+  document.getElementById('filterDateTo').value = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+  renderTable();
+  lucide.createIcons();
+  renderAnnoBadges();
+  document.getElementById('mainContent').addEventListener('scroll', renderAnnoBadges);
+  window.addEventListener('resize', renderAnnoBadges);
+});
+</script>
+</body>
+</html>

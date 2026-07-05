@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>游寄后台管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+  <style>
+    body{overflow:hidden;}
+    /* Sidebar */
+    .menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+    .menu-item:hover{background:#F3F4F6;}
+    .menu-item.l1{padding-left:20px;font-weight:500;}
+    .menu-item.l2{padding-left:64px;font-size:13px;}
+    .menu-item.active-l1{color:#0066FF;}
+    .menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+    .menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+    .active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+    .menu-arrow.open{transform:rotate(180deg);}
+    .submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+    .submenu.collapsed{max-height:0!important;opacity:0;}
+    .new-tag{display:inline-block;padding:1px 7px;border-radius:8px;background:#0066FF;color:#fff;font-size:10px;font-weight:600;line-height:16px;margin-left:4px;}
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;}
+    .btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+    .btn-primary:hover{background:#0052CC;}
+    .btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+    .btn-default:hover{border-color:#0066FF;color:#0066FF;}
+    /* Portal annotation layer */
+    .anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
+    .anno-portal-badge:hover{transform:scale(1.2);}
+    .anno-hidden .anno-portal-badge{display:none;}
+    /* Topbar icons */
+    .topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
+    .topbar-btn:hover{background:#E6F0FF;}
+    .topbar-btn:hover svg{stroke:#0066FF;}
+    .badge-dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:600;line-height:18px;text-align:center;}
+    /* Sidebar toggle (mobile) */
+    @media(max-width:768px){
+      .sidebar{display:none;}
+      .sidebar.open{display:flex;position:fixed;top:56px;left:0;bottom:0;z-index:50;}
+      .sidebar-overlay{display:none;}
+      .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;}
+    }
+  </style>
+</head>
+<body class="font-sans flex flex-col h-screen">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-4 md:px-6 flex-shrink-0 gap-3">
+  <!-- Mobile menu toggle -->
+  <button class="topbar-btn md:hidden" onclick="toggleSidebar()" title="菜单">
+    <i data-lucide="menu" class="w-[18px] h-[18px]"></i>
+  </button>
+  <!-- Logo + Name -->
+  <div class="flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigate('index.html')">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div>
+    <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
+  </div>
+  <!-- Right icons -->
+  <div class="ml-auto flex items-center gap-3 md:gap-5">
+    <button class="topbar-btn" title="任务列表" onclick="navigate('任务中心.html')">
+      <i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="taskBadge" style="display:none;">0</span>
+    </button>
+    <button class="topbar-btn" title="消息中心" onclick="navigate('消息中心.html')">
+      <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="msgBadge">5</span>
+    </button>
+    <button class="topbar-btn" title="账号信息" onclick="navigate('账号信息.html')">
+      <i data-lucide="user" class="w-[18px] h-[18px]"></i>
+    </button>
+  </div>
+</header>
+
+<!-- ===== BODY: SIDEBAR + CONTENT ===== -->
+<div class="flex flex-1 min-h-0">
+  <!-- Mobile overlay -->
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+    <!-- 工作台 -->
+    <div class="menu-item l1" data-page="工作台.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台
+    </div>
+
+    <!-- 数据概览 -->
+    <div class="menu-item l1" data-page="数据概览.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览
+    </div>
+
+    <!-- 订单管理 -->
+    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理
+    </div>
+
+    <!-- 异常工单 -->
+    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单
+    </div>
+
+    <!-- 柜机监控 -->
+    <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控
+    </div>
+
+    <!-- 对账中心 -->
+    <div class="menu-item l1" data-page="对账中心.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心
+    </div>
+
+    <!-- 运营配置 -->
+    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置
+    </div>
+
+    <!-- 系统设置（含二级菜单） -->
+    <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置
+      <span class="menu-arrow">▼</span>
+    </div>
+    <div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
+      <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
+      <div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div>
+      <div class="menu-item l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div>
+      <div class="menu-item l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div>
+      <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
+    </div>
+  </aside>
+
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <!--
+    内容区布局规则（详见 design.md §6.1）：
+    - 单区块：p-4 容器加 min-h-full flex flex-col，卡片加 flex-1 撑满；内容超过时自动增高
+    - 多区块（≥2）：p-4 容器不设高度，卡片高度由内容决定，mb-4 间距
+    本模板演示多区块场景（≥2），单区块示例见下方注释。
+  -->
+  <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
+    <!--
+    ===== 单区块模式（取消注释即可使用）=====
+    <div class="p-4 min-h-full flex flex-col">
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 flex-1">
+        ...单张卡片内容，高度自动撑满...
+      </div>
+    </div>
+    ===== 单区块模式结束 =====
+    -->
+    <!-- 多区块模式（当前演示） -->
+    <div class="p-4">
+
+      <!-- 卡片一：框架说明 -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+        <h2 class="text-[16px] font-semibold text-ink-title mb-3" data-anno="1">系统框架模板</h2>
+        <p class="text-[14px] text-ink-body leading-relaxed">
+          这是游寄后台管理系统的<b>标准系统框架</b>，包含完整的顶部导航栏、左侧菜单栏和主内容区域。
+          新页面开发时复制本框架，替换内容区（<code class="font-mono text-[12px] bg-bg-page px-1.5 py-0.5 rounded">.p-4</code> 容器内）即可快速开发。
+        </p>
+      </div>
+
+      <!-- 卡片二：数据概览（KPI 卡片行示例） -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+        <h2 class="text-[16px] font-semibold text-ink-title mb-4" data-anno="2">数据概览</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-4 rounded-md border border-line bg-bg-page">
+            <div class="text-[12px] text-ink-sub mb-1">今日订单</div>
+            <div class="text-[24px] font-semibold text-ink-title font-mono">1,286</div>
+            <div class="text-[12px] text-success mt-1">↑ 12.5%</div>
+          </div>
+          <div class="p-4 rounded-md border border-line bg-bg-page">
+            <div class="text-[12px] text-ink-sub mb-1">活跃用户</div>
+            <div class="text-[24px] font-semibold text-ink-title font-mono">3,421</div>
+            <div class="text-[12px] text-success mt-1">↑ 8.3%</div>
+          </div>
+          <div class="p-4 rounded-md border border-line bg-bg-page">
+            <div class="text-[12px] text-ink-sub mb-1">异常工单</div>
+            <div class="text-[24px] font-semibold text-ink-title font-mono">23</div>
+            <div class="text-[12px] text-danger mt-1">↑ 5 单</div>
+          </div>
+          <div class="p-4 rounded-md border border-line bg-bg-page">
+            <div class="text-[12px] text-ink-sub mb-1">柜机在线率</div>
+            <div class="text-[24px] font-semibold text-ink-title font-mono">98.5<span class="text-[16px]">%</span></div>
+            <div class="text-[12px] text-ink-sub mt-1">正常</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 卡片三：表格区域示例 -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-[16px] font-semibold text-ink-title" data-anno="3">最近订单</h2>
+          <button class="btn btn-default text-[13px]" onclick="navigate('任务中心.html')">查看全部</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-[13px]">
+            <thead>
+              <tr class="bg-line-lighter text-left text-ink-sub">
+                <th class="py-3 px-3 font-medium">订单号</th>
+                <th class="py-3 px-3 font-medium">用户</th>
+                <th class="py-3 px-3 font-medium">金额</th>
+                <th class="py-3 px-3 font-medium">状态</th>
+                <th class="py-3 px-3 font-medium">时间</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-line-lighter hover:bg-bg-hover transition-colors">
+                <td class="py-2.5 px-3 font-mono text-ink-body">YK20260704001</td>
+                <td class="py-2.5 px-3 text-ink-body">138****8888</td>
+                <td class="py-2.5 px-3 font-mono text-ink-body">¥28.00</td>
+                <td class="py-2.5 px-3"><span class="inline-flex px-2 py-0.5 rounded text-[12px] bg-success-bg text-success font-medium">已完成</span></td>
+                <td class="py-2.5 px-3 text-ink-muted font-mono">07-04 14:30</td>
+              </tr>
+              <tr class="border-b border-line-lighter hover:bg-bg-hover transition-colors">
+                <td class="py-2.5 px-3 font-mono text-ink-body">YK20260704002</td>
+                <td class="py-2.5 px-3 text-ink-body">139****5678</td>
+                <td class="py-2.5 px-3 font-mono text-ink-body">¥45.00</td>
+                <td class="py-2.5 px-3"><span class="inline-flex px-2 py-0.5 rounded text-[12px] bg-warning-bg text-warning font-medium">进行中</span></td>
+                <td class="py-2.5 px-3 text-ink-muted font-mono">07-04 13:15</td>
+              </tr>
+              <tr class="hover:bg-bg-hover transition-colors">
+                <td class="py-2.5 px-3 font-mono text-ink-body">YK20260704003</td>
+                <td class="py-2.5 px-3 text-ink-body">150****2345</td>
+                <td class="py-2.5 px-3 font-mono text-ink-body">¥12.50</td>
+                <td class="py-2.5 px-3"><span class="inline-flex px-2 py-0.5 rounded text-[12px] bg-success-bg text-success font-medium">已完成</span></td>
+                <td class="py-2.5 px-3 text-ink-muted font-mono">07-04 11:42</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ===== PORTAL ANNOTATION LAYER ===== -->
+<div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
+
+<!-- Annotation toggle -->
+<div id="annoToggle" class="fixed z-[150]" style="right:8px;bottom:40px;cursor:grab;" onmousedown="startDragToggle(event)">
+  <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] bg-white/90 backdrop-blur text-primary border border-primary/30 shadow-sm">
+    <i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i> 标注
+  </div>
+</div>
+
+<!-- Annotation popup -->
+<div id="annoPopup" class="hidden fixed inset-0 z-[9999]" style="background:rgba(0,0,0,.2);" onclick="closeAnnoPopup()">
+  <div id="annoPopupBox" class="fixed bg-white rounded-lg shadow-xl p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto"
+       style="top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 12px 40px rgba(0,0,0,.18);"
+       onclick="event.stopPropagation()">
+    <button onclick="closeAnnoPopup()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted z-10"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+    <div id="annoPopupDrag" class="flex items-center gap-2 mb-3 select-none" style="cursor:grab;" onmousedown="startDragPopup(event)" title="拖拽移动弹窗">
+      <i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i>
+      <h3 id="annoPopupTitle" class="text-[16px] font-semibold text-ink-title"></h3>
+    </div>
+    <ul id="annoPopupBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   MENU SELECT — unified sidebar menu interaction handler
+   - L1 without children → select + navigate
+   - L1 with children    → toggle expand/collapse only (no nav)
+   - L2                   → select self + parent L1 + navigate
+   - Only one submenu expanded at a time
+   - Clicking already-selected L2 re-navigates
+   ================================================================ */
+function menuSelect(el) {
+  if (el.classList.contains('l1')) {
+    handleL1(el);
+  } else if (el.classList.contains('l2')) {
+    handleL2(el);
+  }
+}
+
+/* ---- L1: handle both leaf and expandable ---- */
+function handleL1(el) {
+  var subId = el.getAttribute('data-sub');
+  if (subId) {
+    handleL1Toggle(el, subId);
+  } else {
+    selectL1NoChildren(el);
+  }
+}
+
+/* L1 with children — toggle expand / collapse */
+function handleL1Toggle(el, subId) {
+  var sub = document.getElementById(subId);
+  if (!sub) return;
+  var arrow = el.querySelector('.menu-arrow');
+  var isExpanded = !sub.classList.contains('collapsed');
+
+  if (isExpanded) {
+    // Collapse this submenu
+    sub.classList.add('collapsed');
+    if (arrow) arrow.classList.remove('open');
+    // Remove active-l1 only if no child is selected
+    if (!sub.querySelector('.menu-item.active-l2')) {
+      el.classList.remove('active-l1');
+    }
+  } else {
+    // Collapse all other submenus first (exclusive expand)
+    collapseAllExcept(subId);
+    // Expand this submenu
+    sub.classList.remove('collapsed');
+    if (arrow) arrow.classList.add('open');
+    // If a child was previously selected, restore parent active state
+    if (sub.querySelector('.menu-item.active-l2')) {
+      el.classList.add('active-l1');
+    }
+  }
+}
+
+/* L1 without children — select and navigate */
+function selectL1NoChildren(el) {
+  collapseAllExcept(null);
+  clearAllActive();
+  el.classList.add('active-l1');
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+/* ---- L2: select self + parent, then navigate ---- */
+function handleL2(el) {
+  var parentSub = el.closest('.submenu');
+  var parentSubId = parentSub ? parentSub.id : null;
+
+  // Keep parent submenu expanded, collapse others
+  collapseAllExcept(parentSubId);
+
+  // Ensure parent submenu is expanded
+  if (parentSub && parentSub.classList.contains('collapsed')) {
+    parentSub.classList.remove('collapsed');
+  }
+
+  // Clear all, then set self + parent active
+  clearAllActive();
+  el.classList.add('active-l2');
+
+  var parentL1 = findParentL1BySubId(parentSubId);
+  if (parentL1) {
+    parentL1.classList.add('active-l1');
+    var arrow = parentL1.querySelector('.menu-arrow');
+    if (arrow) arrow.classList.add('open');
+  }
+
+  // Navigate
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+/* ---- Helpers ---- */
+
+/** Collapse all submenus except the one with keepSubId */
+function collapseAllExcept(keepSubId) {
+  document.querySelectorAll('.submenu').forEach(function(sub) {
+    if (sub.id === keepSubId) return;
+    if (sub.classList.contains('collapsed')) return;
+    sub.classList.add('collapsed');
+    // Reset parent L1 arrow and active state
+    var l1 = findParentL1BySubId(sub.id);
+    if (l1) {
+      var arrow = l1.querySelector('.menu-arrow');
+      if (arrow) arrow.classList.remove('open');
+      if (!sub.querySelector('.menu-item.active-l2')) {
+        l1.classList.remove('active-l1');
+      }
+    }
+  });
+}
+
+/** Remove all active-l1 / active-l2 classes */
+function clearAllActive() {
+  document.querySelectorAll('.menu-item').forEach(function(item) {
+    item.classList.remove('active-l1', 'active-l2');
+  });
+}
+
+/** Find the parent L1 element by submenu ID */
+function findParentL1BySubId(subId) {
+  if (!subId) return null;
+  return document.querySelector('.menu-item.l1[data-sub="' + subId + '"]');
+}
+
+/** Navigate: .html → page jump; otherwise → show placeholder in content area */
+function navigateToPage(page) {
+  if (!page) return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = page.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  if (page.endsWith('.html')) {
+    window.location.href = page;
+  } else {
+    // Placeholder — render inline
+    document.getElementById('mainContent').innerHTML =
+      '<div class="p-4">' +
+      '<div class="bg-white rounded-lg border border-line p-5 md:p-6">' +
+      '<h2 class="text-[16px] font-semibold text-ink-title mb-2">' + page + '</h2>' +
+      '<p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p>' +
+      '</div></div>';
+  }
+}
+
+/* ===== TOPBAR NAVIGATION ===== */
+function navigate(url) {
+  if (url === '#') return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = url.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  window.location.href = url;
+}
+
+/* ===== MOBILE SIDEBAR TOGGLE ===== */
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+/* ================================================================
+   PORTAL ANNOTATION SYSTEM
+   - Badges rendered in body-level layer, fully decoupled from page DOM
+   - Uses getBoundingClientRect() for pixel-perfect positioning
+   - Recalculates on resize/scroll
+   ================================================================ */
+var annotations = {
+  1: { title: '系统框架模板', desc: [
+    '本卡片说明框架模板的用途和结构',
+    '新页面复制本框架后替换内容区即可开发'
+  ]},
+  2: { title: '数据概览', desc: [
+    'KPI 统计卡片行示例，展示数据概览区域',
+    '网格布局：1列(手机) / 2列(平板) / 4列(桌面)',
+    '数字用 mono 字体，趋势用语义色标注'
+  ]},
+  3: { title: '最近订单', desc: [
+    '表格区域示例，展示标准数据表格规范',
+    '表头：line-lighter 灰底 + ink-sub 字',
+    '数据行：hover 高亮，border-line-lighter 分隔',
+    '所有列左对齐，数字列 mono 字体'
+  ]}
+};
+
+var annoVisible = true;
+
+function renderAnnoBadges() {
+  var layer = document.getElementById('annoLayer');
+  layer.innerHTML = '';
+  if (!annoVisible) return;
+  var vw = window.innerWidth;
+  document.querySelectorAll('[data-anno]').forEach(function(el) {
+    var id = el.getAttribute('data-anno');
+    // Skip hidden elements (modals, dialogs) — zero-size rect means invisible
+    if (el.offsetParent === null && el.tagName !== 'BODY') return;
+    var target = resolveAnnoTarget(el, vw);
+    var rect = target.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return;
+    var badge = document.createElement('div');
+    badge.className = 'anno-portal-badge';
+    badge.textContent = id;
+    badge.style.top  = (rect.top  - 10) + 'px';
+    badge.style.left = (rect.right - 10) + 'px';
+    badge.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showAnnoPopup(id);
+    });
+    layer.appendChild(badge);
+  });
+}
+
+/** Smart targeting: if data-anno is on a full-width container, drill down to the core inner element */
+function resolveAnnoTarget(el, vw) {
+  var rect = el.getBoundingClientRect();
+  // Not a full-width block → use as-is
+  if (rect.width < 800 || rect.width < vw * 0.7) return el;
+  // Try to find a meaningful inner element
+  var inner = el.querySelector('h1, h2, h3, h4, h5, h6, button, .btn, input, select, .card-title, [class*="title"]');
+  if (inner) {
+    var innerRect = inner.getBoundingClientRect();
+    // Only use inner if it's meaningfully narrower than the container
+    if (innerRect.width < rect.width * 0.8) return inner;
+  }
+  // Fallback: first child element
+  var first = el.firstElementChild;
+  if (first) {
+    var firstRect = first.getBoundingClientRect();
+    if (firstRect.width < rect.width * 0.9) return first;
+  }
+  return el;
+}
+
+function showAnnoPopup(id) {
+  var a = annotations[id];
+  if (!a) return;
+  document.getElementById('annoPopupTitle').textContent = '#' + id + ' ' + a.title;
+  document.getElementById('annoPopupBody').innerHTML = a.desc.map(function(d) {
+    return '<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>' + d + '</span></li>';
+  }).join('');
+  // Reset to center
+  var box = document.getElementById('annoPopupBox');
+  box.style.top = '50%'; box.style.left = '50%'; box.style.transform = 'translate(-50%,-50%)';
+  document.getElementById('annoPopup').classList.remove('hidden');
+}
+
+function closeAnnoPopup() {
+  document.getElementById('annoPopup').classList.add('hidden');
+}
+
+/* Drag popup */
+var popupDrag = { offX: 0, offY: 0, moved: false };
+function startDragPopup(e) {
+  if (e.target.closest('button')) return;
+  popupDrag.moved = false;
+  var box = document.getElementById('annoPopupBox');
+  // Convert centered position to pixel coordinates
+  var rect = box.getBoundingClientRect();
+  popupDrag.offX = e.clientX - rect.left;
+  popupDrag.offY = e.clientY - rect.top;
+  document.addEventListener('mousemove', onDragPopup);
+  document.addEventListener('mouseup', stopDragPopup);
+}
+function onDragPopup(e) {
+  var dx = Math.abs(e.clientX - popupDrag.offX - document.getElementById('annoPopupBox').getBoundingClientRect().left);
+  if (dx < 3 && !popupDrag.moved) return;
+  popupDrag.moved = true;
+  var box = document.getElementById('annoPopupBox');
+  box.style.transform = 'none';
+  box.style.top  = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - popupDrag.offY)) + 'px';
+  box.style.left = Math.max(0, Math.min(window.innerWidth  - 100, e.clientX - popupDrag.offX)) + 'px';
+  document.getElementById('annoPopupDrag').style.cursor = 'grabbing';
+}
+function stopDragPopup() {
+  document.removeEventListener('mousemove', onDragPopup);
+  document.removeEventListener('mouseup', stopDragPopup);
+  var h = document.getElementById('annoPopupDrag');
+  if (h) h.style.cursor = 'grab';
+}
+
+/* Toggle annotations on/off */
+document.getElementById('annoToggle').addEventListener('click', function(e) {
+  if (this.dataset.dragging === '1') return;
+  annoVisible = !annoVisible;
+  if (annoVisible) {
+    document.body.classList.remove('anno-hidden');
+    document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye');
+  } else {
+    document.body.classList.add('anno-hidden');
+    document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye-off');
+  }
+  lucide.createIcons({ attrs: { class: 'w-[13px] h-[13px]' } });
+  renderAnnoBadges();
+});
+
+/* Drag toggle */
+var dragToggleY = 0, dragToggleMoved = false;
+function startDragToggle(e) {
+  dragToggleY = e.clientY; dragToggleMoved = false;
+  document.addEventListener('mousemove', onDragToggle);
+  document.addEventListener('mouseup', stopDragToggle); e.preventDefault();
+}
+function onDragToggle(e) {
+  if (Math.abs(e.clientY - dragToggleY) < 5) return;
+  dragToggleMoved = true;
+  var w = document.getElementById('annoToggle');
+  w.style.top = Math.max(60, Math.min(window.innerHeight - 60, e.clientY - 20)) + 'px';
+  w.style.right = '8px'; w.style.cursor = 'grabbing';
+}
+function stopDragToggle() {
+  document.removeEventListener('mousemove', onDragToggle);
+  document.removeEventListener('mouseup', stopDragToggle);
+  var w = document.getElementById('annoToggle');
+  if (w) { w.style.cursor = 'grab'; w.dataset.dragging = dragToggleMoved ? '1' : ''; }
+}
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded', function() {
+  lucide.createIcons();
+  renderAnnoBadges();
+  // Recalculate on scroll (main content area) and resize
+  document.getElementById('mainContent').addEventListener('scroll', renderAnnoBadges);
+  window.addEventListener('resize', renderAnnoBadges);
+});
+</script>
+</body>
+</html>

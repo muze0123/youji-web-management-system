@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
   <style>
-    body{background:#F7F8FA;}
+    body{overflow:hidden;}
     .tab-badge{position:absolute;top:6px;right:-14px;min-width:16px;height:16px;padding:0 4px;background:#FF4D4F;border-radius:8px;color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;line-height:1;}
     .filter-chip{padding:5px 14px;border-radius:16px;font-size:13px;cursor:pointer;white-space:nowrap;transition:all .15s;border:1px solid #DFE1E5;color:#6E7685;background:#fff;display:inline-flex;align-items:center;gap:4px;}
     .filter-chip:hover{border-color:#0066FF;color:#0066FF;}
@@ -30,7 +30,7 @@
 .menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
 .menu-item:hover{background:#F3F4F6;}
 .menu-item.l1{padding-left:20px;font-weight:500;}
-.menu-item.l2{padding-left:52px;}
+.menu-item.l2{padding-left:64px;}
 .menu-item.active-l1{color:#0066FF;}
 .menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
 .menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
@@ -39,41 +39,121 @@
 .menu-arrow.open{transform:rotate(180deg);}
 .submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
 .submenu.collapsed{max-height:0!important;opacity:0;}
+.new-tag{display:inline-block;padding:1px 7px;border-radius:8px;background:#0066FF;color:#fff;font-size:10px;font-weight:600;line-height:16px;margin-left:4px;}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;}
+.btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+.btn-primary:hover{background:#0052CC;}
+.btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+.btn-default:hover{border-color:#0066FF;color:#0066FF;}
+/* Topbar icons */
+.topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
+.topbar-btn:hover{background:#E6F0FF;}
+.topbar-btn:hover svg{stroke:#0066FF;}
+.badge-dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:600;line-height:18px;text-align:center;}
+/* Sidebar toggle (mobile) */
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .sidebar.open{display:flex;position:fixed;top:56px;left:0;bottom:0;z-index:50;}
+  .sidebar-overlay{display:none;}
+  .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;}
+}
 
 </style>
 </head>
-<body class="font-sans flex flex-col h-screen overflow-hidden">
+<body class="font-sans flex flex-col h-screen">
 
 <!-- ===== TOP BAR ===== -->
-<header class="h-14 bg-white border-b border-line flex items-center px-6 flex-shrink-0">
-<div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'"><div class="w-8 h-8 rounded bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div><span class="text-[15px] font-semibold text-ink-title">游寄后台管理系统</span></div>
-<div class="ml-auto flex items-center gap-5">
-<a href="task-center.html" class="relative flex items-center text-ink-sub hover:text-primary transition-colors no-underline" title="任务列表"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i></a>
-<a href="message-center.html" class="relative flex items-center text-ink-sub hover:text-primary transition-colors no-underline" title="消息中心"><i data-lucide="bell" class="w-[18px] h-[18px]"></i></a>
-<a href="account-info.html" class="flex items-center gap-1.5 text-ink-sub hover:text-primary transition-colors no-underline" title="账号信息"><i data-lucide="user" class="w-[18px] h-[18px]"></i></a>
-</div>
+<header class="h-14 bg-white border-b border-line flex items-center px-4 md:px-6 flex-shrink-0 gap-3">
+  <!-- Mobile menu toggle -->
+  <button class="topbar-btn md:hidden" onclick="toggleSidebar()" title="菜单">
+    <i data-lucide="menu" class="w-[18px] h-[18px]"></i>
+  </button>
+  <!-- Logo + Name -->
+  <div class="flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigate('index.html')">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div>
+    <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
+  </div>
+  <!-- Right icons -->
+  <div class="ml-auto flex items-center gap-3 md:gap-5">
+    <button class="topbar-btn" title="任务列表" onclick="navigate('任务中心.html')">
+      <i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="taskBadge" style="display:none;">0</span>
+    </button>
+    <button class="topbar-btn" title="消息中心" onclick="navigate('消息中心.html')">
+      <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="msgBadge">5</span>
+    </button>
+    <button class="topbar-btn" title="账号信息" onclick="navigate('账号信息.html')">
+      <i data-lucide="user" class="w-[18px] h-[18px]"></i>
+    </button>
+  </div>
 </header>
 
-<!-- ===== MAIN ===== -->
+<!-- ===== BODY: SIDEBAR + CONTENT ===== -->
 <div class="flex flex-1 min-h-0">
-<aside id="sidebar" class="w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
-<a href="index.html" class="menu-item l1 no-underline" style="color:inherit;"><div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台</a>
-<div class="menu-item l1"><div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理<span class="menu-arrow">▼</span></div>
-<div class="submenu collapsed" style="max-height:200px;"><div class="menu-item l2">全部订单</div><div class="menu-item l2">异常工单</div></div>
-<div class="menu-item l1"><div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控</div>
-<div class="menu-item l1 js-toggle-sub" data-target="sub-settings"><div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置<span class="menu-arrow">▼</span></div>
-<div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
-<a href="member-management.html" class="menu-item l2 no-underline" style="color:inherit;">成员管理</a>
-<a href="department-management.html" class="menu-item l2 no-underline" style="color:inherit;">部门管理</a>
-<a href="role-management.html" class="menu-item l2 no-underline" style="color:inherit;">角色管理</a>
-<a href="account-info.html" class="menu-item l2 no-underline" style="color:inherit;">账号信息</a>
-<a href="message-settings.html" class="menu-item l2 no-underline" style="color:inherit;">消息设置</a>
-</div>
-<a href="task-center.html" class="menu-item l1 active-l1 no-underline" style="color:inherit;"><div class="menu-ico"><i data-lucide="clipboard-list" class="w-[15px] h-[15px]"></i></div>任务列表</a>
-<a href="message-center.html" class="menu-item l1 active-l1 no-underline" style="color:inherit;"><div class="menu-ico"><i data-lucide="bell" class="w-[15px] h-[15px]"></i></div>消息中心</a>
-</aside>
-<main class="flex-1 bg-bg-page overflow-y-auto">
-<div class="max-w-[900px] mx-auto bg-white min-h-screen border-x border-line">
+  <!-- Mobile overlay -->
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+    <!-- 工作台 -->
+    <div class="menu-item l1" data-page="工作台.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台
+    </div>
+
+    <!-- 数据概览 -->
+    <div class="menu-item l1" data-page="数据概览.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览
+    </div>
+
+    <!-- 订单管理 -->
+    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理
+    </div>
+
+    <!-- 异常工单 -->
+    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单
+    </div>
+
+    <!-- 柜机监控 -->
+    <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控
+    </div>
+
+    <!-- 对账中心 -->
+    <div class="menu-item l1" data-page="对账中心.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心
+    </div>
+
+    <!-- 运营配置 -->
+    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置
+    </div>
+
+    <!-- 系统设置（含二级菜单） -->
+    <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置
+      <span class="menu-arrow">▼</span>
+    </div>
+    <div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
+      <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
+      <div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div>
+      <div class="menu-item l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div>
+      <div class="menu-item l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div>
+      <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
+    </div>
+  </aside>
+
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
+    <div class="p-4">
+
+      <!-- 消息中心卡片 -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
 
   <!-- Top Tab Bar -->
   <div class="flex items-center justify-between h-12 px-6 border-b border-line sticky top-0 bg-white z-10">
@@ -87,7 +167,7 @@
     </div>
     <div class="flex items-center gap-4">
       <span class="text-[13px] text-ink-muted cursor-pointer hover:text-primary transition-colors" onclick="showWechatModal()">绑定公众号，随时掌握柜机动态 ></span>
-      <a href="message-settings.html" class="text-[13px] text-ink-sub hover:text-primary no-underline">消息设置</a>
+      <a href="消息设置.html" class="text-[13px] text-ink-sub hover:text-primary no-underline">消息设置</a>
     </div>
   </div>
 
@@ -117,7 +197,8 @@
     <span class="text-ink-muted" id="pageInfo">第 1/1 页</span>
     <button class="h-[28px] px-3 rounded border border-line bg-white text-ink-body cursor-pointer hover:border-primary hover:text-primary disabled:opacity-40 disabled:cursor-default" id="nextBtn" onclick="nextPage()">下一页</button>
   </div>
-</div>
+      </div><!-- close card -->
+    </div><!-- close p-4 -->
 
 <!-- ===== WECHAT MODAL ===== -->
 <div id="wechatModalOverlay" class="hidden modal-overlay" onclick="closeWechatModal()"><div class="modal modal-sm" onclick="event.stopPropagation()"><div class="modal-header"><span>微信提醒设置</span><button onclick="closeWechatModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[16px] h-[16px]"></i></button></div><div class="modal-body flex flex-col items-center py-4"><div class="w-[120px] h-[120px] bg-bg-page rounded flex items-center justify-center mb-4 text-[12px] text-ink-muted">游寄<br>公众号</div><p class="text-[15px] font-medium text-ink-title mb-1">请用微信"扫一扫"</p><p class="text-[13px] text-ink-muted mb-5">微信扫码关注"游寄"微信公众号</p><div class="w-full bg-bg-page rounded-md p-4"><p class="text-[13px] font-medium text-ink-sub mb-2">关注后可接收：</p><div class="flex items-start gap-1.5 text-[13px] text-ink-sub mb-1.5"><i data-lucide="check" class="w-[14px] h-[14px] text-success flex-shrink-0 mt-0.5"></i> 柜机异常、行李超时等实时告警</div><div class="flex items-start gap-1.5 text-[13px] text-ink-sub"><i data-lucide="check" class="w-[14px] h-[14px] text-success flex-shrink-0 mt-0.5"></i> 订单状态变更、退款审核等消息通知</div></div></div></div></div>
@@ -288,6 +369,169 @@ function showToast(msg,type='info'){
   const c={info:'#1A1D24',success:'#0FC060'};
   el.textContent=msg;el.style.background=c[type]||c.info;el.style.opacity='1';
   tt=setTimeout(()=>{el.style.opacity='0';},2000);
+}
+
+/* ================================================================
+   MENU SELECT — unified sidebar menu interaction handler
+   - L1 without children → select + navigate
+   - L1 with children    → toggle expand/collapse only (no nav)
+   - L2                   → select self + parent L1 + navigate
+   - Only one submenu expanded at a time
+   - Clicking already-selected L2 re-navigates
+   ================================================================ */
+function menuSelect(el) {
+  if (el.classList.contains('l1')) {
+    handleL1(el);
+  } else if (el.classList.contains('l2')) {
+    handleL2(el);
+  }
+}
+
+/* ---- L1: handle both leaf and expandable ---- */
+function handleL1(el) {
+  var subId = el.getAttribute('data-sub');
+  if (subId) {
+    handleL1Toggle(el, subId);
+  } else {
+    selectL1NoChildren(el);
+  }
+}
+
+/* L1 with children — toggle expand / collapse */
+function handleL1Toggle(el, subId) {
+  var sub = document.getElementById(subId);
+  if (!sub) return;
+  var arrow = el.querySelector('.menu-arrow');
+  var isExpanded = !sub.classList.contains('collapsed');
+
+  if (isExpanded) {
+    // Collapse this submenu
+    sub.classList.add('collapsed');
+    if (arrow) arrow.classList.remove('open');
+    // Remove active-l1 only if no child is selected
+    if (!sub.querySelector('.menu-item.active-l2')) {
+      el.classList.remove('active-l1');
+    }
+  } else {
+    // Collapse all other submenus first (exclusive expand)
+    collapseAllExcept(subId);
+    // Expand this submenu
+    sub.classList.remove('collapsed');
+    if (arrow) arrow.classList.add('open');
+    // If a child was previously selected, restore parent active state
+    if (sub.querySelector('.menu-item.active-l2')) {
+      el.classList.add('active-l1');
+    }
+  }
+}
+
+/* L1 without children — select and navigate */
+function selectL1NoChildren(el) {
+  collapseAllExcept(null);
+  clearAllActive();
+  el.classList.add('active-l1');
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+/* ---- L2: select self + parent, then navigate ---- */
+function handleL2(el) {
+  var parentSub = el.closest('.submenu');
+  var parentSubId = parentSub ? parentSub.id : null;
+
+  // Keep parent submenu expanded, collapse others
+  collapseAllExcept(parentSubId);
+
+  // Ensure parent submenu is expanded
+  if (parentSub && parentSub.classList.contains('collapsed')) {
+    parentSub.classList.remove('collapsed');
+  }
+
+  // Clear all, then set self + parent active
+  clearAllActive();
+  el.classList.add('active-l2');
+
+  var parentL1 = findParentL1BySubId(parentSubId);
+  if (parentL1) {
+    parentL1.classList.add('active-l1');
+    var arrow = parentL1.querySelector('.menu-arrow');
+    if (arrow) arrow.classList.add('open');
+  }
+
+  // Navigate
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+/* ---- Helpers ---- */
+
+/** Collapse all submenus except the one with keepSubId */
+function collapseAllExcept(keepSubId) {
+  document.querySelectorAll('.submenu').forEach(function(sub) {
+    if (sub.id === keepSubId) return;
+    if (sub.classList.contains('collapsed')) return;
+    sub.classList.add('collapsed');
+    // Reset parent L1 arrow and active state
+    var l1 = findParentL1BySubId(sub.id);
+    if (l1) {
+      var arrow = l1.querySelector('.menu-arrow');
+      if (arrow) arrow.classList.remove('open');
+      if (!sub.querySelector('.menu-item.active-l2')) {
+        l1.classList.remove('active-l1');
+      }
+    }
+  });
+}
+
+/** Remove all active-l1 / active-l2 classes */
+function clearAllActive() {
+  document.querySelectorAll('.menu-item').forEach(function(item) {
+    item.classList.remove('active-l1', 'active-l2');
+  });
+}
+
+/** Find the parent L1 element by submenu ID */
+function findParentL1BySubId(subId) {
+  if (!subId) return null;
+  return document.querySelector('.menu-item.l1[data-sub="' + subId + '"]');
+}
+
+/** Navigate: .html → page jump; otherwise → show placeholder in content area */
+function navigateToPage(page) {
+  if (!page) return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = page.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  if (page.endsWith('.html')) {
+    window.location.href = page;
+  } else {
+    // Placeholder — render inline
+    document.getElementById('mainContent').innerHTML =
+      '<div class="p-4">' +
+      '<div class="bg-white rounded-lg border border-line p-5 md:p-6">' +
+      '<h2 class="text-[16px] font-semibold text-ink-title mb-2">' + page + '</h2>' +
+      '<p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p>' +
+      '</div></div>';
+  }
+}
+
+/* ===== TOPBAR NAVIGATION ===== */
+function navigate(url) {
+  if (url === '#') return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = url.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  window.location.href = url;
+}
+
+/* ===== MOBILE SIDEBAR TOGGLE ===== */
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  overlay.classList.toggle('show');
 }
 
 document.addEventListener('DOMContentLoaded',()=>{lucide.createIcons();renderAll();renderFilters();});

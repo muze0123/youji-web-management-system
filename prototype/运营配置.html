@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>运营配置 - 游寄后台管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+  <style>
+    body{overflow:hidden;}
+    /* Sidebar */
+    .menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+    .menu-item:hover{background:#F3F4F6;}
+    .menu-item.l1{padding-left:20px;font-weight:500;}
+    .menu-item.l2{padding-left:64px;font-size:13px;}
+    .menu-item.active-l1{color:#0066FF;}
+    .menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+    .menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+    .active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+    .menu-arrow.open{transform:rotate(180deg);}
+    .submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+    .submenu.collapsed{max-height:0!important;opacity:0;}
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;}
+    .btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+    .btn-primary:hover{background:#0052CC;}
+    .btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+    .btn-default:hover{border-color:#0066FF;color:#0066FF;}
+    .btn-sm{height:28px;padding:0 10px;font-size:12px;}
+    .btn-danger{background:#D9001B;color:#fff;border-color:#D9001B;}
+    .btn-danger:hover{background:#B80015;}
+    .btn-ghost{background:transparent;color:#D9001B;border-color:transparent;}
+    .btn-ghost:hover{background:#FFE8EB;}
+    /* Tabs */
+    .tab-item{padding:10px 24px;font-size:14px;font-weight:500;color:#6E7685;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+    .tab-item:hover{color:#0066FF;}
+    .tab-item.active{color:#0066FF;border-bottom-color:#0066FF;}
+    /* Data table */
+    .data-table{width:100%;border-collapse:collapse;font-size:13px;}
+    .data-table thead th{background:#F0F1F3;color:#6E7685;font-weight:600;font-size:12px;padding:9px 12px;text-align:left;border-bottom:1px solid #DFE1E5;white-space:nowrap;}
+    .data-table tbody td{padding:9px 12px;color:#3A3F4A;border-bottom:1px solid #E8EAED;}
+    .data-table tbody tr{transition:background .12s;}
+    .data-table tbody tr:hover{background:#F3F4F6;}
+    /* Badge */
+    .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:500;white-space:nowrap;}
+    .badge-success{color:#0FC060;background:#E7F9F0;}
+    .badge-warning{color:#E7772D;background:#FDF2E9;}
+    .badge-danger{color:#D9001B;background:#FFE8EB;}
+    .badge-muted{color:#9DA2AC;background:#F0F1F3;}
+    .badge-info{color:#0091D5;background:#E4F4FB;}
+    /* Price input */
+    .price-input{font-family:'JetBrains Mono',monospace;font-size:14px;width:100px;height:36px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;padding:0 8px;}
+    .price-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .price-input.error{border-color:#D9001B;box-shadow:0 0 0 2px rgba(217,0,27,.12);}
+    .input-unit{font-size:12px;color:#9DA2AC;margin-left:4px;}
+    /* Card header */
+    .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #E8EAED;}
+    .card-header h3{font-size:14px;font-weight:600;color:#1A1D24;display:flex;align-items:center;gap:8px;}
+    /* Filter */
+    .filter-input{font-family:inherit;font-size:13px;height:32px;padding:0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+    .filter-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .filter-select{font-family:inherit;font-size:13px;height:32px;padding:0 28px 0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;}
+    .select-wrap{position:relative;display:inline-flex;align-items:center;}
+    .select-wrap::after{content:'▼';position:absolute;right:10px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+    /* Topbar */
+    .topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
+    .topbar-btn:hover{background:#E6F0FF;}
+    .topbar-btn:hover svg{stroke:#0066FF;}
+    .badge-dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:600;line-height:18px;text-align:center;}
+    /* Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1200;display:none;align-items:center;justify-content:center;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);width:760px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;animation:ds-modal-in .15s ease;}
+    @keyframes ds-modal-in{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;}
+    .modal-body{flex:1;overflow-y:auto;padding:24px;}
+    .modal-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 24px 20px;flex-shrink:0;}
+    /* Dialog */
+    .dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1300;display:none;align-items:center;justify-content:center;}
+    .dialog-overlay.show{display:flex;}
+    .dialog{width:600px;max-width:92vw;background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);display:flex;flex-direction:column;animation:ds-modal-in .15s ease;}
+    .dialog-body{flex:1;overflow-y:auto;padding:24px;}
+    .dialog-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 24px 20px;flex-shrink:0;}
+    /* Form */
+    .form-label{font-size:13px;color:#6E7685;text-align:right;line-height:30px;}
+    .form-label::after{content:'：';}
+    .form-input{font-family:inherit;font-size:13px;height:30px;padding:0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;width:400px;}
+    .form-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .form-select{font-family:inherit;font-size:13px;height:30px;padding:0 28px 0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;outline:none;width:400px;appearance:none;-webkit-appearance:none;}
+    .field-req{color:#D9001B;margin-left:2px;}
+    /* Change log table */
+    .log-row{border-bottom:1px solid #F0F1F3;padding:8px 0;font-size:12px;}
+    .log-row:last-child{border-bottom:none;}
+    .log-old{text-decoration:line-through;color:#D9001B;}
+    .log-new{color:#0FC060;font-weight:500;}
+    /* Price card */
+    .price-section{background:#fff;border:1px solid #E8EAED;border-radius:6px;padding:20px;margin-bottom:16px;}
+    .price-section h4{font-size:14px;font-weight:600;color:#1A1D24;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #F0F1F3;display:flex;align-items:center;gap:8px;}
+    .price-grid{display:grid;grid-template-columns:120px repeat(3,1fr);gap:8px 16px;align-items:center;}
+    .price-grid .header-cell{font-size:12px;color:#6E7685;font-weight:600;text-align:center;padding:6px 0;}
+    .price-grid .label-cell{font-size:13px;color:#3A3F4A;font-weight:500;display:flex;align-items:center;gap:4px;}
+    .price-grid .value-cell{display:flex;align-items:center;justify-content:center;gap:4px;}
+    /* Scope badge */
+    .scope-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;background:#E6F0FF;color:#0066FF;font-weight:500;}
+    /* Unsaved indicator */
+    .unsaved-dot{width:8px;height:8px;border-radius:50%;background:#E7772D;display:inline-block;margin-right:4px;}
+    /* Refund tier row */
+    .tier-row{display:flex;align-items:center;gap:8px;padding:6px 0;}
+    .tier-row input{font-family:'JetBrains Mono',monospace;font-size:13px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;padding:0 6px;}
+    .tier-row input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .tier-row .tier-days{width:60px;}
+    .tier-row .tier-pct{width:70px;}
+    /* Portal annotation */
+    .anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
+    .anno-portal-badge:hover{transform:scale(1.2);}
+    .anno-hidden .anno-portal-badge{display:none;}
+    /* Toggle switch */
+    .toggle-sw{position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;}
+    .toggle-sw input{opacity:0;width:0;height:0;}
+    .toggle-slider{position:absolute;inset:0;background:#C7CAD1;border-radius:11px;transition:.2s;}
+    .toggle-slider::before{content:'';position:absolute;height:18px;width:18px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s;}
+    .toggle-sw input:checked+.toggle-slider{background:#0FC060;}
+    .toggle-sw input:checked+.toggle-slider::before{transform:translateX(18px);}
+    /* Responsive */
+    @media(max-width:768px){
+      .sidebar{display:none;}.sidebar.open{display:flex;position:fixed;top:56px;left:0;bottom:0;z-index:50;}
+      .sidebar-overlay{display:none;}.sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;}
+    }
+  </style>
+</head>
+<body class="font-sans flex flex-col h-screen">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-4 md:px-6 flex-shrink-0 gap-3">
+  <button class="topbar-btn md:hidden" onclick="toggleSidebar()"><i data-lucide="menu" class="w-[18px] h-[18px]"></i></button>
+  <div class="flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigate('index.html')">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div>
+    <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
+  </div>
+  <div class="ml-auto flex items-center gap-3 md:gap-5">
+    <button class="topbar-btn" title="任务列表" onclick="navigate('任务中心.html')"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i><span class="badge-dot" id="taskBadge" style="display:none;">0</span></button>
+    <button class="topbar-btn" title="消息中心" onclick="navigate('消息中心.html')"><i data-lucide="bell" class="w-[18px] h-[18px]"></i><span class="badge-dot" id="msgBadge">5</span></button>
+    <button class="topbar-btn" title="账号信息" onclick="navigate('账号信息.html')"><i data-lucide="user" class="w-[18px] h-[18px]"></i></button>
+  </div>
+</header>
+
+<!-- ===== BODY ===== -->
+<div class="flex flex-1 min-h-0">
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+    <div class="menu-item l1" data-page="工作台.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台</div>
+    <div class="menu-item l1" data-page="数据概览.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览</div>
+    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理</div>
+    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单</div>
+    <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控</div>
+    <div class="menu-item l1" data-page="对账中心.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心</div>
+    <div class="menu-item l1 active-l1" data-page="运营配置.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置</div>
+    <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置<span class="menu-arrow">▼</span></div>
+    <div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
+      <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
+      <div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div>
+      <div class="menu-item l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div>
+      <div class="menu-item l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div>
+      <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
+    <div class="p-4">
+
+      <!-- Page header + Tabs -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <div>
+            <div class="text-[12px] text-ink-muted mb-1">运营配置</div>
+            <h1 class="text-[22px] font-bold text-ink-title inline-block" data-anno="1">运营配置</h1>
+            <span class="scope-badge ml-2 align-middle"><i data-lucide="shield" class="w-[12px] h-[12px]"></i> 仅管理员</span>
+          </div>
+          <span class="text-[11px] text-ink-muted" data-anno="2">参数中枢 · 变更留痕 · 全局生效</span>
+        </div>
+        <!-- Tabs -->
+        <div class="flex items-center border-b border-line" data-anno="3">
+          <div class="tab-item active" data-tab="price" onclick="switchTab('price')"><i data-lucide="dollar-sign" class="w-[14px] h-[14px]"></i> 价格配置</div>
+          <div class="tab-item" data-tab="dest" onclick="switchTab('dest')"><i data-lucide="map-pin" class="w-[14px] h-[14px]"></i> 目的地配置</div>
+          <div class="tab-item" data-tab="perm" onclick="switchTab('perm')"><i data-lucide="users" class="w-[14px] h-[14px]"></i> 权限管理</div>
+        </div>
+      </div>
+
+      <!-- ============ TAB 1: PRICE CONFIG ============ -->
+      <div id="tabPrice">
+
+        <!-- B: Short-term price -->
+        <div class="price-section" data-anno="4">
+          <h4><i data-lucide="clock" class="w-[16px] h-[16px] text-primary"></i>短租价格（元/小时）<span class="text-[11px] text-ink-muted font-normal ml-2">全局统一 · 计费单一事实来源</span></h4>
+          <div class="price-grid">
+            <div class="header-cell"></div><div class="header-cell">小格口</div><div class="header-cell">中格口</div><div class="header-cell">大格口</div>
+            <div class="label-cell">单价</div>
+            <div class="value-cell"><input type="number" class="price-input" id="stSmallPrice" value="2" step="0.5" min="0" onchange="markDirty()"><span class="input-unit">元/小时</span></div>
+            <div class="value-cell"><input type="number" class="price-input" id="stMedPrice" value="2.5" step="0.5" min="0" onchange="markDirty()"><span class="input-unit">元/小时</span></div>
+            <div class="value-cell"><input type="number" class="price-input" id="stLargePrice" value="3.5" step="0.5" min="0" onchange="markDirty()"><span class="input-unit">元/小时</span></div>
+            <div class="label-cell">每24h封顶</div>
+            <div class="value-cell"><input type="number" class="price-input" id="stSmallCap" value="9" step="1" min="0" onchange="markDirty()"><span class="input-unit">元</span></div>
+            <div class="value-cell"><input type="number" class="price-input" id="stMedCap" value="12" step="1" min="0" onchange="markDirty()"><span class="input-unit">元</span></div>
+            <div class="value-cell"><input type="number" class="price-input" id="stLargeCap" value="17" step="1" min="0" onchange="markDirty()"><span class="input-unit">元</span></div>
+          </div>
+          <p class="text-[11px] text-ink-muted mt-3">校验规则：正数、封顶价 ≥ 单价。修改将影响用户端下单、退款与对账。</p>
+        </div>
+
+        <!-- C: Long-term price -->
+        <div class="price-section" data-anno="5">
+          <h4><i data-lucide="calendar-days" class="w-[16px] h-[16px] text-primary"></i>长租价格（元/月）<span class="text-[11px] text-ink-muted font-normal ml-2">每月按 31 天计</span></h4>
+          <div class="price-grid">
+            <div class="header-cell"></div><div class="header-cell">小格口</div><div class="header-cell">中格口</div><div class="header-cell">大格口</div>
+            <div class="label-cell">月租</div>
+            <div class="value-cell"><input type="number" class="price-input" id="ltSmall" value="25" step="1" min="0" onchange="markDirty()"><span class="input-unit">元/月</span></div>
+            <div class="value-cell"><input type="number" class="price-input" id="ltMed" value="30" step="1" min="0" onchange="markDirty()"><span class="input-unit">元/月</span></div>
+            <div class="value-cell"><input type="number" class="price-input" id="ltLarge" value="40" step="1" min="0" onchange="markDirty()"><span class="input-unit">元/月</span></div>
+          </div>
+        </div>
+
+        <!-- D: Overtime rate -->
+        <div class="price-section" data-anno="6">
+          <h4><i data-lucide="alert-circle" class="w-[16px] h-[16px] text-primary"></i>超时费率</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[13px]">
+            <div class="bg-bg-page rounded p-4">
+              <div class="font-medium text-ink-title mb-2">短租超时</div>
+              <div class="flex items-center gap-2 mb-2"><span class="text-ink-sub">计费单位：</span><span>按当前格口短租单价</span></div>
+              <div class="flex items-center gap-2"><span class="text-ink-sub">进位规则：</span>
+                <div class="select-wrap"><select class="filter-select" onchange="markDirty()"><option>不足1小时按1小时</option><option>不足30分钟按30分钟</option><option>按分钟计</option></select></div>
+              </div>
+            </div>
+            <div class="bg-bg-page rounded p-4">
+              <div class="font-medium text-ink-title mb-2">长租超时</div>
+              <div class="flex items-center gap-2"><span class="text-ink-sub">日费率：</span><span>按短租单价 × 24h 封顶值计算</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- E: Refund rules -->
+        <div class="price-section" data-anno="7">
+          <h4><i data-lucide="rotate-ccw" class="w-[16px] h-[16px] text-primary"></i>退款规则参数</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[13px] mb-4">
+            <div class="bg-bg-page rounded p-4">
+              <div class="font-medium text-ink-title mb-3">短租退款</div>
+              <div class="flex items-center gap-2 mb-2"><span class="text-ink-sub">全额退时限：</span><span>下单后</span><input type="number" class="price-input" style="width:60px;height:28px;font-size:12px;" value="5" min="0" onchange="markDirty()"><span>分钟内</span></div>
+              <div class="text-ink-sub text-[12px]">退款算法：退款 = 实付 − 使用时长费用（按短租单价计）</div>
+              <div class="text-ink-sub text-[12px]">费用 ≥ 实付时默认不退</div>
+            </div>
+            <div class="bg-bg-page rounded p-4">
+              <div class="font-medium text-ink-title mb-3">长租退款</div>
+              <div class="flex items-center gap-2 mb-2"><span class="text-ink-sub">全额退时限：</span><span>下单后</span><input type="number" class="price-input" style="width:60px;height:28px;font-size:12px;" value="5" min="0" onchange="markDirty()"><span>分钟内</span></div>
+              <div class="flex items-center gap-2 mb-2"><span class="text-ink-sub">整月退费：</span><label class="toggle-sw"><input type="checkbox" checked onchange="markDirty()"><span class="toggle-slider"></span></label></div>
+            </div>
+          </div>
+          <!-- Refund tier table (long-term, editable rows) -->
+          <div class="font-medium text-ink-title mb-2 text-[13px]">长租不足整月退款比例阶梯 <span class="text-[11px] text-ink-muted font-normal">（可增删阶梯行）</span></div>
+          <div class="bg-bg-page rounded p-3" id="refundTiers">
+            <div class="tier-row text-[12px] text-ink-sub font-medium" style="border-bottom:1px solid #DFE1E5;padding-bottom:4px;margin-bottom:4px;">
+              <span style="width:80px;">时段区间</span><span style="width:72px;">天数 ≤</span><span style="width:70px;">退款比例%</span><span style="width:50px;"></span>
+            </div>
+          </div>
+          <button class="btn btn-default btn-sm mt-2" onclick="addRefundTier()"><i data-lucide="plus" class="w-[13px] h-[13px]"></i> 添加阶梯</button>
+        </div>
+
+        <!-- F: Save + Change log -->
+        <div class="bg-white rounded-lg border border-line p-5" data-anno="8">
+          <div class="flex items-center gap-3 flex-wrap">
+            <button class="btn btn-primary" onclick="savePrice()" id="btnSavePrice">
+              <i data-lucide="save" class="w-[14px] h-[14px]"></i> 保存价格配置
+            </button>
+            <button class="btn btn-default" onclick="showChangeLog()">
+              <i data-lucide="history" class="w-[14px] h-[14px]"></i> 变更记录
+            </button>
+            <span id="unsavedHint" class="hidden text-[12px] text-warning flex items-center gap-1"><span class="unsaved-dot"></span>有未保存的改动</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ TAB 2: DESTINATION CONFIG ============ -->
+      <div id="tabDest" class="hidden">
+
+        <!-- Filter + Add -->
+        <div class="bg-white rounded-lg border border-line p-4 mb-4" data-anno="9">
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="select-wrap"><select class="filter-select" id="destTypeFilter" onchange="renderDestTable()"><option value="">全部类型</option><option value="酒店">酒店</option><option value="车站">车站</option><option value="景区">景区</option><option value="其他">其他</option></select></div>
+            <div class="select-wrap"><select class="filter-select" id="destStatusFilter" onchange="renderDestTable()"><option value="">全部状态</option><option value="enabled">启用</option><option value="disabled">停用</option></select></div>
+            <input type="text" class="filter-input" id="destSearch" placeholder="搜索目的地名称" oninput="renderDestTable()" style="width:180px;">
+            <button class="btn btn-default btn-sm" onclick="resetDestFilters()"><i data-lucide="rotate-ccw" class="w-[13px] h-[13px]"></i> 重置</button>
+            <button class="btn btn-primary btn-sm ml-auto" onclick="openDestModal()"><i data-lucide="plus" class="w-[13px] h-[13px]"></i> 新增目的地</button>
+            <span class="text-[12px] text-ink-muted" id="destCount"></span>
+          </div>
+        </div>
+
+        <!-- Destination table -->
+        <div class="bg-white rounded-lg border border-line p-5 md:p-6" data-anno="10">
+          <div class="overflow-x-auto">
+            <table class="data-table" id="destTable">
+              <thead><tr><th>目的地名称</th><th>地址</th><th>类型</th><th>服务费（元）</th><th>预计时效</th><th>启用状态</th><th>操作</th></tr></thead>
+              <tbody id="destTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ TAB 3: PERMISSION MANAGEMENT ============ -->
+      <div id="tabPerm" class="hidden">
+
+        <!-- Add button -->
+        <div class="bg-white rounded-lg border border-line p-4 mb-4" data-anno="11">
+          <div class="flex items-center gap-3">
+            <button class="btn btn-primary btn-sm" onclick="openAccountModal()"><i data-lucide="user-plus" class="w-[13px] h-[13px]"></i> 新增账号</button>
+            <span class="text-[12px] text-ink-muted" id="acctCount"></span>
+          </div>
+        </div>
+
+        <!-- Account table -->
+        <div class="bg-white rounded-lg border border-line p-5 md:p-6" data-anno="12">
+          <div class="overflow-x-auto">
+            <table class="data-table" id="acctTable">
+              <thead><tr><th>账号</th><th>姓名/备注</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+              <tbody id="acctTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ===== DESTINATION MODAL ===== -->
+<div class="modal-overlay" id="destModalOverlay" onclick="closeDestModal()">
+  <div class="modal" onclick="event.stopPropagation()" data-anno="13">
+    <div class="modal-header"><h3 class="text-[16px] font-semibold text-ink-title" id="destModalTitle">新增目的地</h3><button onclick="closeDestModal()" style="font-size:20px;color:#9DA2AC;cursor:pointer;background:none;border:none;">×</button></div>
+    <div class="modal-body">
+      <div class="flex items-center mb-4"><span class="form-label" style="width:100px;">目的地名称</span><span class="field-req">*</span><input class="form-input" id="destName" style="width:350px;"></div>
+      <div class="flex items-center mb-4"><span class="form-label" style="width:100px;">地址</span><span class="field-req">*</span><input class="form-input" id="destAddr" style="width:350px;"></div>
+      <div class="flex items-center mb-4"><span class="form-label" style="width:100px;">类型</span><span class="field-req">*</span><div class="select-wrap"><select class="form-select" id="destType" style="width:350px;"><option value="">请选择</option><option value="酒店">酒店</option><option value="车站">车站</option><option value="景区">景区</option><option value="其他">其他</option></select></div></div>
+      <div class="flex items-center mb-4"><span class="form-label" style="width:100px;">服务费</span><span class="field-req">*</span><input class="form-input font-mono" id="destFee" placeholder="一口价（元）" style="width:350px;"></div>
+      <div class="flex items-center mb-4"><span class="form-label" style="width:100px;">预计时效</span><span class="field-req">*</span><input class="form-input" id="destEta" placeholder="如：约4小时内送达" style="width:350px;"></div>
+      <div class="flex items-center"><span class="form-label" style="width:100px;">启用状态</span><label class="toggle-sw"><input type="checkbox" id="destEnabled" checked><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeDestModal()">取消</button><button class="btn btn-primary" onclick="saveDest()">保存</button></div>
+  </div>
+</div>
+
+<!-- ===== ACCOUNT MODAL ===== -->
+<div class="modal-overlay" id="acctModalOverlay" onclick="closeAcctModal()">
+  <div class="modal" onclick="event.stopPropagation()" data-anno="14">
+    <div class="modal-header"><h3 class="text-[16px] font-semibold text-ink-title" id="acctModalTitle">新增账号</h3><button onclick="closeAcctModal()" style="font-size:20px;color:#9DA2AC;cursor:pointer;background:none;border:none;">×</button></div>
+    <div class="modal-body">
+      <div class="flex items-center mb-4"><span class="form-label" style="width:100px;">登录账号</span><span class="field-req">*</span><input class="form-input" id="acctName" placeholder="登录用户名" style="width:350px;"></div>
+      <div class="flex items-center mb-4"><span class="form-label" style="width:100px;">姓名/备注</span><span class="field-req">*</span><input class="form-input" id="acctLabel" placeholder="标识使用人" style="width:350px;"></div>
+      <div class="flex items-center mb-4"><span class="form-label" style="width:100px;">角色</span><span class="field-req">*</span><div class="select-wrap"><select class="form-select" id="acctRole" style="width:350px;"><option value="">请选择</option><option value="管理员">管理员</option><option value="运营员">运营员</option></select></div></div>
+      <div class="flex items-center mb-4" id="acctPwdRow"><span class="form-label" style="width:100px;">初始密码</span><span class="field-req">*</span><input class="form-input" id="acctPwd" placeholder="至少8位，含字母+数字" style="width:350px;"></div>
+      <div class="flex items-center"><span class="form-label" style="width:100px;">状态</span><label class="toggle-sw"><input type="checkbox" id="acctEnabled" checked><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeAcctModal()">取消</button><button class="btn btn-primary" onclick="saveAcct()">保存</button></div>
+  </div>
+</div>
+
+<!-- ===== CONFIRM DIALOG (save price) ===== -->
+<div class="dialog-overlay" id="confirmDialogOverlay" onclick="closeConfirmDialog()">
+  <div class="dialog" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;">
+      <h3 class="text-[16px] font-semibold text-ink-title flex items-center gap-2"><i data-lucide="alert-triangle" class="w-[18px] h-[18px] text-warning"></i> 确认保存</h3>
+      <button onclick="closeConfirmDialog()" style="position:static;font-size:20px;color:#9DA2AC;cursor:pointer;background:none;border:none;line-height:1;">×</button>
+    </div>
+    <div class="dialog-body">
+      <p class="text-[14px] text-ink-body mb-4">价格修改将<b>立即全局生效</b>，影响用户端下单、收费规则弹窗、订单退款与后台对账。确认保存？</p>
+      <div class="bg-warning-bg rounded p-3 text-[13px] text-warning flex items-start gap-2">
+        <i data-lucide="info" class="w-[14px] h-[14px] flex-shrink-0 mt-0.5"></i>
+        <span>保存后变更将记录留痕（操作人、时间、变更前后对比），不可删除，供审计与纠纷追溯。</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-default" onclick="closeConfirmDialog()">取消</button>
+      <button class="btn btn-primary" onclick="confirmSavePrice()">确认保存 · 立即生效</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CHANGE LOG DRAWER ===== -->
+<div class="drawer-overlay" id="logDrawerOverlay" onclick="closeLogDrawer()"></div>
+<div class="drawer" id="logDrawer" style="width:700px;">
+  <div class="drawer-header"><h2 class="text-[16px] font-semibold text-ink-title flex items-center gap-2"><i data-lucide="history" class="w-[18px] h-[18px] text-primary"></i>变更记录</h2><button onclick="closeLogDrawer()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button></div>
+  <div class="drawer-body" id="logDrawerBody"></div>
+  <div class="drawer-footer"><button class="btn btn-default" onclick="closeLogDrawer()">关闭</button></div>
+</div>
+<style>
+  .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1100;display:none;}
+  .drawer-overlay.show{display:block;}
+  .drawer{position:fixed;top:0;right:0;bottom:0;background:#fff;z-index:1101;box-shadow:-4px 0 24px rgba(0,0,0,.1);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease;}
+  .drawer.open{transform:translateX(0);}
+  .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #DFE1E5;flex-shrink:0;}
+  .drawer-body{flex:1;overflow-y:auto;padding:24px;}
+  .drawer-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:16px 24px;border-top:1px solid #DFE1E5;flex-shrink:0;}
+</style>
+
+<!-- ===== PORTAL ANNOTATION ===== -->
+<div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
+<div id="annoToggle" class="fixed z-[150]" style="right:8px;bottom:40px;cursor:grab;" onmousedown="startDragToggle(event)">
+  <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] bg-white/90 backdrop-blur text-primary border border-primary/30 shadow-sm"><i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i> 标注</div>
+</div>
+<div id="annoPopup" class="hidden fixed inset-0 z-[9999]" style="background:rgba(0,0,0,.2);" onclick="closeAnnoPopup()">
+  <div id="annoPopupBox" class="fixed bg-white rounded-lg shadow-xl p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto" style="top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 12px 40px rgba(0,0,0,.18);" onclick="event.stopPropagation()">
+    <button onclick="closeAnnoPopup()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted z-10"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+    <div id="annoPopupDrag" class="flex items-center gap-2 mb-3 select-none" style="cursor:grab;" onmousedown="startDragPopup(event)"><i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i><h3 id="annoPopupTitle" class="text-[16px] font-semibold text-ink-title"></h3></div>
+    <ul id="annoPopupBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   STATE
+   ================================================================ */
+var currentTab = 'price';
+var isDirty = false;
+var editingDestId = null;
+var editingAcctId = null;
+
+/* ================================================================
+   MOCK DATA — Destinations
+   ================================================================ */
+var destinations = [
+  { id:'d1', name:'杭州东站', addr:'杭州市江干区东站到达层B2', type:'车站', fee:15, eta:'约3小时内送达', enabled:true },
+  { id:'d2', name:'杭州萧山机场', addr:'杭州市萧山区萧山机场T3航站楼', type:'车站', fee:35, eta:'约5小时内送达', enabled:true },
+  { id:'d3', name:'西湖国宾馆', addr:'杭州市西湖区杨公堤18号', type:'酒店', fee:20, eta:'约2小时内送达', enabled:true },
+  { id:'d4', name:'杭州大厦酒店', addr:'杭州市下城区武林广场21号', type:'酒店', fee:20, eta:'约2小时内送达', enabled:true },
+  { id:'d5', name:'灵隐景区', addr:'杭州市西湖区灵隐路法云弄1号', type:'景区', fee:25, eta:'约4小时内送达', enabled:true },
+  { id:'d6', name:'西溪湿地', addr:'杭州市西湖区天目山路518号', type:'景区', fee:25, eta:'约4小时内送达', enabled:false },
+  { id:'d7', name:'湖滨银泰', addr:'杭州市上城区湖滨路1号', type:'其他', fee:10, eta:'约1小时内送达', enabled:true },
+  { id:'d8', name:'杭州站（城站）', addr:'杭州市上城区环城东路1号', type:'车站', fee:15, eta:'约3小时内送达', enabled:true },
+  { id:'d9', name:'千岛湖度假酒店', addr:'杭州市淳安县千岛湖镇', type:'酒店', fee:50, eta:'约8小时内送达', enabled:true },
+  { id:'d10', name:'宋城景区', addr:'杭州市西湖区之江路148号', type:'景区', fee:25, eta:'约4小时内送达', enabled:false },
+];
+
+/* ================================================================
+   MOCK DATA — Accounts
+   ================================================================ */
+var accounts = [
+  { id:'a1', username:'admin_zhang', label:'张管理', role:'管理员', enabled:true, createdAt:'2026-03-01 10:00:00' },
+  { id:'a2', username:'admin_li', label:'李主管', role:'管理员', enabled:true, createdAt:'2026-03-15 14:30:00' },
+  { id:'a3', username:'op_wang', label:'王运营', role:'运营员', enabled:true, createdAt:'2026-04-01 09:00:00' },
+  { id:'a4', username:'op_chen', label:'陈运营', role:'运营员', enabled:true, createdAt:'2026-04-10 11:00:00' },
+  { id:'a5', username:'op_zhao', label:'赵运营', role:'运营员', enabled:false, createdAt:'2026-05-20 16:00:00' },
+  { id:'a6', username:'op_liu', label:'刘运营', role:'运营员', enabled:true, createdAt:'2026-06-01 08:30:00' },
+];
+
+/* ================================================================
+   MOCK DATA — Change Log
+   ================================================================ */
+var changeLog = [
+  { time:'2026-07-04 15:30', operator:'张管理', item:'短租小格口单价', oldVal:'¥2.00', newVal:'¥2.50', effType:'立即生效', effTime:'2026-07-04 15:30' },
+  { time:'2026-06-28 10:15', operator:'李主管', item:'短租大格口封顶', oldVal:'¥15.00', newVal:'¥17.00', effType:'立即生效', effTime:'2026-06-28 10:15' },
+  { time:'2026-06-20 09:00', operator:'张管理', item:'长租中格口月租', oldVal:'¥28.00', newVal:'¥30.00', effType:'定时生效', effTime:'2026-07-01 00:00' },
+  { time:'2026-06-15 14:20', operator:'张管理', item:'短租中格口单价', oldVal:'¥2.00', newVal:'¥2.50', effType:'立即生效', effTime:'2026-06-15 14:20' },
+  { time:'2026-06-01 08:00', operator:'李主管', item:'长租退款比例-≤1天', oldVal:'40%', newVal:'50%', effType:'立即生效', effTime:'2026-06-01 08:00' },
+];
+
+// Refund tiers
+var refundTiers = [
+  { days:1, pct:50 },
+  { days:2, pct:30 },
+  { days:3, pct:10 },
+  { days:31, pct:0 },
+];
+var tierIdCounter = 4;
+
+/* ================================================================
+   TAB SWITCHING
+   ================================================================ */
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-item').forEach(function(t){t.classList.toggle('active', t.dataset.tab===tab);});
+  document.getElementById('tabPrice').classList.toggle('hidden', tab!=='price');
+  document.getElementById('tabDest').classList.toggle('hidden', tab!=='dest');
+  document.getElementById('tabPerm').classList.toggle('hidden', tab!=='perm');
+  if (tab==='dest') renderDestTable();
+  if (tab==='perm') renderAcctTable();
+  if (annoVisible) setTimeout(renderAnnoBadges, 50);
+}
+
+/* ================================================================
+   TAB 1: PRICE CONFIG
+   ================================================================ */
+function markDirty() {
+  isDirty = true;
+  document.getElementById('unsavedHint').classList.remove('hidden');
+}
+
+function savePrice() {
+  // Validate
+  var inputs = document.querySelectorAll('#tabPrice .price-input');
+  var valid = true;
+  inputs.forEach(function(inp){
+    var v = parseFloat(inp.value);
+    if (isNaN(v) || v < 0) { inp.classList.add('error'); valid = false; }
+    else { inp.classList.remove('error'); }
+  });
+  if (!valid) { alert('请输入合法的正数值'); return; }
+
+  // Validate cap >= price
+  var stSP = parseFloat(document.getElementById('stSmallPrice').value);
+  var stSC = parseFloat(document.getElementById('stSmallCap').value);
+  var stMP = parseFloat(document.getElementById('stMedPrice').value);
+  var stMC = parseFloat(document.getElementById('stMedCap').value);
+  var stLP = parseFloat(document.getElementById('stLargePrice').value);
+  var stLC = parseFloat(document.getElementById('stLargeCap').value);
+  if (stSC < stSP || stMC < stMP || stLC < stLP) {
+    alert('封顶价不能低于单价，请检查输入。'); return;
+  }
+
+  document.getElementById('confirmDialogOverlay').classList.add('show');
+}
+
+function closeConfirmDialog() {
+  document.getElementById('confirmDialogOverlay').classList.remove('show');
+}
+
+function confirmSavePrice() {
+  closeConfirmDialog();
+  // Add to change log
+  changeLog.unshift({
+    time: new Date().toISOString().slice(0,16).replace('T',' '),
+    operator: '张管理',
+    item: '价格配置多项',
+    oldVal: '详见变更前快照',
+    newVal: '已更新',
+    effType: '立即生效',
+    effTime: new Date().toISOString().slice(0,16).replace('T',' ')
+  });
+  isDirty = false;
+  document.getElementById('unsavedHint').classList.add('hidden');
+  alert('价格配置已保存并立即全局生效！\n\n变更已记录留痕，不可删除。\n用户端下单、退款、对账将使用新价格。');
+}
+
+function showChangeLog() {
+  var body = document.getElementById('logDrawerBody');
+  var html = '<p class="text-[12px] text-ink-muted mb-4">操作留痕不可删除，供审计与纠纷追溯。</p>';
+  html += '<div class="overflow-x-auto"><table class="data-table"><thead><tr><th>变更时间</th><th>操作人</th><th>变更项</th><th>原值</th><th>新值</th><th>生效方式</th><th>生效时间</th></tr></thead><tbody>';
+  changeLog.forEach(function(l){
+    html += '<tr><td class="font-mono text-[12px]">'+l.time+'</td><td>'+l.operator+'</td><td>'+l.item+'</td><td class="log-old font-mono">'+l.oldVal+'</td><td class="log-new font-mono">'+l.newVal+'</td><td>'+l.effType+'</td><td class="font-mono text-[12px]">'+l.effTime+'</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  body.innerHTML = html;
+  document.getElementById('logDrawerOverlay').classList.add('show');
+  document.getElementById('logDrawer').classList.add('open');
+  lucide.createIcons();
+}
+
+function closeLogDrawer() {
+  document.getElementById('logDrawerOverlay').classList.remove('show');
+  document.getElementById('logDrawer').classList.remove('open');
+}
+
+/* ================================================================
+   REFUND TIERS
+   ================================================================ */
+function renderRefundTiers() {
+  var container = document.getElementById('refundTiers');
+  var header = container.querySelector('.tier-row');
+  container.innerHTML = '';
+  container.appendChild(header);
+  refundTiers.forEach(function(t,i){
+    var row = document.createElement('div');
+    row.className = 'tier-row';
+    row.innerHTML = '<span style="width:80px;font-size:12px;color:#6E7685;">≤ '+t.days+' 天</span>'+
+      '<input type="number" class="tier-days" value="'+t.days+'" min="1" onchange="updateTier('+i+',\'days\',this.value)">'+
+      '<input type="number" class="tier-pct" value="'+t.pct+'" min="0" max="100" onchange="updateTier('+i+',\'pct\',this.value)">'+
+      '<span style="font-size:12px;">%</span>'+
+      '<button class="btn btn-ghost btn-sm" onclick="removeTier('+i+')" style="height:24px;padding:0 6px;" title="删除"><i data-lucide="trash-2" class="w-[12px] h-[12px]"></i></button>';
+    container.appendChild(row);
+  });
+  lucide.createIcons();
+}
+
+function addRefundTier() {
+  tierIdCounter++;
+  refundTiers.push({ days:7, pct:5 });
+  markDirty();
+  renderRefundTiers();
+}
+
+function updateTier(i, field, val) {
+  refundTiers[i][field] = parseInt(val)||0;
+  markDirty();
+  renderRefundTiers();
+}
+
+function removeTier(i) {
+  if (refundTiers.length <= 2) { alert('至少保留两个阶梯行'); return; }
+  refundTiers.splice(i,1);
+  markDirty();
+  renderRefundTiers();
+}
+
+/* ================================================================
+   TAB 2: DESTINATION CONFIG
+   ================================================================ */
+function getEnabledBadge(enabled) {
+  return enabled ? '<span class="badge badge-success">启用</span>' : '<span class="badge badge-muted">停用</span>';
+}
+
+function renderDestTable() {
+  var typeF = document.getElementById('destTypeFilter').value;
+  var statusF = document.getElementById('destStatusFilter').value;
+  var search = document.getElementById('destSearch').value.toLowerCase();
+  var filtered = destinations.filter(function(d){
+    if (typeF && d.type!==typeF) return false;
+    if (statusF==='enabled' && !d.enabled) return false;
+    if (statusF==='disabled' && d.enabled) return false;
+    if (search && d.name.toLowerCase().indexOf(search)===-1) return false;
+    return true;
+  });
+  document.getElementById('destCount').textContent = '共 '+filtered.length+' 条';
+  var html = '';
+  filtered.forEach(function(d){
+    html += '<tr>';
+    html += '<td class="font-medium text-ink-title">'+d.name+'</td>';
+    html += '<td class="text-ink-sub text-[12px] max-w-[180px] truncate" title="'+d.addr+'">'+d.addr+'</td>';
+    html += '<td>'+d.type+'</td>';
+    html += '<td class="font-mono">¥'+d.fee+'.00</td>';
+    html += '<td class="text-[12px]">'+d.eta+'</td>';
+    html += '<td>'+getEnabledBadge(d.enabled)+'</td>';
+    html += '<td>';
+    html += '<button class="btn btn-sm btn-default" onclick="editDest(\''+d.id+'\')" style="margin-right:6px;">编辑</button>';
+    html += '<button class="btn btn-sm btn-default" onclick="toggleDest(\''+d.id+'\')">'+(d.enabled?'停用':'启用')+'</button>';
+    html += '<button class="btn btn-sm btn-ghost" onclick="deleteDest(\''+d.id+'\')">删除</button>';
+    html += '</td></tr>';
+  });
+  document.getElementById('destTbody').innerHTML = html;
+  lucide.createIcons();
+}
+
+function resetDestFilters() {
+  document.getElementById('destTypeFilter').value = '';
+  document.getElementById('destStatusFilter').value = '';
+  document.getElementById('destSearch').value = '';
+  renderDestTable();
+}
+
+function openDestModal(id) {
+  editingDestId = id || null;
+  document.getElementById('destModalTitle').textContent = id ? '编辑目的地' : '新增目的地';
+  if (id) {
+    var d = destinations.find(function(x){return x.id===id;});
+    document.getElementById('destName').value = d.name;
+    document.getElementById('destAddr').value = d.addr;
+    document.getElementById('destType').value = d.type;
+    document.getElementById('destFee').value = d.fee;
+    document.getElementById('destEta').value = d.eta;
+    document.getElementById('destEnabled').checked = d.enabled;
+  } else {
+    ['destName','destAddr','destFee','destEta'].forEach(function(f){document.getElementById(f).value='';});
+    document.getElementById('destType').value = '';
+    document.getElementById('destEnabled').checked = true;
+  }
+  document.getElementById('destModalOverlay').classList.add('show');
+}
+
+function closeDestModal() {
+  document.getElementById('destModalOverlay').classList.remove('show');
+  editingDestId = null;
+}
+
+function saveDest() {
+  var name = document.getElementById('destName').value.trim();
+  var addr = document.getElementById('destAddr').value.trim();
+  var type = document.getElementById('destType').value;
+  var fee = document.getElementById('destFee').value.trim();
+  var eta = document.getElementById('destEta').value.trim();
+  if (!name||!addr||!type||!fee||!eta) { alert('请填写所有必填字段'); return; }
+  var enabled = document.getElementById('destEnabled').checked;
+
+  if (editingDestId) {
+    var d = destinations.find(function(x){return x.id===editingDestId;});
+    d.name=name;d.addr=addr;d.type=type;d.fee=parseFloat(fee);d.eta=eta;d.enabled=enabled;
+  } else {
+    destinations.push({ id:'d'+(destinations.length+1), name:name, addr:addr, type:type, fee:parseFloat(fee), eta:eta, enabled:enabled });
+  }
+  closeDestModal();
+  renderDestTable();
+}
+
+function editDest(id) { openDestModal(id); }
+
+function toggleDest(id) {
+  var d = destinations.find(function(x){return x.id===id;});
+  if (d.enabled) {
+    if (!confirm('停用后用户端寄送将不展示"' + d.name + '"，确认停用？')) return;
+  }
+  d.enabled = !d.enabled;
+  renderDestTable();
+}
+
+function deleteDest(id) {
+  var d = destinations.find(function(x){return x.id===id;});
+  if (!confirm('确认删除"' + d.name + '"？\n\n将采用软删除：从用户端与可选清单移除，后台保留记录，历史订单关联不丢失。')) return;
+  d.enabled = false;
+  d._deleted = true;
+  renderDestTable();
+}
+
+/* ================================================================
+   TAB 3: PERMISSION MANAGEMENT
+   ================================================================ */
+function getRoleBadge(role) {
+  return role==='管理员' ? '<span class="badge badge-info">管理员</span>' : '<span class="badge badge-muted">运营员</span>';
+}
+
+function renderAcctTable() {
+  document.getElementById('acctCount').textContent = '共 '+accounts.length+' 个账号';
+  var html = '';
+  accounts.forEach(function(a){
+    html += '<tr>';
+    html += '<td class="font-mono text-ink-body">'+a.username+'</td>';
+    html += '<td class="text-ink-body">'+a.label+'</td>';
+    html += '<td>'+getRoleBadge(a.role)+'</td>';
+    html += '<td>'+getEnabledBadge(a.enabled)+'</td>';
+    html += '<td class="font-mono text-[12px] text-ink-muted">'+a.createdAt+'</td>';
+    html += '<td>';
+    html += '<button class="btn btn-sm btn-default" onclick="editAcct(\''+a.id+'\')" style="margin-right:4px;">编辑</button>';
+    html += '<button class="btn btn-sm btn-default" onclick="toggleAcct(\''+a.id+'\')" style="margin-right:4px;">'+(a.enabled?'停用':'启用')+'</button>';
+    html += '<button class="btn btn-sm btn-default" onclick="resetPwd(\''+a.id+'\')">重置密码</button>';
+    html += '</td></tr>';
+  });
+  document.getElementById('acctTbody').innerHTML = html;
+  lucide.createIcons();
+}
+
+function openAccountModal(id) {
+  editingAcctId = id || null;
+  document.getElementById('acctModalTitle').textContent = id ? '编辑账号' : '新增账号';
+  document.getElementById('acctPwdRow').style.display = id ? 'none' : 'flex';
+  if (id) {
+    var a = accounts.find(function(x){return x.id===id;});
+    document.getElementById('acctName').value = a.username;
+    document.getElementById('acctName').disabled = true;
+    document.getElementById('acctLabel').value = a.label;
+    document.getElementById('acctRole').value = a.role;
+    document.getElementById('acctEnabled').checked = a.enabled;
+  } else {
+    document.getElementById('acctName').disabled = false;
+    ['acctName','acctLabel','acctPwd'].forEach(function(f){document.getElementById(f).value='';});
+    document.getElementById('acctRole').value = '';
+    document.getElementById('acctEnabled').checked = true;
+  }
+  document.getElementById('acctModalOverlay').classList.add('show');
+}
+
+function closeAcctModal() {
+  document.getElementById('acctModalOverlay').classList.remove('show');
+  editingAcctId = null;
+}
+
+function saveAcct() {
+  var name = document.getElementById('acctName').value.trim();
+  var label = document.getElementById('acctLabel').value.trim();
+  var role = document.getElementById('acctRole').value;
+  var pwd = document.getElementById('acctPwd').value;
+  if (!name||!label||!role) { alert('请填写所有必填字段'); return; }
+  if (!editingAcctId) {
+    if (!pwd) { alert('请输入初始密码'); return; }
+    if (pwd.length < 8 || !/[a-zA-Z]/.test(pwd) || !/[0-9]/.test(pwd)) { alert('密码至少8位，含字母+数字'); return; }
+  }
+  var enabled = document.getElementById('acctEnabled').checked;
+
+  if (editingAcctId) {
+    var a = accounts.find(function(x){return x.id===editingAcctId;});
+    a.label=label;a.role=role;a.enabled=enabled;
+  } else {
+    accounts.push({ id:'a'+(accounts.length+1), username:name, label:label, role:role, enabled:enabled, createdAt:new Date().toISOString().slice(0,16).replace('T',' ') });
+  }
+  closeAcctModal();
+  renderAcctTable();
+}
+
+function editAcct(id) { openAccountModal(id); }
+
+function toggleAcct(id) {
+  var a = accounts.find(function(x){return x.id===id;});
+  if (a.enabled && a.role==='管理员') {
+    var admins = accounts.filter(function(x){return x.role==='管理员'&&x.enabled;});
+    if (admins.length <= 1) { alert('不可停用最后一个管理员，避免锁死系统。'); return; }
+  }
+  a.enabled = !a.enabled;
+  renderAcctTable();
+}
+
+function resetPwd(id) {
+  var a = accounts.find(function(x){return x.id===id;});
+  if (!confirm('确认重置"' + a.username + '"的密码？\n\n重置后将生成临时密码，用户首次登录需修改。')) return;
+  alert('密码已重置！\n\n临时密码：YK'+Math.random().toString(36).slice(-6).toUpperCase()+'\n账号：'+a.username+'\n\n请告知用户，首次登录须修改密码。');
+}
+
+/* ================================================================
+   MENU SELECT
+   ================================================================ */
+function menuSelect(el){if(el.classList.contains('l1'))handleL1(el);else if(el.classList.contains('l2'))handleL2(el);}
+function handleL1(el){var s=el.getAttribute('data-sub');if(s)handleL1Toggle(el,s);else selectL1NoChildren(el);}
+function handleL1Toggle(el,sid){var sub=document.getElementById(sid);if(!sub)return;var a=el.querySelector('.menu-arrow');if(!sub.classList.contains('collapsed')){sub.classList.add('collapsed');if(a)a.classList.remove('open');if(!sub.querySelector('.menu-item.active-l2'))el.classList.remove('active-l1');}else{collapseAllExcept(sid);sub.classList.remove('collapsed');if(a)a.classList.add('open');if(sub.querySelector('.menu-item.active-l2'))el.classList.add('active-l1');}}
+function selectL1NoChildren(el){collapseAllExcept(null);clearAllActive();if(!el.classList.contains('active-l1')){el.classList.add('active-l1');navigateToPage(el.getAttribute('data-page'));}}
+function handleL2(el){var ps=el.closest('.submenu'),pid=ps?ps.id:null;collapseAllExcept(pid);if(ps&&ps.classList.contains('collapsed'))ps.classList.remove('collapsed');clearAllActive();el.classList.add('active-l2');var pl=findParentL1BySubId(pid);if(pl){pl.classList.add('active-l1');var a=pl.querySelector('.menu-arrow');if(a)a.classList.add('open');}navigateToPage(el.getAttribute('data-page'));}
+function collapseAllExcept(k){document.querySelectorAll('.submenu').forEach(function(s){if(s.id===k)return;if(s.classList.contains('collapsed'))return;s.classList.add('collapsed');var l=findParentL1BySubId(s.id);if(l){var a=l.querySelector('.menu-arrow');if(a)a.classList.remove('open');if(!s.querySelector('.menu-item.active-l2'))l.classList.remove('active-l1');}});}
+function clearAllActive(){document.querySelectorAll('.menu-item').forEach(function(i){i.classList.remove('active-l1','active-l2');});}
+function findParentL1BySubId(id){return id?document.querySelector('.menu-item.l1[data-sub="'+id+'"]'):null;}
+function navigateToPage(p){if(!p)return;var f=p.split("/").pop(),c=window.location.pathname.split("/").pop();if(f===c)return;if(p.endsWith('.html'))window.location.href=p;else{document.getElementById('mainContent').innerHTML='<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6"><h2 class="text-[16px] font-semibold text-ink-title mb-2">'+p+'</h2><p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p></div></div>';}}
+function navigate(url){if(url==='#')return;var f=url.split("/").pop(),c=window.location.pathname.split("/").pop();if(f===c)return;window.location.href=url;}
+function toggleSidebar(){var s=document.getElementById('sidebar'),o=document.getElementById('sidebarOverlay');s.classList.toggle('open');o.classList.toggle('show');}
+
+/* ================================================================
+   PORTAL ANNOTATION SYSTEM
+   ================================================================ */
+var annotations = {
+  1: { title: '运营配置页面标题', desc: ['整模块仅管理员可见可操作','运营员侧边导航不展示"运营配置"','点击 logo 可返回 index.html']},
+  2: { title: '模块定位', desc: ['参数中枢：集中管理价格、目的地、权限','变更留痕：配置变更记录操作人/时间/前后值，不可删除，供审计','全局生效：价格保存即全局生效，影响用户端下单/退款/对账']},
+  3: { title: '子页Tab切换', desc: ['价格配置：短租/长租分档价、超时费率、退款规则参数（计费单一事实来源）','目的地配置：行李寄送固定目的地清单 CRUD','权限管理：后台账号与角色管理','仅管理员可操作所有子页']},
+  4: { title: '短租价格配置', desc: ['按柜型三档：小格口/中格口/大格口','每档可编辑：单价（元/小时）+ 每24h封顶（元）','输入校验：正数、封顶 ≥ 单价','全局统一一套价（一期不按柜机差异化，V2）','修改影响用户端下单、收费规则弹窗、订单退款、对账']},
+  5: { title: '长租价格配置', desc: ['按柜型三档月租（元/月）','每月按 31 天计','可编辑数字输入，带单位']},
+  6: { title: '超时费率配置', desc: ['短租超时：计费单位（按小时）+ 进位规则（不足1小时按1小时/不足30分钟等）','长租超时：按短租单价 × 24h 封顶值计算','可配参数：计费上限开关及封顶值']},
+  7: { title: '退款规则参数', desc: ['短租退款：全额退时限（分钟）+ 退款算法（实付−使用时长费用）','长租退款：全额退时限 + 整月退费开关','长租不足整月比例阶梯：可增删行的表格，每行含天数阈值和退款比例%','阶梯示例：≤1天50% / 1-2天30% / 2-3天10% / 3-31天不退','各时段区间与比例均可配，不写死档位']},
+  8: { title: '保存与变更留痕', desc: ['保存触发二次确认弹窗：提示"立即全局生效"影响面','确认保存：记录变更留痕（操作人、时间、变更前后对比），不可删除','变更记录入口：查看完整变更历史','生效方式：立即生效 / 定时生效（指定未来时间点）']},
+  9: { title: '目的地筛选/搜索', desc: ['按类型筛选：酒店/车站/景区/其他','按启用状态筛选','按名称搜索','重置清空所有筛选条件']},
+  10: { title: '目的地列表表格', desc: ['列：名称/地址/类型/服务费/预计时效/启用状态/操作','启用/停用：停用后用户端寄送即时隐藏该目的地','编辑：弹窗回填修改','删除：二次确认后软删除（后台保留记录，历史订单关联不丢失）']},
+  11: { title: '权限管理操作', desc: ['新增账号：填写账号/姓名/角色/初始密码','角色：管理员（全部功能） / 运营员（不可见运营配置与权限管理、不可见收入）','仅管理员可操作权限管理']},
+  12: { title: '账号列表表格', desc: ['列：账号/姓名/角色/状态/创建时间/操作','编辑：修改姓名、角色','启用/停用：停用后该账号不可登录；不可停用自己或最后一个管理员','重置密码：二次确认后生成临时密码，首次登录须修改','密码策略：至少8位、含字母+数字、首次登录建议强制改密']},
+  13: { title: '目的地新增/编辑弹窗', desc: ['字段：名称（必填）/ 地址（必填）/ 类型（必填）/ 服务费（必填，元）/ 预计时效（必填）/ 启用状态（默认启用）','保存后即时生效']},
+  14: { title: '账号新增/编辑弹窗', desc: ['新增：账号/姓名/角色/初始密码（必填）','编辑：修改姓名/角色，不可改账号名','密码复杂度校验：至少8位、含字母+数字','重置密码：管理员触发，生成临时密码']}
+};
+
+var annoVisible = true;
+function renderAnnoBadges(){
+  var l=document.getElementById('annoLayer');l.innerHTML='';if(!annoVisible)return;var vw=window.innerWidth;
+  document.querySelectorAll('[data-anno]').forEach(function(el){
+    var id=el.getAttribute('data-anno');if(el.offsetParent===null&&el.tagName!=='BODY')return;
+    var t=resolveAnnoTarget(el,vw),r=t.getBoundingClientRect();if(r.width===0&&r.height===0)return;
+    var b=document.createElement('div');b.className='anno-portal-badge';b.textContent=id;
+    b.style.top=(r.top-10)+'px';b.style.left=(r.right-10)+'px';
+    b.addEventListener('click',function(e){e.stopPropagation();showAnnoPopup(id);});l.appendChild(b);
+  });
+}
+function resolveAnnoTarget(el,vw){var r=el.getBoundingClientRect();if(r.width<800||r.width<vw*0.7)return el;var inner=el.querySelector('h1,h2,h3,h4,h5,h6,button,.btn,input,select,.card-title,[class*="title"]');if(inner){var ir=inner.getBoundingClientRect();if(ir.width<r.width*0.8)return inner;}var first=el.firstElementChild;if(first){var fr=first.getBoundingClientRect();if(fr.width<r.width*0.9)return first;}return el;}
+function showAnnoPopup(id){var a=annotations[id];if(!a)return;document.getElementById('annoPopupTitle').textContent='#'+id+' '+a.title;document.getElementById('annoPopupBody').innerHTML=a.desc.map(function(d){return'<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>'+d+'</span></li>';}).join('');var box=document.getElementById('annoPopupBox');box.style.top='50%';box.style.left='50%';box.style.transform='translate(-50%,-50%)';document.getElementById('annoPopup').classList.remove('hidden');}
+function closeAnnoPopup(){document.getElementById('annoPopup').classList.add('hidden');}
+var popupDrag={offX:0,offY:0,moved:false};
+function startDragPopup(e){if(e.target.closest('button'))return;popupDrag.moved=false;var box=document.getElementById('annoPopupBox'),r=box.getBoundingClientRect();popupDrag.offX=e.clientX-r.left;popupDrag.offY=e.clientY-r.top;document.addEventListener('mousemove',onDragPopup);document.addEventListener('mouseup',stopDragPopup);}
+function onDragPopup(e){var dx=Math.abs(e.clientX-popupDrag.offX-document.getElementById('annoPopupBox').getBoundingClientRect().left);if(dx<3&&!popupDrag.moved)return;popupDrag.moved=true;var box=document.getElementById('annoPopupBox');box.style.transform='none';box.style.top=Math.max(0,Math.min(window.innerHeight-100,e.clientY-popupDrag.offY))+'px';box.style.left=Math.max(0,Math.min(window.innerWidth-100,e.clientX-popupDrag.offX))+'px';document.getElementById('annoPopupDrag').style.cursor='grabbing';}
+function stopDragPopup(){document.removeEventListener('mousemove',onDragPopup);document.removeEventListener('mouseup',stopDragPopup);var h=document.getElementById('annoPopupDrag');if(h)h.style.cursor='grab';}
+document.getElementById('annoToggle').addEventListener('click',function(e){if(this.dataset.dragging==='1')return;annoVisible=!annoVisible;if(annoVisible){document.body.classList.remove('anno-hidden');document.getElementById('annoToggleIcon').setAttribute('data-lucide','eye');}else{document.body.classList.add('anno-hidden');document.getElementById('annoToggleIcon').setAttribute('data-lucide','eye-off');}lucide.createIcons({attrs:{class:'w-[13px] h-[13px]'}});renderAnnoBadges();});
+var dragToggleY=0,dragToggleMoved=false;
+function startDragToggle(e){dragToggleY=e.clientY;dragToggleMoved=false;document.addEventListener('mousemove',onDragToggle);document.addEventListener('mouseup',stopDragToggle);e.preventDefault();}
+function onDragToggle(e){if(Math.abs(e.clientY-dragToggleY)<5)return;dragToggleMoved=true;var w=document.getElementById('annoToggle');w.style.top=Math.max(60,Math.min(window.innerHeight-60,e.clientY-20))+'px';w.style.right='8px';w.style.cursor='grabbing';}
+function stopDragToggle(){document.removeEventListener('mousemove',onDragToggle);document.removeEventListener('mouseup',stopDragToggle);var w=document.getElementById('annoToggle');if(w){w.style.cursor='grab';w.dataset.dragging=dragToggleMoved?'1':'';}}
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded',function(){
+  lucide.createIcons();
+  renderRefundTiers();
+  renderDestTable();
+  renderAcctTable();
+  renderAnnoBadges();
+  document.getElementById('mainContent').addEventListener('scroll',renderAnnoBadges);
+  window.addEventListener('resize',renderAnnoBadges);
+});
+</script>
+</body>
+</html>

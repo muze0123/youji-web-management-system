@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>对账中心 - 游寄后台管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+  <style>
+    body{overflow:hidden;}
+    /* Sidebar */
+    .menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+    .menu-item:hover{background:#F3F4F6;}
+    .menu-item.l1{padding-left:20px;font-weight:500;}
+    .menu-item.l2{padding-left:64px;font-size:13px;}
+    .menu-item.active-l1{color:#0066FF;}
+    .menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+    .menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+    .active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+    .menu-arrow.open{transform:rotate(180deg);}
+    .submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+    .submenu.collapsed{max-height:0!important;opacity:0;}
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;}
+    .btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+    .btn-primary:hover{background:#0052CC;}
+    .btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+    .btn-default:hover{border-color:#0066FF;color:#0066FF;}
+    .btn-sm{height:28px;padding:0 10px;font-size:12px;}
+    .btn-danger{background:#D9001B;color:#fff;border-color:#D9001B;}
+    .btn-danger:hover{background:#B80015;}
+    /* Data table */
+    .data-table{width:100%;border-collapse:collapse;font-size:13px;}
+    .data-table thead th{background:#F0F1F3;color:#6E7685;font-weight:600;font-size:12px;padding:9px 12px;text-align:left;border-bottom:1px solid #DFE1E5;white-space:nowrap;}
+    .data-table tbody td{padding:9px 12px;color:#3A3F4A;border-bottom:1px solid #E8EAED;}
+    .data-table tbody tr{transition:background .12s;}
+    .data-table tbody tr:hover{background:#F3F4F6;}
+    .data-table tbody tr.row-warning{background:#FFFCF5;}
+    .data-table tbody tr.row-warning:hover{background:#FDF2E9;}
+    .data-table tbody tr.row-danger{background:#FFF5F5;}
+    .data-table tbody tr.row-danger:hover{background:#FFE8EB;}
+    /* Badge */
+    .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:500;white-space:nowrap;}
+    .badge-success{color:#0FC060;background:#E7F9F0;}
+    .badge-warning{color:#E7772D;background:#FDF2E9;}
+    .badge-danger{color:#D9001B;background:#FFE8EB;}
+    .badge-muted{color:#9DA2AC;background:#F0F1F3;}
+    .badge-info{color:#0091D5;background:#E4F4FB;}
+    /* KPI card */
+    .kpi-card{border-radius:6px;border:1px solid #E8EAED;background:#fff;padding:14px 18px;transition:box-shadow .15s;}
+    .kpi-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06);}
+    .kpi-card.diff-highlight{border-color:#D9001B;background:#FFFAFA;}
+    /* Filter */
+    .filter-input{font-family:inherit;font-size:13px;height:32px;padding:0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+    .filter-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .filter-input::placeholder{color:#9DA2AC;}
+    .select-wrap{position:relative;display:inline-flex;align-items:center;}
+    .select-wrap::after{content:'▼';position:absolute;right:10px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+    .filter-select{font-family:inherit;font-size:13px;height:32px;padding:0 28px 0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;}
+    /* Topbar */
+    .topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
+    .topbar-btn:hover{background:#E6F0FF;}
+    .topbar-btn:hover svg{stroke:#0066FF;}
+    .badge-dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:600;line-height:18px;text-align:center;}
+    /* Date input */
+    input[type="date"]{font-family:inherit;font-size:13px;height:32px;padding:0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;background:#fff;}
+    input[type="date"]:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    /* Transition badge */
+    .transition-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;background:#E4F4FB;color:#0091D5;font-weight:500;}
+    /* Sync indicator */
+    .sync-indicator{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#9DA2AC;padding:2px 8px;border-radius:4px;background:#F7F8FA;}
+    .sync-dot{width:6px;height:6px;border-radius:50%;}
+    .sync-dot.synced{background:#0FC060;}
+    .sync-dot.unsynced{background:#E7772D;}
+    /* Drawer */
+    .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1100;display:none;}
+    .drawer-overlay.show{display:block;}
+    .drawer{position:fixed;top:0;right:0;bottom:0;width:900px;max-width:100%;background:#fff;z-index:1101;box-shadow:-4px 0 24px rgba(0,0,0,.1);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease;}
+    .drawer.open{transform:translateX(0);}
+    .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #DFE1E5;flex-shrink:0;}
+    .drawer-body{flex:1;overflow-y:auto;padding:24px;}
+    .drawer-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:16px 24px;border-top:1px solid #DFE1E5;flex-shrink:0;}
+    /* Dialog */
+    .dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1300;display:none;align-items:center;justify-content:center;}
+    .dialog-overlay.show{display:flex;}
+    .dialog{width:600px;max-width:92vw;background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);display:flex;flex-direction:column;animation:ds-modal-in .15s ease;}
+    @keyframes ds-modal-in{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+    .dialog-body{flex:1;overflow-y:auto;padding:24px;}
+    .dialog-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 24px 20px;flex-shrink:0;}
+    /* Form */
+    .form-label{font-size:13px;color:#6E7685;text-align:right;line-height:30px;}
+    .form-label::after{content:'：';}
+    .form-input{font-family:inherit;font-size:13px;height:30px;padding:0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;width:400px;}
+    .form-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .form-select{font-family:inherit;font-size:13px;height:30px;padding:0 28px 0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;outline:none;width:400px;appearance:none;-webkit-appearance:none;}
+    .form-textarea{font-family:inherit;font-size:13px;padding:8px 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;width:400px;resize:vertical;min-height:60px;}
+    .form-textarea:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .field-req{color:#D9001B;margin-left:2px;}
+    /* Detail section header */
+    .detail-section{margin-bottom:24px;}
+    .detail-section h3{font-size:14px;font-weight:600;color:#1A1D24;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #E8EAED;display:flex;align-items:center;gap:6px;}
+    /* Portal annotation */
+    .anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
+    .anno-portal-badge:hover{transform:scale(1.2);}
+    .anno-hidden .anno-portal-badge{display:none;}
+    /* Responsive */
+    @media(max-width:768px){
+      .sidebar{display:none;}
+      .sidebar.open{display:flex;position:fixed;top:56px;left:0;bottom:0;z-index:50;}
+      .sidebar-overlay{display:none;}
+      .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;}
+    }
+  </style>
+</head>
+<body class="font-sans flex flex-col h-screen">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-4 md:px-6 flex-shrink-0 gap-3">
+  <button class="topbar-btn md:hidden" onclick="toggleSidebar()" title="菜单"><i data-lucide="menu" class="w-[18px] h-[18px]"></i></button>
+  <div class="flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigate('index.html')">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div>
+    <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
+  </div>
+  <div class="ml-auto flex items-center gap-3 md:gap-5">
+    <button class="topbar-btn" title="任务列表" onclick="navigate('任务中心.html')"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i><span class="badge-dot" id="taskBadge" style="display:none;">0</span></button>
+    <button class="topbar-btn" title="消息中心" onclick="navigate('消息中心.html')"><i data-lucide="bell" class="w-[18px] h-[18px]"></i><span class="badge-dot" id="msgBadge">5</span></button>
+    <button class="topbar-btn" title="账号信息" onclick="navigate('账号信息.html')"><i data-lucide="user" class="w-[18px] h-[18px]"></i></button>
+  </div>
+</header>
+
+<!-- ===== BODY: SIDEBAR + CONTENT ===== -->
+<div class="flex flex-1 min-h-0">
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+    <div class="menu-item l1" data-page="工作台.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台</div>
+    <div class="menu-item l1" data-page="数据概览.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览</div>
+    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理</div>
+    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单</div>
+    <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控</div>
+    <!-- 对账中心（当前页） -->
+    <div class="menu-item l1 active-l1" data-page="对账中心.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心</div>
+    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置</div>
+    <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置<span class="menu-arrow">▼</span></div>
+    <div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
+      <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
+      <div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div>
+      <div class="menu-item l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div>
+      <div class="menu-item l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div>
+      <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
+    <div class="p-4">
+
+      <!-- ===== 区块A: 页面头 ===== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <div class="text-[12px] text-ink-muted mb-1">对账中心</div>
+            <h1 class="text-[22px] font-bold text-ink-title inline-block" data-anno="1">对账中心</h1>
+            <span class="transition-tag ml-2 align-middle" data-anno="2">过渡方案 · 只对账不结算</span>
+          </div>
+          <button class="btn btn-default btn-sm" onclick="exportCSV()" data-anno="3">
+            <i data-lucide="download" class="w-[13px] h-[13px]"></i> 导出 CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== 区块B: 日期范围与同步 ===== -->
+      <div class="bg-white rounded-lg border border-line p-4 mb-4" data-anno="4">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="text-[13px] text-ink-sub font-medium">对账周期</span>
+          <input type="date" id="dateFrom" value="2026-06-29" onchange="onDateChange()" class="filter-input" style="width:140px;">
+          <span class="text-[13px] text-ink-muted">至</span>
+          <input type="date" id="dateTo" value="2026-07-05" onchange="onDateChange()" class="filter-input" style="width:140px;">
+          <span class="text-[11px] text-warning flex items-center gap-1" id="dateHint"><i data-lucide="alert-circle" class="w-[12px] h-[12px]"></i> 单次≤7天</span>
+          <button class="btn btn-primary btn-sm" onclick="syncData()" id="btnSync">
+            <i data-lucide="refresh-cw" class="w-[13px] h-[13px]"></i> 同步小铁数据
+          </button>
+          <span class="sync-indicator ml-auto" id="syncStatus">
+            <span class="sync-dot unsynced" id="syncDot"></span>
+            <span id="syncLabel">待同步</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- ===== 区块C: 汇总概览条 ===== -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4" data-anno="5" id="kpiRow">
+        <div class="kpi-card"><div class="text-[12px] text-ink-sub mb-1">总订单数</div><div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiOrders">--</div></div>
+        <div class="kpi-card"><div class="text-[12px] text-ink-sub mb-1">本地合计</div><div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiLocal">--</div></div>
+        <div class="kpi-card"><div class="text-[12px] text-ink-sub mb-1">小铁合计</div><div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiXt">--</div></div>
+        <div class="kpi-card" id="kpiDiffCard"><div class="text-[12px] text-ink-sub mb-1">差异合计</div><div class="text-[24px] font-semibold font-mono" id="kpiDiff">--</div></div>
+        <div class="kpi-card" id="kpiDiffCntCard"><div class="text-[12px] text-ink-sub mb-1">差异笔数</div><div class="text-[24px] font-semibold font-mono" id="kpiDiffCnt">--</div></div>
+      </div>
+
+      <!-- ===== 区块D: 按日汇总表 ===== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4" data-anno="6">
+        <div class="overflow-x-auto">
+          <table class="data-table" id="summaryTable">
+            <thead>
+              <tr>
+                <th>对账日期</th>
+                <th style="text-align:right;">订单数</th>
+                <th style="text-align:right;">本地金额（元）</th>
+                <th style="text-align:right;">小铁金额（元）</th>
+                <th style="text-align:right;">差异金额（元）</th>
+                <th style="text-align:right;">退款金额（元）</th>
+                <th>差异状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="summaryTbody"></tbody>
+          </table>
+        </div>
+        <div id="emptySummary" class="hidden flex flex-col items-center justify-center py-16 text-center">
+          <i data-lucide="file-search" class="w-[48px] h-[48px] text-ink-muted mb-3"></i>
+          <p class="text-[14px] text-ink-sub mb-1">请先同步小铁数据</p>
+          <p class="text-[12px] text-ink-muted">选择日期范围后点击"同步小铁数据"拉取对账信息</p>
+        </div>
+      </div>
+
+      <!-- ===== 区块E: 分页 ===== -->
+      <div class="flex items-center justify-between flex-wrap gap-4 bg-white rounded-lg border border-line px-5 py-3" id="pagination">
+        <div class="flex items-center gap-1" id="pgNav"></div>
+        <div class="flex items-center gap-3">
+          <span class="text-[12px] text-ink-muted" id="pgStats"></span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ===== DETAIL DRAWER (当日明细下钻) ===== -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDetailDrawer()"></div>
+<div class="drawer" id="detailDrawer">
+  <div class="drawer-header">
+    <h2 class="text-[16px] font-semibold text-ink-title flex items-center gap-2">
+      <i data-lucide="search" class="w-[18px] h-[18px] text-primary"></i>
+      <span id="drawerTitle">当日明细</span>
+    </h2>
+    <button onclick="closeDetailDrawer()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-footer">
+    <button class="btn btn-default" onclick="closeDetailDrawer()">关闭</button>
+  </div>
+</div>
+
+<!-- ===== DIFF MARK DIALOG (差异标记弹窗) ===== -->
+<div class="dialog-overlay" id="diffDialogOverlay" onclick="closeDiffDialog()">
+  <div class="dialog" onclick="event.stopPropagation()" data-anno="13">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;">
+      <h3 class="text-[16px] font-semibold text-ink-title flex items-center gap-2"><i data-lucide="flag" class="w-[18px] h-[18px] text-warning"></i> 差异标记</h3>
+      <button onclick="closeDiffDialog()" style="position:static;font-size:20px;color:#9DA2AC;cursor:pointer;background:none;border:none;line-height:1;">×</button>
+    </div>
+    <div class="dialog-body">
+      <div class="flex items-center mb-4"><span class="form-label" style="width:90px;">差异对象</span><span class="text-[13px] text-ink-body font-mono" id="diffObj">--</span></div>
+      <div class="flex items-center mb-4"><span class="form-label" style="width:90px;">差异金额</span><span class="text-[13px] font-mono font-semibold" id="diffAmt" style="color:#D9001B;">--</span></div>
+      <div class="flex items-center mb-4"><span class="form-label" style="width:90px;">核查结论</span><span class="field-req">*</span>
+        <div class="select-wrap"><select class="form-select" id="diffConclusion" style="width:300px;"><option value="">请选择</option><option value="pending">待核查</option><option value="confirmed">已确认</option></select></div>
+      </div>
+      <div class="flex items-start mb-4"><span class="form-label" style="width:90px;line-height:30px;">差异原因</span><span class="field-req" style="line-height:30px;">*</span>
+        <div class="select-wrap"><select class="form-select" id="diffReason" style="width:300px;"><option value="">请选择</option><option value="refund_gap">退款时间差</option><option value="sync_delay">同步延迟</option><option value="missing_order">漏单</option><option value="amount_mismatch">金额口径差异</option><option value="other">其他</option></select></div>
+      </div>
+      <div class="flex items-start"><span class="form-label" style="width:90px;">备注</span><textarea class="form-textarea" id="diffRemark" placeholder="补充说明（选填）" style="width:300px;min-height:60px;"></textarea></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-default" onclick="closeDiffDialog()">取消</button>
+      <button class="btn btn-primary" onclick="submitDiffMark()" id="btnSubmitDiff">提交标记</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PORTAL ANNOTATION LAYER ===== -->
+<div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
+<div id="annoToggle" class="fixed z-[150]" style="right:8px;bottom:40px;cursor:grab;" onmousedown="startDragToggle(event)">
+  <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] bg-white/90 backdrop-blur text-primary border border-primary/30 shadow-sm"><i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i> 标注</div>
+</div>
+<div id="annoPopup" class="hidden fixed inset-0 z-[9999]" style="background:rgba(0,0,0,.2);" onclick="closeAnnoPopup()">
+  <div id="annoPopupBox" class="fixed bg-white rounded-lg shadow-xl p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto" style="top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 12px 40px rgba(0,0,0,.18);" onclick="event.stopPropagation()">
+    <button onclick="closeAnnoPopup()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted z-10"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+    <div id="annoPopupDrag" class="flex items-center gap-2 mb-3 select-none" style="cursor:grab;" onmousedown="startDragPopup(event)"><i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i><h3 id="annoPopupTitle" class="text-[16px] font-semibold text-ink-title"></h3></div>
+    <ul id="annoPopupBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   MOCK DATA
+   ================================================================ */
+var rawSummary = [
+  { date:'2026-06-29', orderCnt:182, localAmt:4856.50, xtAmt:4856.50, refundAmt:120.00, diffStatus:'一致' },
+  { date:'2026-06-30', orderCnt:201, localAmt:5234.00, xtAmt:5189.50, refundAmt:245.00, diffStatus:'待核查' },
+  { date:'2026-07-01', orderCnt:176, localAmt:4612.80, xtAmt:4612.80, refundAmt:88.00, diffStatus:'一致' },
+  { date:'2026-07-02', orderCnt:198, localAmt:5120.00, xtAmt:5105.00, refundAmt:156.00, diffStatus:'待核查' },
+  { date:'2026-07-03', orderCnt:215, localAmt:5678.50, xtAmt:5678.50, refundAmt:210.00, diffStatus:'一致' },
+  { date:'2026-07-04', orderCnt:189, localAmt:4980.00, xtAmt:4912.00, refundAmt:178.00, diffStatus:'待核查' },
+  { date:'2026-07-05', orderCnt:143, localAmt:3725.00, xtAmt:3725.00, refundAmt:95.00, diffStatus:'一致' },
+];
+
+// Compute diff for each row
+var summaryData = rawSummary.map(function(r){
+  r.diffAmt = r.localAmt - r.xtAmt;
+  return r;
+});
+
+// Order-level detail data for drill-down
+var detailData = {
+  '2026-06-29': [
+    { orderNo:'YK20260629001', bizType:'寄存', source:'自有', localAmt:28.00, xtAmt:28.00, diff:0, status:'一致' },
+    { orderNo:'YK20260629002', bizType:'寄送', source:'小铁', localAmt:45.00, xtAmt:45.00, diff:0, status:'一致' },
+    { orderNo:'YK20260629003', bizType:'寄存', source:'自有', localAmt:12.50, xtAmt:12.50, diff:0, status:'一致' },
+    { orderNo:'YK20260629004', bizType:'寄存', source:'小铁', localAmt:35.00, xtAmt:35.00, diff:0, status:'一致' },
+    { orderNo:'YK20260629005', bizType:'寄送', source:'自有', localAmt:68.00, xtAmt:68.00, diff:0, status:'一致' },
+  ],
+  '2026-06-30': [
+    { orderNo:'YK20260630001', bizType:'寄存', source:'自有', localAmt:28.00, xtAmt:28.00, diff:0, status:'一致' },
+    { orderNo:'YK20260630002', bizType:'寄存', source:'小铁', localAmt:45.00, xtAmt:42.00, diff:3.00, status:'差异', diffType:'金额不一致' },
+    { orderNo:'YK20260630003', bizType:'寄送', source:'自有', localAmt:68.00, xtAmt:68.00, diff:0, status:'一致' },
+    { orderNo:'YK20260630004', bizType:'寄存', source:'小铁', localAmt:35.00, xtAmt:0, diff:35.00, status:'差异', diffType:'本地有小铁无' },
+    { orderNo:'YK20260630005', bizType:'寄存', source:'自有', localAmt:12.50, xtAmt:12.50, diff:0, status:'一致' },
+    { orderNo:'YK20260630006', bizType:'寄送', source:'小铁', localAmt:55.00, xtAmt:55.00, diff:0, status:'一致' },
+    { orderNo:'YK20260630007', bizType:'寄存', source:'自有', localAmt:22.00, xtAmt:21.50, diff:0.50, status:'差异', diffType:'金额不一致' },
+  ],
+  '2026-07-02': [
+    { orderNo:'YK20260702001', bizType:'寄存', source:'自有', localAmt:28.00, xtAmt:28.00, diff:0, status:'一致' },
+    { orderNo:'YK20260702002', bizType:'寄送', source:'小铁', localAmt:45.00, xtAmt:40.00, diff:5.00, status:'差异', diffType:'金额不一致' },
+    { orderNo:'YK20260702003', bizType:'寄存', source:'自有', localAmt:35.00, xtAmt:35.00, diff:0, status:'一致' },
+    { orderNo:'YK20260702004', bizType:'寄存', source:'自有', localAmt:22.00, xtAmt:0, diff:22.00, status:'差异', diffType:'本地有小铁无' },
+  ],
+  '2026-07-04': [
+    { orderNo:'YK20260704001', bizType:'寄存', source:'自有', localAmt:28.00, xtAmt:28.00, diff:0, status:'一致' },
+    { orderNo:'YK20260704002', bizType:'寄存', source:'小铁', localAmt:45.00, xtAmt:38.00, diff:7.00, status:'差异', diffType:'金额不一致' },
+    { orderNo:'YK20260704003', bizType:'寄送', source:'自有', localAmt:68.00, xtAmt:0, diff:68.00, status:'差异', diffType:'本地有小铁无' },
+    { orderNo:'YK20260704004', bizType:'寄存', source:'小铁', localAmt:55.00, xtAmt:55.00, diff:0, status:'一致' },
+  ]
+};
+
+// Generate detail data for consistent dates
+['2026-07-01','2026-07-03','2026-07-05'].forEach(function(d){
+  detailData[d] = [
+    { orderNo:'YK'+d.replace(/-/g,'')+'01', bizType:'寄存', source:'自有', localAmt:28.00, xtAmt:28.00, diff:0, status:'一致' },
+    { orderNo:'YK'+d.replace(/-/g,'')+'02', bizType:'寄送', source:'小铁', localAmt:45.00, xtAmt:45.00, diff:0, status:'一致' },
+    { orderNo:'YK'+d.replace(/-/g,'')+'03', bizType:'寄存', source:'自有', localAmt:35.00, xtAmt:35.00, diff:0, status:'一致' },
+  ];
+});
+
+/* ================================================================
+   STATE
+   ================================================================ */
+var synced = false;
+var currentDiffTarget = null; // { type:'day'|'order', date, orderNo, diffAmt }
+
+/* ================================================================
+   RENDER — Summary Table
+   ================================================================ */
+function getDiffStatusBadge(status) {
+  var m = { '一致':'badge-success', '待核查':'badge-warning', '已确认':'badge-muted' };
+  return '<span class="badge '+ (m[status]||'badge-muted') +'">'+status+'</span>';
+}
+
+function renderSummary() {
+  var tbody = document.getElementById('summaryTbody');
+  var empty = document.getElementById('emptySummary');
+  var pag = document.getElementById('pagination');
+
+  if (!synced) {
+    tbody.innerHTML = '';
+    empty.classList.remove('hidden');
+    pag.style.display = 'none';
+    resetKPIs();
+    return;
+  }
+
+  empty.classList.add('hidden');
+  pag.style.display = 'flex';
+
+  // Filter by date range
+  var from = document.getElementById('dateFrom').value;
+  var to = document.getElementById('dateTo').value;
+  var filtered = summaryData.filter(function(r){ return r.date >= from && r.date <= to; });
+
+  // Update KPIs
+  updateKPIs(filtered);
+
+  var html = '';
+  for (var i = 0; i < filtered.length; i++) {
+    var r = filtered[i];
+    var diffCls = r.diffAmt !== 0 ? 'row-warning' : '';
+    var diffColor = r.diffAmt > 0 ? 'text-danger' : (r.diffAmt < 0 ? 'text-warning' : 'text-ink-body');
+    var diffDisplay = r.diffAmt !== 0 ? '<span class="font-mono font-semibold '+diffColor+'">'+(r.diffAmt>0?'+':'')+r.diffAmt.toFixed(2)+'</span>' : '<span class="font-mono text-ink-muted">0.00</span>';
+
+    html += '<tr class="'+diffCls+'">';
+    html += '<td class="font-mono text-ink-body">'+r.date+'</td>';
+    html += '<td class="font-mono text-ink-body" style="text-align:right;">'+r.orderCnt+'</td>';
+    html += '<td class="font-mono text-ink-body" style="text-align:right;">¥'+r.localAmt.toFixed(2)+'</td>';
+    html += '<td class="font-mono text-ink-body" style="text-align:right;">¥'+r.xtAmt.toFixed(2)+'</td>';
+    html += '<td style="text-align:right;">'+diffDisplay+'</td>';
+    html += '<td class="font-mono text-ink-body" style="text-align:right;">¥'+r.refundAmt.toFixed(2)+'</td>';
+    html += '<td>'+getDiffStatusBadge(r.diffStatus)+'</td>';
+    html += '<td>';
+    html += '<button class="btn btn-sm btn-default" onclick="openDetail(\''+r.date+'\')" style="margin-right:8px;">查看明细</button>';
+    if (r.diffAmt !== 0 && r.diffStatus === '待核查') {
+      html += '<button class="btn btn-sm btn-default" onclick="openDiffMark(\'day\',\''+r.date+'\',null,'+r.diffAmt.toFixed(2)+')">标记差异</button>';
+    }
+    html += '</td>';
+    html += '</tr>';
+  }
+  tbody.innerHTML = html;
+  lucide.createIcons();
+  document.getElementById('pgStats').textContent = '共 '+filtered.length+' 条记录';
+  document.getElementById('pgNav').innerHTML = '';
+}
+
+function resetKPIs() {
+  ['kpiOrders','kpiLocal','kpiXt','kpiDiff','kpiDiffCnt'].forEach(function(id){
+    document.getElementById(id).textContent = '--';
+  });
+  document.getElementById('kpiDiff').style.color = '';
+  document.getElementById('kpiDiffCnt').style.color = '';
+}
+
+function updateKPIs(list) {
+  var totalOrders = list.reduce(function(s,r){return s+r.orderCnt;},0);
+  var totalLocal = list.reduce(function(s,r){return s+r.localAmt;},0);
+  var totalXt = list.reduce(function(s,r){return s+r.xtAmt;},0);
+  var totalDiff = totalLocal - totalXt;
+  var diffCnt = list.filter(function(r){return r.diffAmt !== 0;}).length;
+
+  document.getElementById('kpiOrders').textContent = totalOrders;
+  document.getElementById('kpiLocal').textContent = '¥'+totalLocal.toFixed(2);
+  document.getElementById('kpiXt').textContent = '¥'+totalXt.toFixed(2);
+  document.getElementById('kpiDiff').textContent = (totalDiff>=0?'+':'')+totalDiff.toFixed(2);
+  document.getElementById('kpiDiffCnt').textContent = diffCnt;
+
+  // Highlight diff
+  var diffEl = document.getElementById('kpiDiff');
+  var diffCntEl = document.getElementById('kpiDiffCnt');
+  if (totalDiff !== 0) {
+    diffEl.style.color = '#D9001B';
+    diffCntEl.style.color = '#D9001B';
+    document.getElementById('kpiDiffCard').classList.add('diff-highlight');
+    document.getElementById('kpiDiffCntCard').classList.add('diff-highlight');
+  } else {
+    diffEl.style.color = '';
+    diffCntEl.style.color = '';
+    document.getElementById('kpiDiffCard').classList.remove('diff-highlight');
+    document.getElementById('kpiDiffCntCard').classList.remove('diff-highlight');
+  }
+}
+
+/* ================================================================
+   ACTIONS — Sync, Export, Filter
+   ================================================================ */
+function syncData() {
+  var btn = document.getElementById('btnSync');
+  btn.disabled = true;
+  var icon = btn.querySelector('[data-lucide]');
+  icon.style.animation = 'spin 1s linear infinite';
+
+  // Validate date range ≤ 7 days
+  var from = new Date(document.getElementById('dateFrom').value);
+  var to = new Date(document.getElementById('dateTo').value);
+  var diffDays = Math.ceil((to - from) / (1000*60*60*24));
+  if (diffDays > 7) {
+    alert('小铁接口约束：单次同步时间范围不超过7天。请缩小日期范围。');
+    btn.disabled = false;
+    icon.style.animation = '';
+    return;
+  }
+
+  setTimeout(function(){
+    synced = true;
+    btn.disabled = false;
+    icon.style.animation = '';
+    document.getElementById('syncDot').classList.remove('unsynced');
+    document.getElementById('syncDot').classList.add('synced');
+    var now = new Date();
+    var ts = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('syncLabel').textContent = '最近同步：'+ts;
+    renderSummary();
+    lucide.createIcons();
+    if (annoVisible) renderAnnoBadges();
+  }, 1000);
+}
+
+function onDateChange() {
+  if (synced) renderSummary();
+}
+
+function exportCSV() {
+  if (!synced) { alert('请先同步小铁数据后再导出。'); return; }
+  alert('CSV 导出成功！\n\n导出内容：当前对账周期汇总数据\n用途：供财务与小铁结算单人工比对');
+}
+
+/* ================================================================
+   DETAIL DRAWER
+   ================================================================ */
+function openDetail(date) {
+  var orders = detailData[date] || [];
+  var summary = summaryData.find(function(r){return r.date===date;});
+  document.getElementById('drawerTitle').textContent = date + ' · 当日明细（'+orders.length+' 笔）';
+  document.getElementById('drawerOverlay').classList.add('show');
+  document.getElementById('detailDrawer').classList.add('open');
+
+  var body = document.getElementById('drawerBody');
+  var html = '';
+
+  // Day summary header
+  if (summary) {
+    html += '<div class="detail-section" data-anno="7">';
+    html += '<h3><i data-lucide="calendar" class="w-[16px] h-[16px] text-primary"></i>当日汇总</h3>';
+    html += '<div class="grid grid-cols-4 gap-3 mb-4">';
+    html += '<div class="text-center p-3 bg-bg-page rounded"><div class="text-[18px] font-semibold text-ink-title font-mono">'+summary.orderCnt+'</div><div class="text-[11px] text-ink-sub">订单数</div></div>';
+    html += '<div class="text-center p-3 bg-bg-page rounded"><div class="text-[18px] font-semibold text-ink-title font-mono">¥'+summary.localAmt.toFixed(2)+'</div><div class="text-[11px] text-ink-sub">本地金额</div></div>';
+    html += '<div class="text-center p-3 bg-bg-page rounded"><div class="text-[18px] font-semibold text-ink-title font-mono">¥'+summary.xtAmt.toFixed(2)+'</div><div class="text-[11px] text-ink-sub">小铁金额</div></div>';
+    var diffColor = summary.diffAmt !== 0 ? 'text-danger' : 'text-ink-title';
+    html += '<div class="text-center p-3 rounded" style="background:'+(summary.diffAmt!==0?'#FFE8EB':'#F7F8FA')+'"><div class="text-[18px] font-semibold font-mono '+diffColor+'">'+(summary.diffAmt>=0?'+':'')+summary.diffAmt.toFixed(2)+'</div><div class="text-[11px] text-ink-sub">差异</div></div>';
+    html += '</div></div>';
+  }
+
+  // Filter toggle
+  html += '<div class="flex items-center gap-3 mb-4" data-anno="8">';
+  html += '<label class="flex items-center gap-2 text-[13px] text-ink-body cursor-pointer"><input type="checkbox" id="filterDiffOnly" onchange="filterDetailDiff()"> 仅看差异</label>';
+  html += '<span class="text-[12px] text-ink-muted" id="detailDiffCnt"></span>';
+  html += '</div>';
+
+  // Order table
+  html += '<div class="overflow-x-auto" data-anno="9"><table class="data-table" id="detailTable"><thead><tr>';
+  html += '<th>订单号</th><th>业务类型</th><th>来源</th><th style="text-align:right;">本地金额（元）</th><th style="text-align:right;">小铁金额（元）</th><th style="text-align:right;">差异（元）</th><th>状态</th><th>操作</th>';
+  html += '</tr></thead><tbody id="detailTbody"></tbody></table></div>';
+
+  body.innerHTML = html;
+  lucide.createIcons();
+
+  // Store orders for filtering
+  body._orders = orders;
+  body._date = date;
+  renderDetailRows();
+
+  if (annoVisible) { setTimeout(renderAnnoBadges, 100); }
+}
+
+function renderDetailRows() {
+  var body = document.getElementById('drawerBody');
+  var orders = body._orders;
+  var filterDiff = document.getElementById('filterDiffOnly')?.checked || false;
+  var filtered = filterDiff ? orders.filter(function(o){return o.diff !== 0;}) : orders;
+  var diffCnt = orders.filter(function(o){return o.diff !== 0;}).length;
+  var cntEl = document.getElementById('detailDiffCnt');
+  if (cntEl) cntEl.textContent = diffCnt > 0 ? diffCnt+' 笔差异' : '';
+
+  var html = '';
+  for (var i = 0; i < filtered.length; i++) {
+    var o = filtered[i];
+    var rowCls = o.status === '差异' ? 'row-warning' : '';
+    var diffDisplay = o.diff !== 0 ? '<span class="font-mono font-semibold text-danger">'+(o.diff>0?'+':'')+o.diff.toFixed(2)+'</span>' : '<span class="font-mono text-ink-muted">0.00</span>';
+    var xtDisplay = o.xtAmt === 0 ? '<span class="text-danger font-mono">缺失</span>' : '<span class="font-mono">¥'+o.xtAmt.toFixed(2)+'</span>';
+    var statusBadge = o.status === '差异' ? '<span class="badge badge-warning">差异</span>' : '<span class="badge badge-success">一致</span>';
+
+    html += '<tr class="'+rowCls+'">';
+    html += '<td class="font-mono text-primary cursor-pointer hover:underline" onclick="event.stopPropagation();navigate(\'订单管理.html\')">'+o.orderNo+'</td>';
+    html += '<td>'+o.bizType+'</td><td>'+o.source+'</td>';
+    html += '<td class="font-mono" style="text-align:right;">¥'+o.localAmt.toFixed(2)+'</td>';
+    html += '<td style="text-align:right;">'+xtDisplay+'</td>';
+    html += '<td style="text-align:right;">'+diffDisplay+'</td>';
+    html += '<td>'+statusBadge+'</td>';
+    html += '<td>';
+    if (o.status === '差异') {
+      html += '<button class="btn btn-sm btn-default" onclick="event.stopPropagation();openDiffMark(\'order\',\''+body._date+'\',\''+o.orderNo+'\','+o.diff.toFixed(2)+')">标记差异</button>';
+    }
+    html += '</td>';
+    html += '</tr>';
+  }
+  document.getElementById('detailTbody').innerHTML = html;
+  lucide.createIcons();
+}
+
+function filterDetailDiff() { renderDetailRows(); }
+
+function closeDetailDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('show');
+  document.getElementById('detailDrawer').classList.remove('open');
+  if (annoVisible) { setTimeout(renderAnnoBadges, 50); }
+}
+
+/* ================================================================
+   DIFF MARK DIALOG
+   ================================================================ */
+function openDiffMark(type, date, orderNo, diffAmt) {
+  currentDiffTarget = { type:type, date:date, orderNo:orderNo, diffAmt:diffAmt };
+  document.getElementById('diffObj').textContent = type==='day' ? date : orderNo;
+  document.getElementById('diffAmt').textContent = '¥' + (parseFloat(diffAmt)>=0?'+':'') + parseFloat(diffAmt).toFixed(2);
+  document.getElementById('diffConclusion').value = '';
+  document.getElementById('diffReason').value = '';
+  document.getElementById('diffRemark').value = '';
+  document.getElementById('diffDialogOverlay').classList.add('show');
+  if (annoVisible) { setTimeout(renderAnnoBadges, 100); }
+}
+
+function closeDiffDialog() {
+  document.getElementById('diffDialogOverlay').classList.remove('show');
+  currentDiffTarget = null;
+}
+
+function submitDiffMark() {
+  var conclusion = document.getElementById('diffConclusion').value;
+  var reason = document.getElementById('diffReason').value;
+  if (!conclusion) { alert('请选择核查结论'); return; }
+  if (!reason) { alert('请选择差异原因'); return; }
+  var remark = document.getElementById('diffRemark').value;
+
+  // Update mock data
+  if (currentDiffTarget && currentDiffTarget.type === 'day') {
+    var s = summaryData.find(function(r){return r.date===currentDiffTarget.date;});
+    if (s) { s.diffStatus = conclusion === 'confirmed' ? '已确认' : '待核查'; }
+  }
+
+  alert('差异标记已提交！\n\n差异对象：'+currentDiffTarget.date+'\n核查结论：'+(conclusion==='confirmed'?'已确认':'待核查')+'\n差异原因：'+reason+'\n\n留痕不可删除，供财务审计。');
+
+  closeDiffDialog();
+  renderSummary();
+  lucide.createIcons();
+}
+
+/* ================================================================
+   MENU SELECT
+   ================================================================ */
+function menuSelect(el) { if(el.classList.contains('l1'))handleL1(el); else if(el.classList.contains('l2'))handleL2(el); }
+function handleL1(el){ var s=el.getAttribute('data-sub'); if(s)handleL1Toggle(el,s); else selectL1NoChildren(el); }
+function handleL1Toggle(el,sid){ var sub=document.getElementById(sid); if(!sub)return; var a=el.querySelector('.menu-arrow'); if(!sub.classList.contains('collapsed')){ sub.classList.add('collapsed'); if(a)a.classList.remove('open'); if(!sub.querySelector('.menu-item.active-l2'))el.classList.remove('active-l1'); }else{ collapseAllExcept(sid); sub.classList.remove('collapsed'); if(a)a.classList.add('open'); if(sub.querySelector('.menu-item.active-l2'))el.classList.add('active-l1'); } }
+function selectL1NoChildren(el){ collapseAllExcept(null); clearAllActive(); if(!el.classList.contains('active-l1')){ el.classList.add('active-l1'); navigateToPage(el.getAttribute('data-page')); } }
+function handleL2(el){ var ps=el.closest('.submenu'), pid=ps?ps.id:null; collapseAllExcept(pid); if(ps&&ps.classList.contains('collapsed'))ps.classList.remove('collapsed'); clearAllActive(); el.classList.add('active-l2'); var pl=findParentL1BySubId(pid); if(pl){pl.classList.add('active-l1');var a=pl.querySelector('.menu-arrow');if(a)a.classList.add('open');} navigateToPage(el.getAttribute('data-page')); }
+function collapseAllExcept(k){ document.querySelectorAll('.submenu').forEach(function(s){ if(s.id===k)return; if(s.classList.contains('collapsed'))return; s.classList.add('collapsed'); var l=findParentL1BySubId(s.id); if(l){var a=l.querySelector('.menu-arrow');if(a)a.classList.remove('open');if(!s.querySelector('.menu-item.active-l2'))l.classList.remove('active-l1');} }); }
+function clearAllActive(){ document.querySelectorAll('.menu-item').forEach(function(i){i.classList.remove('active-l1','active-l2');}); }
+function findParentL1BySubId(id){ return id?document.querySelector('.menu-item.l1[data-sub="'+id+'"]'):null; }
+function navigateToPage(p){ if(!p)return; var f=p.split("/").pop(),c=window.location.pathname.split("/").pop(); if(f===c)return; if(p.endsWith('.html'))window.location.href=p; else{document.getElementById('mainContent').innerHTML='<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6"><h2 class="text-[16px] font-semibold text-ink-title mb-2">'+p+'</h2><p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p></div></div>';} }
+function navigate(url){ if(url==='#')return; var f=url.split("/").pop(),c=window.location.pathname.split("/").pop(); if(f===c)return; window.location.href=url; }
+function toggleSidebar(){ var s=document.getElementById('sidebar'),o=document.getElementById('sidebarOverlay'); s.classList.toggle('open'); o.classList.toggle('show'); }
+
+/* ================================================================
+   PORTAL ANNOTATION SYSTEM
+   ================================================================ */
+var annotations = {
+  1: { title: '对账中心页面标题', desc: ['触发：页面加载时渲染','展示模块名称"对账中心"，左侧导航"对账中心"高亮','点击 logo 可返回 index.html 导航页']},
+  2: { title: '过渡方案标识', desc: ['触发：页面加载时渲染','标记"过渡方案 · 只对账不结算"','说明：一期为过渡方案，本地自动汇总 + 小铁接口自动拉取 + 自动算差异，运营人工核查标记','一期只对账不结算，追款/清结算为 V2','自动清结算待 V2 升级']},
+  3: { title: '导出 CSV', desc: ['触发：点击"导出 CSV"按钮','响应：导出当前对账周期的汇总数据为 CSV 文件','用途：供财务与小铁结算单人工比对','需先同步小铁数据后才可导出']},
+  4: { title: '日期范围与同步', desc: ['触发：选择起止日期 + 点击"同步小铁数据"','响应：从小铁只读接口拉取该周期金额，汇总展示','规则：小铁接口约束单次时间范围 ≤7 天，超范围需分段同步','日期范围超 7 天时提示用户缩小范围','展示最近同步时间（sync-dot 绿=已同步 / 橙=待同步）','数据单位：小铁接口金额为分，页面上展示时转为元']},
+  5: { title: '汇总概览条（KPI）', desc: ['触发：同步成功后渲染','响应：展示所选周期的 5 项汇总指标','总订单数 / 本地合计 / 小铁合计 / 差异合计 / 差异笔数','规则：差异金额 = 本地 − 小铁，非 0 时用 danger 红色强调 + KPI 卡片红框高亮','数字使用 mono 字体','金额展示单位为元，保留两位小数']},
+  6: { title: '按日汇总表', desc: ['触发：同步成功后渲染','响应：按日展示对账汇总数据','列：对账日期 / 订单数 / 本地金额 / 小铁金额 / 差异金额 / 退款金额 / 差异状态 / 操作','差异金额非 0 用 danger/warning 色强调，行底色变黄（row-warning）','差异状态 Badge：一致(success 绿) / 待核查(warning 橙) / 已确认(ink-muted 灰)','操作：查看明细(下钻订单级比对) / 标记差异(待核查日可见)','金额含退款、超时补费等口径，与订单管理一致']},
+  7: { title: '当日汇总（明细抽屉）', desc: ['触发：点击某日的"查看明细"','响应：右侧滑出抽屉，展示当日订单数/本地金额/小铁金额/差异汇总卡片','差异非 0 时卡片用 danger 红底强调']},
+  8: { title: '差异筛选（明细抽屉）', desc: ['触发：勾选"仅看差异"复选框','响应：明细表只显示有差异的订单（diff ≠ 0）','规则：差异笔数统计展示差异订单数量','未勾选时展示当日全部订单']},
+  9: { title: '订单级明细表（明细抽屉）', desc: ['触发：抽屉打开时渲染','响应：展示当日每笔订单的本地金额 vs 小铁金额比对','列：订单号(可跳转) / 业务类型 / 来源 / 本地金额 / 小铁金额 / 差异 / 状态 / 操作','差异类型：金额不一致 / 本地有小铁无 / 小铁有本地无','小铁金额"缺失"表示对应订单未在小铁查询到','点击订单号 → 跳转订单管理页','差异订单可标记核查结论']},
+  10: { title: '差异标记入口', desc: ['触发：点击汇总表或明细表中的"标记差异"按钮','响应：打开差异标记弹窗（页面三）','差异金额自动带入，不可修改','核查结论必填：待核查 / 已确认','差异原因必填：退款时间差 / 同步延迟 / 漏单 / 金额口径差异 / 其他','备注选填','提交后差异状态更新，留痕记录（操作人、时间、结论、原因）','留痕不可删除，供财务审计']},
+  11: { title: '差异标记弹窗', desc: ['触发：点击"标记差异"打开','响应：居中弹窗展示差异对象、金额、核查结论/原因/备注表单','提交后保存 + 留痕 + 差异状态更新','取消则关闭不保存','留痕不可删除（审计要求）','标记后汇总表 Badge 更新（已确认 → ink-muted）']},
+  12: { title: '一期对账定位', desc: ['一期过渡方案：本地自动汇总 + 小铁接口自动拉取金额 + 自动算差异 + 运营人工核查标记','只对账不结算（追款/清结算 V2）','订单匹配依赖可关联标识（待小铁确认），无标识则按时间+金额+柜机辅助匹配','小铁金额拉取是否含退款/补费口径待确认','差异责任划分待协议条款确定','标记差异等操作权限由业务定']},
+  13: { title: '差异标记表单', desc: ['差异对象：自动带入（某日 / 某订单号）','差异金额：自动带入，不可修改','核查结论：必填（待核查 / 已确认）','差异原因：必填，下拉选择（退款时间差 / 同步延迟 / 漏单 / 金额口径差异 / 其他）','备注：选填，补充说明','提交：保存 + 留痕，不可删除']}
+};
+
+var annoVisible = true;
+function renderAnnoBadges(){
+  var l=document.getElementById('annoLayer'); l.innerHTML=''; if(!annoVisible)return; var vw=window.innerWidth;
+  document.querySelectorAll('[data-anno]').forEach(function(el){
+    var id=el.getAttribute('data-anno'); if(el.offsetParent===null&&el.tagName!=='BODY')return;
+    var t=resolveAnnoTarget(el,vw), r=t.getBoundingClientRect(); if(r.width===0&&r.height===0)return;
+    var b=document.createElement('div'); b.className='anno-portal-badge'; b.textContent=id;
+    b.style.top=(r.top-10)+'px'; b.style.left=(r.right-10)+'px';
+    b.addEventListener('click',function(e){e.stopPropagation();showAnnoPopup(id);}); l.appendChild(b);
+  });
+}
+function resolveAnnoTarget(el,vw){ var r=el.getBoundingClientRect(); if(r.width<800||r.width<vw*0.7)return el; var inner=el.querySelector('h1,h2,h3,h4,h5,h6,button,.btn,input,select,.card-title,[class*="title"]'); if(inner){var ir=inner.getBoundingClientRect();if(ir.width<r.width*0.8)return inner;} var first=el.firstElementChild; if(first){var fr=first.getBoundingClientRect();if(fr.width<r.width*0.9)return first;} return el; }
+function showAnnoPopup(id){ var a=annotations[id]; if(!a)return; document.getElementById('annoPopupTitle').textContent='#'+id+' '+a.title; document.getElementById('annoPopupBody').innerHTML=a.desc.map(function(d){return'<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>'+d+'</span></li>';}).join(''); var box=document.getElementById('annoPopupBox'); box.style.top='50%';box.style.left='50%';box.style.transform='translate(-50%,-50%)'; document.getElementById('annoPopup').classList.remove('hidden'); }
+function closeAnnoPopup(){ document.getElementById('annoPopup').classList.add('hidden'); }
+var popupDrag={offX:0,offY:0,moved:false};
+function startDragPopup(e){ if(e.target.closest('button'))return; popupDrag.moved=false; var box=document.getElementById('annoPopupBox'),r=box.getBoundingClientRect(); popupDrag.offX=e.clientX-r.left; popupDrag.offY=e.clientY-r.top; document.addEventListener('mousemove',onDragPopup); document.addEventListener('mouseup',stopDragPopup); }
+function onDragPopup(e){ var dx=Math.abs(e.clientX-popupDrag.offX-document.getElementById('annoPopupBox').getBoundingClientRect().left); if(dx<3&&!popupDrag.moved)return; popupDrag.moved=true; var box=document.getElementById('annoPopupBox'); box.style.transform='none'; box.style.top=Math.max(0,Math.min(window.innerHeight-100,e.clientY-popupDrag.offY))+'px'; box.style.left=Math.max(0,Math.min(window.innerWidth-100,e.clientX-popupDrag.offX))+'px'; document.getElementById('annoPopupDrag').style.cursor='grabbing'; }
+function stopDragPopup(){ document.removeEventListener('mousemove',onDragPopup); document.removeEventListener('mouseup',stopDragPopup); var h=document.getElementById('annoPopupDrag'); if(h)h.style.cursor='grab'; }
+document.getElementById('annoToggle').addEventListener('click',function(e){ if(this.dataset.dragging==='1')return; annoVisible=!annoVisible; if(annoVisible){document.body.classList.remove('anno-hidden');document.getElementById('annoToggleIcon').setAttribute('data-lucide','eye');}else{document.body.classList.add('anno-hidden');document.getElementById('annoToggleIcon').setAttribute('data-lucide','eye-off');} lucide.createIcons({attrs:{class:'w-[13px] h-[13px]'}}); renderAnnoBadges(); });
+var dragToggleY=0,dragToggleMoved=false;
+function startDragToggle(e){ dragToggleY=e.clientY;dragToggleMoved=false; document.addEventListener('mousemove',onDragToggle); document.addEventListener('mouseup',stopDragToggle);e.preventDefault(); }
+function onDragToggle(e){ if(Math.abs(e.clientY-dragToggleY)<5)return; dragToggleMoved=true; var w=document.getElementById('annoToggle'); w.style.top=Math.max(60,Math.min(window.innerHeight-60,e.clientY-20))+'px'; w.style.right='8px';w.style.cursor='grabbing'; }
+function stopDragToggle(){ document.removeEventListener('mousemove',onDragToggle); document.removeEventListener('mouseup',stopDragToggle); var w=document.getElementById('annoToggle'); if(w){w.style.cursor='grab';w.dataset.dragging=dragToggleMoved?'1':'';} }
+
+/* Spin animation */
+var s=document.createElement('style'); s.textContent='@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'; document.head.appendChild(s);
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded',function(){
+  lucide.createIcons();
+  renderAnnoBadges();
+  document.getElementById('mainContent').addEventListener('scroll',renderAnnoBadges);
+  window.addEventListener('resize',renderAnnoBadges);
+  // Initial: show empty state
+  renderSummary();
+});
+</script>
+</body>
+</html>

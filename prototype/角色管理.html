@@ -1,0 +1,2355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>角色管理 - 游寄后台管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+  <style>
+    body{overflow:hidden;}
+
+    /* ===== Sidebar ===== */
+    .menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+    .menu-item:hover{background:#F3F4F6;}
+    .menu-item.l1{padding-left:20px;font-weight:500;}
+    .menu-item.l2{padding-left:64px;font-size:13px;}
+    .menu-item.active-l1{color:#0066FF;}
+    .menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+    .menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+    .active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+    .menu-arrow.open{transform:rotate(180deg);}
+    .submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+    .submenu.collapsed{max-height:0!important;opacity:0;}
+    .new-tag{display:inline-block;padding:1px 7px;border-radius:8px;background:#0066FF;color:#fff;font-size:10px;font-weight:600;line-height:16px;margin-left:4px;}
+
+    /* ===== Topbar ===== */
+    .topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
+    .topbar-btn:hover{background:#E6F0FF;}
+    .topbar-btn:hover svg{stroke:#0066FF;}
+    .badge-dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:600;line-height:18px;text-align:center;}
+
+    /* ===== Buttons ===== */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;white-space:nowrap;}
+    .btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+    .btn-primary:hover{background:#0052CC;}
+    .btn-primary:disabled{background:#9DA2AC;border-color:#9DA2AC;cursor:not-allowed;}
+    .btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+    .btn-default:hover{border-color:#0066FF;color:#0066FF;}
+    .btn-sm{height:28px;padding:0 10px;font-size:12px;}
+    .btn-text{background:transparent;border:none;color:#0066FF;cursor:pointer;font-size:13px;padding:0;}
+    .btn-text:hover{opacity:.8;}
+    .btn-text.danger{color:#D9001B;}
+
+    /* ===== Form ===== */
+    .form-input{width:100%;height:36px;padding:0 12px;font-size:13px;border:1px solid #DFE1E5;border-radius:4px;color:#3A3F4A;outline:none;transition:border-color .15s;box-sizing:border-box;background:#fff;}
+    .form-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .form-input.error{border-color:#D9001B;}
+    .form-textarea{width:100%;padding:8px 12px;font-size:13px;border:1px solid #DFE1E5;border-radius:4px;color:#3A3F4A;outline:none;resize:none;box-sizing:border-box;font-family:inherit;}
+    .form-textarea:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .form-error{display:block;color:#D9001B;font-size:12px;margin-top:4px;}
+    .form-select{width:100%;height:36px;padding:0 32px 0 12px;font-size:13px;border:1px solid #DFE1E5;border-radius:4px;color:#3A3F4A;outline:none;appearance:none;-webkit-appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239DA2AC' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;cursor:pointer;box-sizing:border-box;transition:border-color .15s;}
+    .form-select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+
+    /* ===== Data Table ===== */
+    .data-table{width:100%;border-collapse:collapse;font-size:13px;}
+    .data-table th{text-align:left;font-weight:600;font-size:12px;color:#6E7685;padding:9px 12px;background:#F0F1F3;border-bottom:1px solid #DFE1E5;white-space:nowrap;}
+    .data-table td{padding:9px 12px;border-bottom:1px solid #F0F1F3;color:#3A3F4A;}
+    .data-table tr:hover td{background:#F3F4F6;}
+    .data-table td .action-link{color:#0066FF;cursor:pointer;font-size:13px;}
+    .data-table td .action-link:hover{text-decoration:underline;}
+    .data-table td .action-link.disabled{color:#9DA2AC;cursor:not-allowed;text-decoration:none;}
+
+    /* ===== Left Role Panel ===== */
+    .role-item{cursor:pointer;transition:background .12s;display:flex;align-items:center;padding:10px 12px;border-radius:6px;margin-bottom:2px;position:relative;}
+    .role-item:hover{background:#F3F4F6;}
+    .role-item.active{background:#E6F0FF;}
+    .role-item.dragging{opacity:.5;background:#E6F0FF;}
+    .role-item.drag-over{border-top:2px solid #0066FF;}
+    .role-item .role-actions{opacity:0;transition:opacity .15s;}
+    .role-item:hover .role-actions{opacity:1;}
+
+    /* ===== Tabs ===== */
+    .tab-item{cursor:pointer;padding:10px 20px;font-size:14px;color:#6E7685;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;user-select:none;}
+    .tab-item.active{color:#0066FF;font-weight:600;border-bottom-color:#0066FF;}
+    .tab-item:hover:not(.active){color:#3A3F4A;}
+
+    /* ===== Drawer ===== */
+    @keyframes ds-drawer-in{from{transform:translateX(100%);}to{transform:translateX(0);}}
+    @keyframes ds-drawer-out{from{transform:translateX(0);}to{transform:translateX(100%);}}
+    .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;display:flex;justify-content:flex-end;}
+    .drawer-panel{width:800px;max-width:100%;background:#fff;height:100%;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.1);animation:ds-drawer-in .22s ease;}
+
+    /* ===== Modal ===== */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:300;display:flex;align-items:center;justify-content:center;}
+    .modal-box{background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);display:flex;flex-direction:column;max-height:85vh;animation:ds-modal-in .15s ease;}
+    @keyframes ds-modal-in{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+    .modal-header{padding:16px 20px;border-bottom:1px solid #DFE1E5;display:flex;align-items:center;justify-content:space-between;font-size:16px;font-weight:600;color:#1A1D24;flex-shrink:0;}
+    .modal-body{padding:20px;overflow-y:auto;flex:1;}
+    .modal-footer{padding:12px 20px;border-top:1px solid #DFE1E5;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;}
+
+    /* ===== Dialog (per design.md §5.8) ===== */
+    .dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:400;display:flex;align-items:center;justify-content:center;}
+    .dialog-box{width:600px;max-width:92vw;background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);display:flex;flex-direction:column;position:relative;animation:ds-modal-in .15s ease;}
+
+    /* ===== Permission Tree ===== */
+    .perm-tree-item{user-select:none;}
+    .perm-tree-toggle{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;cursor:pointer;color:#9DA2AC;transition:transform .2s;flex-shrink:0;font-size:10px;}
+    .perm-tree-toggle.open{transform:rotate(90deg);}
+    .perm-checkbox{width:15px;height:15px;border:1.5px solid #C7CAD1;border-radius:3px;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;background:#fff;}
+    .perm-checkbox.checked{background:#0066FF;border-color:#0066FF;}
+    .perm-checkbox.partial{background:#0066FF;border-color:#0066FF;}
+    .perm-checkbox.checked::after{content:'✓';color:#fff;font-size:11px;font-weight:700;line-height:1;}
+    .perm-checkbox.partial::after{content:'—';color:#fff;font-size:11px;font-weight:700;line-height:1;}
+    .perm-checkbox-sm{width:13px;height:13px;border-radius:2px;}
+
+    /* ===== Avatars ===== */
+    .avatar-circle{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;position:relative;}
+    .avatar-badge{position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#FF9500;border:2px solid #fff;display:flex;align-items:center;justify-content:center;}
+
+    /* ===== Portal Annotation ===== */
+    .anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
+    .anno-portal-badge:hover{transform:scale(1.2);}
+    .anno-hidden .anno-portal-badge{display:none;}
+
+    /* ===== Pagination (per design.md §5.5) ===== */
+    .pg-btn{min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
+    .pg-btn:hover:not(.pg-current):not(:disabled){color:#0066FF;border-color:#0066FF;}
+    .pg-current{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .pg-disabled{color:#C7CAD1!important;background:#F7F8FA!important;cursor:not-allowed!important;border-color:#DFE1E5!important;}
+    .pg-ellipsis{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;font-size:13px;}
+    .pg-select-wrap{position:relative;display:inline-flex;align-items:center;}
+    .pg-select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+    .pg-select{font:12px inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;}
+    .pg-jump-input{font:12px inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+    .pg-jump-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .pg-stats{color:#9DA2AC;white-space:nowrap;}
+
+    /* ===== Mobile ===== */
+    @media(max-width:768px){
+      .sidebar{display:none;}
+      .sidebar.open{display:flex;position:fixed;top:56px;left:0;bottom:0;z-index:50;}
+      .sidebar-overlay{display:none;}
+      .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;}
+      #roleLayout > aside{width:100%!important;border-radius:6px!important;border-right:1px solid #DFE1E5!important;}
+      #roleLayout > section{display:none!important;}
+      #roleLayout > section.show{display:flex!important;position:fixed;inset:0;z-index:50;border-radius:0!important;}
+      .drawer-panel{width:100%;}
+    }
+  </style>
+</head>
+<body class="font-sans flex flex-col h-screen">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-4 md:px-6 flex-shrink-0 gap-3">
+  <button class="topbar-btn md:hidden" onclick="toggleSidebar()" title="菜单">
+    <i data-lucide="menu" class="w-[18px] h-[18px]"></i>
+  </button>
+  <div class="flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigate('index.html')">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div>
+    <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
+  </div>
+  <div class="ml-auto flex items-center gap-3 md:gap-5">
+    <button class="topbar-btn" title="任务列表" onclick="navigate('任务中心.html')">
+      <i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="taskBadge" style="display:none;">0</span>
+    </button>
+    <button class="topbar-btn" title="消息中心" onclick="navigate('消息中心.html')">
+      <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="msgBadge">5</span>
+    </button>
+    <button class="topbar-btn" title="账号信息" onclick="navigate('账号信息.html')">
+      <i data-lucide="user" class="w-[18px] h-[18px]"></i>
+    </button>
+  </div>
+</header>
+
+<!-- ===== BODY: SIDEBAR + MAIN ===== -->
+<div class="flex flex-1 min-h-0">
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+    <!-- 工作台 -->
+    <div class="menu-item l1" data-page="工作台.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台
+    </div>
+
+    <!-- 数据概览 -->
+    <div class="menu-item l1" data-page="数据概览.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览
+    </div>
+
+    <!-- 订单管理 -->
+    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理
+    </div>
+
+    <!-- 异常工单 -->
+    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单
+    </div>
+
+    <!-- 柜机监控 -->
+    <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控
+    </div>
+
+    <!-- 对账中心 -->
+    <div class="menu-item l1" data-page="对账中心.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心
+    </div>
+
+    <!-- 运营配置 -->
+    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置
+    </div>
+
+    <!-- 系统设置（含二级菜单） -->
+    <div class="menu-item l1 active-l1" data-sub="sub-settings" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置
+      <span class="menu-arrow open">▼</span>
+    </div>
+    <div class="submenu" id="sub-settings" style="max-height:400px;">
+      <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
+      <div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div>
+      <div class="menu-item l2 active-l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div>
+      <div class="menu-item l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div>
+      <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
+    </div>
+  </aside>
+
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <!-- 单区块模式：p-4 容器 + min-h-full flex flex-col，卡片 flex-1 撑满 -->
+  <main class="flex-1 bg-bg-page min-h-0 flex flex-col" id="mainContent">
+    <div class="p-4 flex-1 min-h-0">
+      <div class="flex gap-0 h-full" id="roleLayout">
+
+        <!-- ===== LEFT: Role List Card ===== -->
+        <aside class="w-[280px] bg-white rounded-lg rounded-r-none border border-line border-r-0 flex flex-col flex-shrink-0 overflow-hidden h-full">
+          <!-- Search -->
+          <div class="p-3 border-b border-line-light flex-shrink-0">
+            <div class="relative">
+              <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-[14px] h-[14px] text-ink-muted pointer-events-none"></i>
+              <input type="text" id="roleSearch" placeholder="搜索角色" class="form-input h-[32px] pl-9 text-[13px]" data-anno="2">
+            </div>
+          </div>
+          <!-- Role List (scrollable) -->
+          <div class="flex-1 overflow-y-auto p-2" id="roleListContainer" data-anno="3">
+            <div id="roleList"></div>
+          </div>
+          <!-- Fixed bottom button -->
+          <div class="p-3 border-t border-line-light flex-shrink-0">
+            <button class="btn btn-primary w-full" data-anno="4" onclick="openRoleDrawer('add')">
+              <i data-lucide="plus" class="w-[15px] h-[15px]"></i> 新增角色
+            </button>
+          </div>
+        </aside>
+
+        <!-- ===== RIGHT: Role Detail Card ===== -->
+        <section class="flex-1 bg-white rounded-lg rounded-l-none border border-line flex flex-col min-w-0 overflow-hidden h-full" id="rightPanel">
+          <!-- Empty state -->
+          <div class="flex-1 flex items-center justify-center" id="detailEmpty">
+            <div class="text-center">
+              <i data-lucide="users" class="w-[48px] h-[48px] text-ink-muted mx-auto mb-3 opacity-30"></i>
+              <p class="text-[14px] text-ink-muted">请选择左侧角色查看详情</p>
+            </div>
+          </div>
+          <!-- Detail content -->
+          <div id="detailContent" class="hidden flex-1 flex flex-col min-h-0 overflow-y-auto"></div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ===== PORTAL ANNOTATION LAYER ===== -->
+<div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
+<div id="annoToggle" class="fixed z-[150]" style="right:8px;bottom:40px;cursor:grab;" onmousedown="startDragToggle(event)">
+  <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] bg-white/90 backdrop-blur text-primary border border-primary/30 shadow-sm">
+    <i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i> 标注
+  </div>
+</div>
+<div id="annoPopup" class="hidden fixed inset-0 z-[9999]" style="background:rgba(0,0,0,.2);" onclick="closeAnnoPopup()">
+  <div id="annoPopupBox" class="fixed bg-white rounded-lg shadow-xl p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto"
+       style="top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 12px 40px rgba(0,0,0,.18);"
+       onclick="event.stopPropagation()">
+    <button onclick="closeAnnoPopup()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted z-10"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+    <div id="annoPopupDrag" class="flex items-center gap-2 mb-3 select-none" style="cursor:grab;" onmousedown="startDragPopup(event)" title="拖拽移动弹窗">
+      <i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i>
+      <h3 id="annoPopupTitle" class="text-[16px] font-semibold text-ink-title"></h3>
+    </div>
+    <ul id="annoPopupBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg text-white text-[13px] font-medium z-[500] opacity-0 transition-opacity duration-300 pointer-events-none whitespace-nowrap" style="background:#1A1D24;"></div>
+
+<!-- ================================================================ -->
+<!-- ROLE EDIT DRAWER -->
+<!-- ================================================================ -->
+<div id="roleDrawerOverlay" class="hidden drawer-overlay" onclick="closeRoleDrawer()">
+  <div class="drawer-panel" onclick="event.stopPropagation()" id="roleDrawerPanel">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-line flex-shrink-0">
+      <h3 class="text-[16px] font-semibold text-ink-title" id="drawerTitle">新增角色</h3>
+      <button onclick="closeRoleDrawer()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[18px] h-[18px]"></i></button>
+    </div>
+    <!-- Body (scrollable) -->
+    <div class="flex-1 overflow-y-auto px-6 py-5" id="drawerBody">
+      <!-- Section 1: 角色信息 -->
+      <div class="mb-6" data-anno="15">
+        <h4 class="text-[14px] font-semibold text-ink-title mb-4">角色信息</h4>
+        <!-- Role Name -->
+        <div class="flex items-start mb-4">
+          <label class="w-[90px] text-right text-[13px] text-ink-body pt-2 flex-shrink-0"><span class="text-danger mr-0.5">*</span>角色名称：</label>
+          <div class="flex-1 ml-3 max-w-[400px]">
+            <div class="relative">
+              <input type="text" id="drawerRoleName" class="form-input pr-14" placeholder="请输入" maxlength="20" oninput="updateCharCount('drawerRoleName','drawerNameCount',20)">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-ink-muted font-mono" id="drawerNameCount">0/20</span>
+            </div>
+            <span id="drawerNameError" class="form-error hidden"></span>
+          </div>
+        </div>
+        <!-- Role Status -->
+        <div class="flex items-start mb-4">
+          <label class="w-[90px] text-right text-[13px] text-ink-body pt-2 flex-shrink-0"><span class="text-danger mr-0.5">*</span>角色状态：</label>
+          <div class="flex-1 ml-3 flex items-center gap-6 pt-2">
+            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="drawerStatus" value="1" checked class="w-[15px] h-[15px] accent-primary"><span class="text-[13px] text-ink-body">启用</span></label>
+            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="drawerStatus" value="0" class="w-[15px] h-[15px] accent-primary"><span class="text-[13px] text-ink-body">禁用</span></label>
+          </div>
+        </div>
+        <!-- Remark -->
+        <div class="flex items-start mb-4">
+          <label class="w-[90px] text-right text-[13px] text-ink-body pt-2 flex-shrink-0">备注：</label>
+          <div class="flex-1 ml-3 max-w-[400px]">
+            <div class="relative">
+              <textarea id="drawerRemark" class="form-textarea pr-14" rows="3" placeholder="请补充说明角色用途" maxlength="100" oninput="updateCharCount('drawerRemark','drawerRemarkCount',100)"></textarea>
+              <span class="absolute right-3 bottom-2 text-[12px] text-ink-muted font-mono" id="drawerRemarkCount">0/100</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: 数据权限 -->
+      <div class="mb-6" data-anno="16">
+        <h4 class="text-[14px] font-semibold text-ink-title mb-4 flex items-center gap-1">
+          数据权限
+          <span class="relative inline-flex items-center" id="dataPermTooltip">
+            <i data-lucide="help-circle" class="w-[14px] h-[14px] text-ink-muted cursor-help"></i>
+            <span class="hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-3 py-2 bg-ink-title text-white text-[12px] rounded whitespace-nowrap z-10" id="dataPermTip">设置该角色可以在各个页面查看数据的范围</span>
+          </span>
+        </h4>
+        <div class="flex items-start">
+          <label class="w-[90px] text-right text-[13px] text-ink-body pt-2 flex-shrink-0"><span class="text-danger mr-0.5">*</span>数据权限：</label>
+          <div class="flex-1 ml-3 max-w-[400px]">
+            <select id="drawerDataPerm" class="form-select">
+              <option value="">请选择</option>
+              <option value="all">全部数据</option>
+              <option value="dept_sub">本部门及下级部门</option>
+              <option value="dept">本部门</option>
+              <option value="self">仅本人</option>
+            </select>
+            <span id="drawerDataPermError" class="form-error hidden"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: 功能权限 -->
+      <div class="mb-6" data-anno="17">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="text-[14px] font-semibold text-ink-title flex items-center gap-1">
+            功能权限
+            <span class="relative inline-flex items-center" id="funcPermTooltip">
+              <i data-lucide="help-circle" class="w-[14px] h-[14px] text-ink-muted cursor-help"></i>
+              <span class="hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-3 py-2 bg-ink-title text-white text-[12px] rounded z-10" style="max-width:320px;" id="funcPermTip">设置该角色可以查看的页面和操作。仅针对达人运营生效的权限，需要子账号的用户类型包含"达人运营"时，才会生效。</span>
+            </span>
+          </h4>
+          <div class="flex items-center gap-4">
+            <span class="text-[12px] text-primary cursor-pointer select-none" id="permExpandAll" onclick="toggleExpandAll()">▶ 全部展开</span>
+            <label class="flex items-center gap-1.5 cursor-pointer select-none" id="permAllLabel" onclick="toggleAllPermissions()">
+              <span class="perm-checkbox" id="permAllCheck"></span>
+              <span class="text-[13px] text-ink-body">所有权限</span>
+            </label>
+          </div>
+        </div>
+        <div class="border border-line rounded p-3 max-h-[360px] overflow-y-auto bg-white" id="permTreeContainer"></div>
+      </div>
+    </div>
+    <!-- Footer (fixed) -->
+    <div class="px-6 py-3 border-t border-line flex justify-end gap-3 flex-shrink-0">
+      <button class="btn btn-default" onclick="closeRoleDrawer()">取消</button>
+      <button class="btn btn-primary" id="drawerSaveBtn" onclick="saveRole()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- DELETE ROLE DIALOGS -->
+<!-- ================================================================ -->
+
+<!-- Dialog 1: Has members → block delete -->
+<div id="deleteBlockDialog" class="hidden dialog-overlay" onclick="closeDeleteBlockDialog()">
+  <div class="dialog-box" style="height:250px;" onclick="event.stopPropagation()">
+    <button onclick="closeDeleteBlockDialog()" class="absolute top-[14px] right-[18px] text-[20px] text-ink-muted cursor-pointer z-10 leading-none" style="background:none;border:none;">×</button>
+    <div class="flex-1 flex items-center px-6">
+      <div class="flex items-start gap-4 w-full">
+        <div class="w-[20px] h-[20px] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style="background:#FDF2E9;color:#E7772D;font-size:13px;font-weight:700;">!</div>
+        <div>
+          <h4 class="text-[16px] font-semibold text-ink-title mb-1.5">提示</h4>
+          <p class="text-[14px] text-ink-sub">删除角色前，请先移除角色内的所有成员</p>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 pb-5 flex justify-end">
+      <button class="btn btn-primary" style="padding:6px 20px;" onclick="closeDeleteBlockDialog()">我知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog 2: No members → confirm delete -->
+<div id="deleteConfirmDialog" class="hidden dialog-overlay" onclick="closeDeleteConfirmDialog()">
+  <div class="dialog-box" style="height:250px;" onclick="event.stopPropagation()">
+    <button onclick="closeDeleteConfirmDialog()" class="absolute top-[14px] right-[18px] text-[20px] text-ink-muted cursor-pointer z-10 leading-none" style="background:none;border:none;">×</button>
+    <div class="flex-1 flex items-center px-6">
+      <div class="flex items-start gap-4 w-full">
+        <div class="w-[20px] h-[20px] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style="background:#FDF2E9;color:#E7772D;font-size:14px;font-weight:700;">?</div>
+        <div>
+          <h4 class="text-[16px] font-semibold text-ink-title mb-1.5">确认删除该角色吗？</h4>
+          <p class="text-[14px] text-ink-sub" id="deleteConfirmMsg">删除后不可恢复，请谨慎操作。</p>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 pb-5 flex justify-end gap-3">
+      <button class="btn btn-default" style="padding:6px 20px;" onclick="closeDeleteConfirmDialog()">取消</button>
+      <button class="btn btn-primary" style="padding:6px 20px;background:#D9001B;border-color:#D9001B;" onclick="confirmDeleteRole()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- REMOVE MEMBER DIALOG -->
+<!-- ================================================================ -->
+<div id="removeMemberDialog" class="hidden dialog-overlay" onclick="closeRemoveMemberDialog()">
+  <div class="dialog-box" style="height:250px;" onclick="event.stopPropagation()">
+    <button onclick="closeRemoveMemberDialog()" class="absolute top-[14px] right-[18px] text-[20px] text-ink-muted cursor-pointer z-10 leading-none" style="background:none;border:none;">×</button>
+    <div class="flex-1 flex items-center px-6">
+      <div class="flex items-start gap-4 w-full">
+        <div class="w-[20px] h-[20px] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style="background:#FDF2E9;color:#E7772D;font-size:14px;font-weight:700;">?</div>
+        <div>
+          <h4 class="text-[16px] font-semibold text-ink-title mb-1.5" id="removeMemberTitle">确认将所选成员移出角色吗？</h4>
+          <p class="text-[14px] text-ink-sub" id="removeMemberMsg">删除后，所选成员将不再有该角色的相关权限</p>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 pb-5 flex justify-end gap-3">
+      <button class="btn btn-default" style="padding:6px 20px;" onclick="closeRemoveMemberDialog()">取消</button>
+      <button class="btn btn-primary" style="padding:6px 20px;" onclick="confirmRemoveMembers()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- ADD MEMBER MODAL (Tree Structure) -->
+<!-- ================================================================ -->
+<div id="addMemberModal" class="hidden modal-overlay" onclick="closeAddMemberModal()">
+  <div class="modal-box" style="width:900px;max-width:95vw;height:600px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span data-anno="18">选择成员</span>
+      <button onclick="closeAddMemberModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[18px] h-[18px]"></i></button>
+    </div>
+    <div class="modal-body flex gap-0 p-0 min-h-0">
+      <!-- Left: Tree -->
+      <div class="flex-1 flex flex-col border-r border-line-light min-w-0">
+        <div class="p-3 border-b border-line-light">
+          <div class="relative">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-[14px] h-[14px] text-ink-muted pointer-events-none"></i>
+            <input type="text" id="addMemberSearch" placeholder="请输入部门名称/成员名称/手机号搜索" class="form-input h-[32px] pl-9 text-[13px]" oninput="filterDeptTree()">
+          </div>
+        </div>
+        <div class="flex-1 overflow-y-auto p-3" id="deptTreeContainer"></div>
+      </div>
+      <!-- Right: Selected -->
+      <div class="w-[260px] flex flex-col flex-shrink-0">
+        <div class="p-3 border-b border-line-light flex items-center justify-between">
+          <span class="text-[13px] font-medium text-ink-body">已选（<span class="font-mono text-primary" id="selectedCount">0</span>/1000）</span>
+          <span class="text-[12px] text-primary cursor-pointer" onclick="clearSelectedMembers()">清空</span>
+        </div>
+        <div class="flex-1 overflow-y-auto p-3" id="selectedMemberList">
+          <p class="text-[13px] text-ink-muted text-center mt-10">暂未选择成员</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeAddMemberModal()">取消</button>
+      <button class="btn btn-primary" id="addMemberConfirmBtn" disabled onclick="confirmAddMembers()">确定</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ================================================================
+   MOCK DATA
+   ================================================================ */
+
+/* ---- Roles ---- */
+var roleList = [
+  { id:'r0', name:'超级管理员', description:'系统内置超级管理员，拥有所有权限', status:1, creator:'系统', createTime:'2024-01-15 09:00:00', remark:'系统自动生成', memberCount:2, isSystem:true, dataPerm:'all' },
+  { id:'r1', name:'部门管理员', description:'部门管理员，拥有部门管理权限', status:1, creator:'张伟', createTime:'2024-03-20 14:30:00', remark:'负责日常部门管理工作', memberCount:3, isSystem:false, dataPerm:'dept_sub' },
+  { id:'r2', name:'普通成员', description:'普通成员，拥有基础操作权限', status:1, creator:'张伟', createTime:'2024-05-10 10:15:00', remark:'——', memberCount:8, isSystem:false, dataPerm:'dept' },
+  { id:'r3', name:'运营专员', description:'运营专员，负责日常运营工作', status:1, creator:'李娜', createTime:'2024-06-01 09:00:00', remark:'运营部门核心成员', memberCount:5, isSystem:false, dataPerm:'dept' },
+  { id:'r4', name:'数据分析师', description:'数据分析师，拥有数据查看权限', status:0, creator:'周磊', createTime:'2024-07-12 16:45:00', remark:'已停用', memberCount:1, isSystem:false, dataPerm:'self' },
+  { id:'r5', name:'BD负责人', description:'商务拓展负责人，管理BD团队', status:1, creator:'张伟', createTime:'2024-08-05 11:20:00', remark:'负责商务拓展业务', memberCount:4, isSystem:false, dataPerm:'dept_sub' },
+  { id:'r6', name:'客服主管', description:'客服主管，管理客服团队及工单', status:1, creator:'李娜', createTime:'2024-09-18 08:30:00', remark:'——', memberCount:6, isSystem:false, dataPerm:'dept' },
+  { id:'r7', name:'财务专员', description:'财务专员，负责对账及财务报表', status:1, creator:'张伟', createTime:'2024-10-22 13:00:00', remark:'仅限财务部门', memberCount:3, isSystem:false, dataPerm:'dept' },
+  { id:'r8', name:'内容编辑', description:'内容编辑，管理达人内容和素材', status:1, creator:'周磊', createTime:'2024-11-08 15:30:00', remark:'内容运营团队', memberCount:4, isSystem:false, dataPerm:'self' },
+  { id:'r9', name:'市场推广', description:'市场推广，负责营销活动策划', status:1, creator:'李娜', createTime:'2025-01-15 10:00:00', remark:'——', memberCount:3, isSystem:false, dataPerm:'dept' },
+  { id:'r10', name:'技术支持', description:'技术支持，处理工单及柜机维护', status:1, creator:'张伟', createTime:'2025-02-20 09:15:00', remark:'技术运维团队', memberCount:5, isSystem:false, dataPerm:'dept_sub' },
+  { id:'r11', name:'人事专员', description:'人事专员，管理人员信息及考勤', status:1, creator:'李娜', createTime:'2025-04-01 14:00:00', remark:'——', memberCount:3, isSystem:false, dataPerm:'self' }
+];
+
+/* ---- Members ---- */
+var memberList = [
+  // 超级管理员 (r0) - 2人
+  { id:'m1', name:'张伟', nickname:'小张', phone:'13812345678', deptName:'技术部', roleId:'r0', isMain:true, avatarColor:'#0066FF' },
+  { id:'m2', name:'李娜', nickname:'小李', phone:'13923456789', deptName:'运营部', roleId:'r0', isMain:false, avatarColor:'#0FC060' },
+  // 部门管理员 (r1) - 3人
+  { id:'m3', name:'王强', nickname:'老王', phone:'13734567890', deptName:'技术部', roleId:'r1', isMain:false, avatarColor:'#E7772D' },
+  { id:'m4', name:'赵敏', nickname:'小赵', phone:'13645678901', deptName:'技术部', roleId:'r1', isMain:false, avatarColor:'#0091D5' },
+  { id:'m5', name:'钱明', nickname:'钱多多', phone:'13556789012', deptName:'客服部', roleId:'r1', isMain:false, avatarColor:'#D9001B' },
+  // 普通成员 (r2) - 8人
+  { id:'m6', name:'孙丽', nickname:'小孙', phone:'13467890123', deptName:'运营部', roleId:'r2', isMain:false, avatarColor:'#8B5CF6' },
+  { id:'m7', name:'周磊', nickname:'老周', phone:'13378901234', deptName:'技术部', roleId:'r2', isMain:false, avatarColor:'#EC4899' },
+  { id:'m8', name:'吴芳', nickname:'小吴', phone:'13289012345', deptName:'运营部', roleId:'r2', isMain:false, avatarColor:'#F59E0B' },
+  { id:'m9', name:'郑浩', nickname:'浩哥', phone:'13190123456', deptName:'技术部', roleId:'r2', isMain:false, avatarColor:'#10B981' },
+  { id:'m10', name:'陈静', nickname:'静静', phone:'13067890123', deptName:'客服部', roleId:'r2', isMain:false, avatarColor:'#6366F1' },
+  { id:'m11', name:'刘洋', nickname:'大刘', phone:'15012345678', deptName:'市场部', roleId:'r2', isMain:false, avatarColor:'#14B8A6' },
+  { id:'m12', name:'黄丽', nickname:'丽丽', phone:'15123456789', deptName:'运营部', roleId:'r2', isMain:false, avatarColor:'#F97316' },
+  { id:'m13', name:'马超', nickname:'小马', phone:'15234567890', deptName:'技术部', roleId:'r2', isMain:false, avatarColor:'#3B82F6' },
+  // 运营专员 (r3) - 5人
+  { id:'m14', name:'林小红', nickname:'小林', phone:'15345678901', deptName:'运营部', roleId:'r3', isMain:false, avatarColor:'#EF4444' },
+  { id:'m15', name:'何强', nickname:'强哥', phone:'15456789012', deptName:'运营部', roleId:'r3', isMain:false, avatarColor:'#22C55E' },
+  { id:'m16', name:'罗敏', nickname:'敏敏', phone:'15567890123', deptName:'运营部', roleId:'r3', isMain:false, avatarColor:'#A855F7' },
+  { id:'m17', name:'许波', nickname:'波波', phone:'15678901234', deptName:'运营部', roleId:'r3', isMain:false, avatarColor:'#EAB308' },
+  { id:'m18', name:'彭芳', nickname:'芳芳', phone:'15789012345', deptName:'市场部', roleId:'r3', isMain:false, avatarColor:'#06B6D4' },
+  // Other roles
+  { id:'m19', name:'唐磊', nickname:'大唐', phone:'15890123456', deptName:'技术部', roleId:'r4', isMain:false, avatarColor:'#84CC16' },
+  { id:'m20', name:'顾明', nickname:'老顾', phone:'15901234567', deptName:'市场部', roleId:'r5', isMain:false, avatarColor:'#64748B' },
+  { id:'m21', name:'沈静', nickname:'静静', phone:'16012345678', deptName:'市场部', roleId:'r5', isMain:false, avatarColor:'#78716C' },
+  { id:'m22', name:'韩涛', nickname:'涛哥', phone:'16123456789', deptName:'客服部', roleId:'r5', isMain:false, avatarColor:'#475569' },
+  { id:'m23', name:'崔丽', nickname:'丽丽', phone:'16234567890', deptName:'客服部', roleId:'r6', isMain:false, avatarColor:'#0284C7' }
+];
+
+// Generate rest of members for pagination demo
+for (var i = 24; i <= 40; i++) {
+  var depts = ['技术部','运营部','客服部','市场部','财务部'];
+  var names = ['员工','同事','伙伴','助理','专员'];
+  var d = depts[i % depts.length];
+  var n = names[Math.floor(i/5) % names.length];
+  memberList.push({
+    id: 'm' + i, name: d.charAt(0) + n + i, nickname: '成员' + i,
+    phone: '1' + (30 + i%70) + '1234' + String(i).padStart(4,'0'),
+    deptName: d, roleId: 'r' + (i % 7 + 2),
+    isMain: false, avatarColor: ['#0066FF','#0FC060','#E7772D','#0091D5','#8B5CF6','#EC4899','#F59E0B'][i%7]
+  });
+}
+
+/* ---- Permission Tree Data ----
+   - Leaf node: has `ops` array → renders individual operation checkboxes
+   - Parent node: has `children` array → state derived from children
+   - "查看" is always the first operation; implicit view if any other op is checked
+   ================================================================ */
+var permissionTree = [
+  { id:'m1', label:'工作台',   ops:['查看'] },
+  { id:'m2', label:'数据概览', ops:['查看'] },
+  { id:'m3', label:'订单管理', children:[
+    { id:'m3-1', label:'订单管理', ops:['查看','导出','编辑'] },
+    { id:'m3-2', label:'异常工单', ops:['查看','处理'] }
+  ]},
+  { id:'m4', label:'柜机监控', ops:['查看'] },
+  { id:'m5', label:'系统设置', children:[
+    { id:'m5-1', label:'成员管理', ops:['查看','新增','编辑','删除'] },
+    { id:'m5-2', label:'部门管理', ops:['查看','新增','编辑'] },
+    { id:'m5-3', label:'角色管理', ops:['查看','新增','编辑','删除'] },
+    { id:'m5-4', label:'消息设置', ops:['查看','编辑'] },
+    { id:'m5-5', label:'账号信息', ops:['查看'] }
+  ]}
+];
+
+/* ---- Department Tree for Add Member Modal ---- */
+var deptTree = [
+  { id:'d0', name:'游寄科技', children:[
+    { id:'d1', name:'运营部', children:[
+      { id:'d1-1', name:'运营一组', members:[
+        { id:'am1', name:'刘测试', phone:'18011112222' },
+        { id:'am2', name:'陈开发', phone:'18011112223' }
+      ]},
+      { id:'d1-2', name:'运营二组', members:[
+        { id:'am3', name:'邓架构', phone:'18011112224' },
+        { id:'am4', name:'何运营', phone:'18011112225' }
+      ]}
+    ]},
+    { id:'d2', name:'客服部', children:[
+      { id:'d2-1', name:'投诉处理组', members:[
+        { id:'am5', name:'林内容', phone:'18011112226' },
+        { id:'am6', name:'罗策划', phone:'18011112227' },
+        { id:'am7', name:'许客服', phone:'18011112228' }
+      ]}
+    ]},
+    { id:'d3', name:'技术部', members:[
+      { id:'am8',  name:'彭售后', phone:'18011112229' },
+      { id:'am9',  name:'唐市场', phone:'18011112230' },
+      { id:'am10', name:'顾品牌', phone:'18011112231' },
+      { id:'am11', name:'沈财务', phone:'18011112232' }
+    ]}
+  ]}
+];
+
+/* ---- Data Permission Options ---- */
+var dataPermOptions = [
+  { value:'all', label:'全部数据' },
+  { value:'dept_sub', label:'本部门及下级部门' },
+  { value:'dept', label:'本部门' },
+  { value:'self', label:'仅本人' }
+];
+
+/* ================================================================
+   STATE
+   ================================================================ */
+var selectedRoleId = 'r0'; // Default: 超级管理员
+var roleSearchKw = '';
+var memberSearchKw = '';
+var activeTab = 'member'; // 'member' | 'permission' | 'data'
+var selectedMemberIds = []; // For batch remove
+var currentDeleteRoleId = null;
+var currentRemoveType = null; // 'single' | 'batch'
+var currentRemoveMemberId = null;
+var drawerMode = 'add'; // 'add' | 'edit'
+var drawerEditRoleId = null;
+var permExpandedAll = false;
+var drawerPermState = {}; // Track checkbox states for drawer permission tree
+var addMemberSelected = {}; // { amId: memberObj }
+var addMemberDeptExpanded = {}; // Track expanded departments in add member tree
+var memberPage = 1;
+var memberPageSize = 10;
+
+/* ================================================================
+   HELPERS
+   ================================================================ */
+function selRole() { return roleList.find(function(r){ return r.id === selectedRoleId; }); }
+function roleMembers() { return memberList.filter(function(m){ return m.roleId === selectedRoleId; }); }
+function getInitials(name) { return name ? name.charAt(0) : '?'; }
+function getDataPermLabel(val) {
+  var opt = dataPermOptions.find(function(o){ return o.value === val; });
+  return opt ? opt.label : val;
+}
+
+/* ================================================================
+   RENDER ROLE LIST
+   ================================================================ */
+function renderRoleList() {
+  var kw = roleSearchKw.toLowerCase();
+  var filtered = roleList.filter(function(r){ return !kw || r.name.toLowerCase().indexOf(kw) !== -1; });
+  // Super admin always first
+  var superAdmin = null;
+  var others = [];
+  filtered.forEach(function(r){
+    if (r.isSystem) superAdmin = r;
+    else others.push(r);
+  });
+  // Sort others by createTime desc
+  others.sort(function(a,b){ return b.createTime.localeCompare(a.createTime); });
+  var sorted = superAdmin ? [superAdmin].concat(others) : others;
+
+  var container = document.getElementById('roleList');
+  var html = '';
+  sorted.forEach(function(r){
+    var activeCls = r.id === selectedRoleId ? ' active' : '';
+    var icon = r.isSystem ? 'shield' : 'users';
+    var draggable = r.isSystem ? '' : ' draggable="true"';
+    html += '<div class="role-item' + activeCls + '" data-role-id="' + r.id + '"' + draggable + '>';
+    html += '<div class="w-8 h-8 rounded-md flex items-center justify-center mr-2.5 flex-shrink-0" style="background:#E6F0FF;color:#0066FF;"><i data-lucide="' + icon + '" class="w-[15px] h-[15px]"></i></div>';
+    html += '<div class="flex-1 min-w-0" onclick="selectRole(\'' + r.id + '\')"><div class="text-[14px] text-ink-body truncate">' + r.name + '</div><div class="text-[12px] text-ink-muted font-mono">(' + r.memberCount + '人)</div></div>';
+    if (!r.isSystem) {
+      html += '<span class="role-actions flex-shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-line-lighter text-ink-sub cursor-pointer" data-role-id="' + r.id + '" onclick="event.stopPropagation();openRoleContextMenu(event,\'' + r.id + '\')"><i data-lucide="more-horizontal" class="w-[14px] h-[14px]"></i></span>';
+    } else {
+      html += '<span class="flex-shrink-0 w-6 h-6"></span>';
+    }
+    html += '</div>';
+  });
+  if (sorted.length === 0) {
+    html = '<div class="flex flex-col items-center justify-center py-16 text-[13px] text-ink-muted"><i data-lucide="search-x" class="w-[32px] h-[32px] mb-2 opacity-30"></i><p>未搜索到相关结果</p></div>';
+  }
+  container.innerHTML = html;
+  lucide.createIcons({attrs:{class:'w-[14px] h-[14px]'}});
+  bindDragEvents();
+}
+
+function selectRole(id) {
+  selectedRoleId = id;
+  memberPage = 1;
+  selectedMemberIds = [];
+  memberSearchKw = '';
+  activeTab = 'member';
+  renderRoleList();
+  renderDetail();
+  // Mobile: show right panel
+  if (window.innerWidth <= 768) {
+    var section = document.querySelector('#roleLayout > section');
+    if (section) section.classList.add('show');
+  }
+}
+
+function backToRoleList() {
+  var section = document.querySelector('#roleLayout > section');
+  if (section) section.classList.remove('show');
+}
+
+function openRoleContextMenu(e, roleId) {
+  // Remove existing menus
+  document.querySelectorAll('.context-menu').forEach(function(m){ m.remove(); });
+  var r = roleList.find(function(x){ return x.id === roleId; });
+  if (!r) return;
+  var menu = document.createElement('div');
+  menu.className = 'context-menu';
+  menu.style.cssText = 'position:fixed;background:#fff;border:1px solid #DFE1E5;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.06);z-index:100;padding:4px 0;min-width:120px;';
+  menu.style.left = e.clientX + 'px';
+  menu.style.top = e.clientY + 'px';
+  var items = [
+    { label:'编辑', action:function(){ selectRole(roleId); openRoleDrawer('edit', roleId); close(); } }
+  ];
+  if (!r.isSystem) {
+    items.push({ label:'删除', cls:'danger', action:function(){ selectRole(roleId); triggerDeleteRole(roleId); close(); } });
+  }
+  items.forEach(function(item){
+    var div = document.createElement('div');
+    div.className = 'context-menu-item';
+    div.style.cssText = 'padding:6px 14px;font-size:13px;cursor:pointer;color:' + (item.cls==='danger'?'#D9001B':'#3A3F4A') + ';';
+    div.textContent = item.label;
+    div.onmouseenter = function(){ this.style.background = '#F3F4F6'; };
+    div.onmouseleave = function(){ this.style.background = ''; };
+    div.onclick = item.action;
+    menu.appendChild(div);
+  });
+  document.body.appendChild(menu);
+  function close(){ menu.remove(); document.removeEventListener('click', close); }
+  setTimeout(function(){ document.addEventListener('click', close); }, 0);
+}
+
+/* ================================================================
+   DRAG & DROP (Role List)
+   ================================================================ */
+function bindDragEvents() {
+  var items = document.querySelectorAll('#roleList .role-item[draggable="true"]');
+  items.forEach(function(item){
+    item.addEventListener('dragstart', function(e){
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', this.getAttribute('data-role-id'));
+    });
+    item.addEventListener('dragend', function(e){
+      this.classList.remove('dragging');
+      document.querySelectorAll('#roleList .role-item').forEach(function(it){ it.classList.remove('drag-over'); });
+    });
+    item.addEventListener('dragover', function(e){
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('#roleList .role-item').forEach(function(it){ it.classList.remove('drag-over'); });
+      if (!this.classList.contains('dragging')) this.classList.add('drag-over');
+    });
+    item.addEventListener('drop', function(e){
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      var dragId = e.dataTransfer.getData('text/plain');
+      var dropId = this.getAttribute('data-role-id');
+      if (dragId === dropId) return;
+      reorderRoles(dragId, dropId);
+    });
+  });
+}
+
+function reorderRoles(dragId, dropId) {
+  var dragRole = roleList.find(function(r){ return r.id === dragId; });
+  var dropRole = roleList.find(function(r){ return r.id === dropId; });
+  if (!dragRole || !dropRole || dragRole.isSystem || dropRole.isSystem) return;
+  // Remove drag, insert before drop
+  var dragIdx = roleList.indexOf(dragRole);
+  var dropIdx = roleList.indexOf(dropRole);
+  roleList.splice(dragIdx, 1);
+  var newDropIdx = roleList.indexOf(dropRole);
+  roleList.splice(newDropIdx, 0, dragRole);
+  renderRoleList();
+  showToast('排序已更新', 'success');
+}
+
+/* ================================================================
+   RENDER ROLE DETAIL
+   ================================================================ */
+function renderDetail() {
+  var role = selRole();
+  var empty = document.getElementById('detailEmpty');
+  var content = document.getElementById('detailContent');
+  if (!role) {
+    empty.classList.remove('hidden');
+    content.classList.add('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  content.classList.remove('hidden');
+
+  var statusDot = role.status === 1 ? '#0FC060' : '#9DA2AC';
+  var statusText = role.status === 1 ? '已启用' : '已禁用';
+  var showActions = !role.isSystem;
+
+  var html = '';
+  // Wrapper with standard card padding
+  html += '<div class="p-5 md:p-6">';
+  // Mobile back button
+  html += '<button class="md:hidden flex items-center gap-1 text-[13px] text-ink-sub mb-3" onclick="backToRoleList()"><i data-lucide="chevron-left" class="w-[16px] h-[16px]"></i> 返回角色列表</button>';
+  // Header row
+  html += '<div class="flex items-center justify-between mb-3" data-anno="5">';
+  html += '<h2 class="text-[18px] font-semibold text-ink-title inline-block">' + role.name + '<span class="text-[14px] font-normal text-ink-sub ml-1">（' + role.memberCount + '人）</span></h2>';
+  if (showActions) {
+    html += '<div class="flex gap-4">';
+    html += '<span class="btn-text cursor-pointer" onclick="openRoleDrawer(\'edit\',\'' + role.id + '\')"><i data-lucide="edit" class="w-[14px] h-[14px] inline mr-1"></i>编辑</span>';
+    html += '<span class="btn-text danger cursor-pointer" onclick="triggerDeleteRole(\'' + role.id + '\')"><i data-lucide="trash-2" class="w-[14px] h-[14px] inline mr-1"></i>删除</span>';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // Meta info row
+  html += '<div class="flex items-center gap-8 py-3 mb-4 text-[13px] border-b border-line-light" data-anno="6">';
+  html += '<span class="text-ink-muted">状态：<span class="text-ink-body ml-1.5" style="color:' + statusDot + '">' + statusText + '</span></span>';
+  html += '<span class="text-ink-muted">创建人：<span class="text-ink-body ml-1.5">' + role.creator + '</span></span>';
+  html += '<span class="text-ink-muted">创建时间：<span class="text-ink-body ml-1.5 font-mono text-[12px]">' + role.createTime + '</span></span>';
+  var remarkHtml = role.remark === '——' ? '<span class="text-ink-muted">——</span>' : '<span class="text-ink-body ml-1.5">' + role.remark + '</span>';
+  html += '<span class="text-ink-muted truncate max-w-[200px]" title="' + role.remark + '">备注：' + remarkHtml + '</span>';
+  html += '</div>';
+
+  // Tabs
+  html += '<div class="flex border-b border-line mb-5" data-anno="7">';
+  var tabs = { member:'角色成员', permission:'功能权限', data:'数据权限' };
+  Object.keys(tabs).forEach(function(t){
+    html += '<div class="tab-item' + (t === activeTab ? ' active' : '') + '" data-tab="' + t + '">' + tabs[t] + '</div>';
+  });
+  html += '</div>';
+
+  // Tab content
+  if (activeTab === 'member') {
+    html += renderMemberTab();
+  } else if (activeTab === 'permission') {
+    html += renderPermissionTab();
+  } else if (activeTab === 'data') {
+    html += renderDataPermTab();
+  }
+
+  html += '</div>'; // close p-5 wrapper
+
+  content.innerHTML = html;
+  lucide.createIcons();
+
+  // Bind tab clicks
+  content.querySelectorAll('.tab-item').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      activeTab = this.getAttribute('data-tab');
+      renderDetail();
+      setTimeout(renderAnnoBadges, 50);
+    });
+  });
+
+  // Bind member search
+  var msInput = document.getElementById('memberSearchInput');
+  if (msInput) {
+    msInput.addEventListener('input', function(){
+      memberSearchKw = this.value;
+      memberPage = 1;
+      selectedMemberIds = [];
+      renderDetail();
+    });
+  }
+
+  // Re-render annotation badges after DOM update
+  setTimeout(renderAnnoBadges, 50);
+}
+
+/* ================================================================
+   MEMBER TAB
+   ================================================================ */
+function renderMemberTab() {
+  var members = roleMembers();
+  var kw = memberSearchKw.toLowerCase();
+  var filtered = kw ? members.filter(function(m){
+    return m.name.toLowerCase().indexOf(kw) !== -1 || (m.nickname||'').toLowerCase().indexOf(kw) !== -1 || m.phone.indexOf(kw) !== -1;
+  }) : members.slice();
+
+  // Pagination
+  var totalFiltered = filtered.length;
+  var totalPages = Math.ceil(totalFiltered / memberPageSize) || 1;
+  if (memberPage > totalPages) memberPage = totalPages;
+  var start = (memberPage - 1) * memberPageSize;
+  var pageMembers = filtered.slice(start, start + memberPageSize);
+
+  var role = selRole();
+  var html = '';
+
+  // Toolbar
+  html += '<div class="flex items-center justify-between mb-4" data-anno="8">';
+  html += '<div class="relative w-[300px]"><i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-[14px] h-[14px] text-ink-muted pointer-events-none"></i><input type="text" id="memberSearchInput" placeholder="请输入成员名称/昵称/手机号搜索" class="form-input h-[32px] pl-9 text-[13px]" value="' + memberSearchKw + '"></div>';
+  html += '<div class="flex gap-2">';
+  html += '<button class="btn btn-default btn-sm" data-anno="10" onclick="batchRemoveMembers()"><i data-lucide="user-minus" class="w-[14px] h-[14px]"></i> 移除成员</button>';
+  html += '<button class="btn btn-primary btn-sm" data-anno="11" onclick="openAddMemberModal()"><i data-lucide="user-plus" class="w-[14px] h-[14px]"></i> 添加成员</button>';
+  html += '</div></div>';
+
+  // Table
+  html += '<div class="overflow-x-auto">';
+  html += '<table class="data-table" data-anno="9"><thead><tr>';
+  html += '<th style="width:40px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" class="w-[15px] h-[15px]"></th>';
+  html += '<th>成员名称</th><th>昵称</th><th>手机号</th><th>所在部门</th><th style="width:80px">操作</th>';
+  html += '</tr></thead><tbody>';
+
+  if (pageMembers.length === 0) {
+    html += '<tr><td colspan="6" class="text-center py-16">';
+    html += '<i data-lucide="' + (kw ? 'search-x' : 'users') + '" class="w-[32px] h-[32px] text-ink-muted mx-auto mb-2 opacity-30"></i>';
+    html += '<p class="text-[13px] text-ink-muted">' + (kw ? '未搜索到相关结果' : '该角色暂无成员') + '</p>';
+    html += '</td></tr>';
+  } else {
+    pageMembers.forEach(function(m){
+      var isMain = m.isMain;
+      var checked = selectedMemberIds.indexOf(m.id) !== -1;
+      var canRemove = !(role && role.isSystem && isMain); // 主账号在超级管理员下不可移除
+      html += '<tr>';
+      html += '<td><input type="checkbox" ' + (checked ? 'checked' : '') + ' value="' + m.id + '" onchange="toggleMemberSelect(this)" class="w-[15px] h-[15px]"></td>';
+      html += '<td><div class="flex items-center gap-2"><span class="avatar-circle" style="background:' + m.avatarColor + ';position:relative;">' + getInitials(m.name);
+      if (isMain) html += '<span class="avatar-badge" title="主账号"><i data-lucide="star" class="w-[8px] h-[8px] text-white"></i></span>';
+      html += '</span>' + m.name + '</div></td>';
+      html += '<td>' + (m.nickname || '-') + '</td>';
+      html += '<td class="font-mono text-[12px]">' + m.phone + '</td>';
+      html += '<td>' + m.deptName + '</td>';
+      html += '<td>';
+      if (canRemove) {
+        html += '<span class="action-link" onclick="removeSingleMember(\'' + m.id + '\')">移除</span>';
+      } else {
+        html += '<span class="text-ink-muted">——</span>';
+      }
+      html += '</td>';
+      html += '</tr>';
+    });
+  }
+  html += '</tbody></table></div>';
+
+  // Pagination
+  html += renderPagination(totalFiltered, totalPages);
+
+  return html;
+}
+
+/* ================================================================
+   PAGINATION (per design.md §5.5)
+   ================================================================ */
+function renderPagination(total, totalPages) {
+  if (total === 0) return '';
+  var html = '';
+  html += '<div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]" data-anno="12">';
+  // Page nav
+  html += '<div class="flex gap-1" id="pg-nav">';
+  // Prev
+  var prevDisabled = memberPage <= 1;
+  html += '<button class="pg-btn' + (prevDisabled ? ' pg-disabled' : '') + '" ' + (prevDisabled ? 'disabled' : 'onclick="goToPage(' + (memberPage-1) + ')"') + '>‹</button>';
+  // Page numbers
+  var pages = [];
+  if (totalPages <= 7) {
+    for (var i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (memberPage > 3) pages.push('…');
+    for (var i = Math.max(2, memberPage - 1); i <= Math.min(totalPages - 1, memberPage + 1); i++) pages.push(i);
+    if (memberPage < totalPages - 2) pages.push('…');
+    pages.push(totalPages);
+  }
+  pages.forEach(function(p){
+    if (p === '…') {
+      html += '<span class="pg-ellipsis">…</span>';
+    } else {
+      html += '<button class="pg-btn' + (p === memberPage ? ' pg-current' : '') + '" onclick="goToPage(' + p + ')">' + p + '</button>';
+    }
+  });
+  // Next
+  var nextDisabled = memberPage >= totalPages;
+  html += '<button class="pg-btn' + (nextDisabled ? ' pg-disabled' : '') + '" ' + (nextDisabled ? 'disabled' : 'onclick="goToPage(' + (memberPage+1) + ')"') + '>›</button>';
+  html += '</div>';
+  // Page size selector
+  html += '<div class="pg-select-wrap"><select class="pg-select" onchange="changePageSize(this.value)"><option value="10"' + (memberPageSize===10?' selected':'') + '>10条/页</option><option value="20"' + (memberPageSize===20?' selected':'') + '>20条/页</option><option value="50"' + (memberPageSize===50?' selected':'') + '>50条/页</option></select></div>';
+  // Jump + stats
+  html += '<span class="pg-stats">跳至 <input type="text" class="pg-jump-input" id="pgJumpInput" value="' + memberPage + '" onkeydown="if(event.key===\'Enter\')jumpToPage()"> 页　共 ' + total + ' 条记录　第 ' + memberPage + '/' + totalPages + ' 页</span>';
+  html += '</div>';
+  return html;
+}
+
+function goToPage(p) { memberPage = p; selectedMemberIds = []; renderDetail(); }
+function changePageSize(s) { memberPageSize = parseInt(s); memberPage = 1; selectedMemberIds = []; renderDetail(); }
+function jumpToPage() {
+  var v = parseInt(document.getElementById('pgJumpInput').value);
+  var totalPages = Math.ceil(roleMembers().length / memberPageSize) || 1;
+  if (isNaN(v) || v < 1) v = 1;
+  if (v > totalPages) v = totalPages;
+  memberPage = v;
+  selectedMemberIds = [];
+  renderDetail();
+}
+
+/* ================================================================
+   PERMISSION TAB
+   ================================================================ */
+function renderPermissionTab() {
+  var html = '';
+  html += '<div class="tip-box" data-anno="13" style="display:flex;align-items:flex-start;gap:8px;padding:12px 16px;background:#F7F8FA;border-radius:4px;margin-bottom:16px;font-size:13px;color:#6E7685;">';
+  html += '<i data-lucide="info" class="w-[15px] h-[15px] flex-shrink-0 mt-0.5" style="color:#0066FF"></i>';
+  html += '<span>功能权限说明：若拥有该菜单模块下所有功能权限则显示"所有权限"，部分权限以"、"隔开列出。仅勾选"查看"权限时，用户只能查看页面信息无操作权限；若未勾选"查看"但勾选了其他功能权限，则用户依旧可以查看页面信息（隐含查看权限）</span></div>';
+
+  html += '<div class="overflow-x-auto"><table class="data-table"><thead><tr><th>菜单功能</th><th>权限</th></tr></thead><tbody>';
+  // Flatten permission tree for display
+  function flattenPerms(tree, prefix) {
+    var result = [];
+    tree.forEach(function(node){
+      var label = (prefix || '') + node.label;
+      if (node.ops) {
+        // Show all ops for this node (mock: role has all permissions)
+        var isAll = node.ops.length === 1;
+        var permText = isAll ? '所有权限' : node.ops.join('、');
+        result.push({ menu: label, perm: permText, isAll: isAll });
+      }
+      if (node.children) {
+        result = result.concat(flattenPerms(node.children, label + ' > '));
+      }
+    });
+    return result;
+  }
+  var flatPerms = flattenPerms(permissionTree, '');
+  if (flatPerms.length === 0) {
+    html += '<tr><td colspan="2" class="text-center py-16"><i data-lucide="shield-off" class="w-[32px] h-[32px] text-ink-muted mx-auto mb-2 opacity-30"></i><p class="text-[13px] text-ink-muted">暂无功能权限</p></td></tr>';
+  } else {
+    flatPerms.forEach(function(p){
+      html += '<tr><td>' + p.menu + '</td><td><span class="' + (p.isAll ? 'text-success font-medium' : 'text-ink-body') + '">' + p.perm + '</span></td></tr>';
+    });
+  }
+  html += '</tbody></table></div>';
+  return html;
+}
+
+/* ================================================================
+   DATA PERMISSION TAB
+   ================================================================ */
+function renderDataPermTab() {
+  var role = selRole();
+  var html = '';
+  html += '<div class="tip-box" data-anno="14" style="display:flex;align-items:flex-start;gap:8px;padding:12px 16px;background:#F7F8FA;border-radius:4px;margin-bottom:16px;font-size:13px;color:#6E7685;">';
+  html += '<i data-lucide="info" class="w-[15px] h-[15px] flex-shrink-0 mt-0.5" style="color:#0066FF"></i>';
+  html += '<span>数据权限说明：数据权限用于控制角色可见的数据范围</span></div>';
+
+  html += '<div class="overflow-x-auto"><table class="data-table"><thead><tr><th>权限</th></tr></thead><tbody>';
+  html += '<tr><td>' + getDataPermLabel(role.dataPerm) + '</td></tr>';
+  html += '</tbody></table></div>';
+  return html;
+}
+
+/* ================================================================
+   MEMBER SELECTION (Checkboxes)
+   ================================================================ */
+function toggleSelectAll(cb) {
+  var members = roleMembers();
+  var kw = memberSearchKw.toLowerCase();
+  var filtered = kw ? members.filter(function(m){
+    return m.name.toLowerCase().indexOf(kw) !== -1 || (m.nickname||'').toLowerCase().indexOf(kw) !== -1 || m.phone.indexOf(kw) !== -1;
+  }) : members.slice();
+  if (cb.checked) {
+    filtered.forEach(function(m){
+      if (selectedMemberIds.indexOf(m.id) === -1) selectedMemberIds.push(m.id);
+    });
+  } else {
+    var filteredIds = filtered.map(function(m){ return m.id; });
+    selectedMemberIds = selectedMemberIds.filter(function(id){ return filteredIds.indexOf(id) === -1; });
+  }
+  renderDetail();
+}
+function toggleMemberSelect(cb) {
+  if (cb.checked) {
+    selectedMemberIds.push(cb.value);
+  } else {
+    selectedMemberIds = selectedMemberIds.filter(function(id){ return id !== cb.value; });
+  }
+}
+
+/* ================================================================
+   REMOVE MEMBER
+   ================================================================ */
+function removeSingleMember(memberId) {
+  currentRemoveType = 'single';
+  currentRemoveMemberId = memberId;
+  var role = selRole();
+  var member = memberList.find(function(m){ return m.id === memberId; });
+  document.getElementById('removeMemberTitle').textContent = '确认将该成员移出角色吗？';
+  document.getElementById('removeMemberMsg').textContent = '删除后，' + (member ? member.name : '该成员') + '将不再有【' + role.name + '】角色的相关权限';
+  document.getElementById('removeMemberDialog').classList.remove('hidden');
+}
+
+function batchRemoveMembers() {
+  if (selectedMemberIds.length === 0) {
+    showToast('请选择要移除的成员', 'warning');
+    return;
+  }
+  currentRemoveType = 'batch';
+  var role = selRole();
+  document.getElementById('removeMemberTitle').textContent = '确认将所选成员移出角色吗？';
+  document.getElementById('removeMemberMsg').textContent = '删除后，所选成员将不再有【' + role.name + '】角色的相关权限';
+  document.getElementById('removeMemberDialog').classList.remove('hidden');
+}
+
+function closeRemoveMemberDialog() {
+  document.getElementById('removeMemberDialog').classList.add('hidden');
+  currentRemoveMemberId = null;
+  currentRemoveType = null;
+}
+
+function confirmRemoveMembers() {
+  var idsToRemove = currentRemoveType === 'single' ? [currentRemoveMemberId] : selectedMemberIds.slice();
+  // Mock: simulate checking if members have other roles
+  var successIds = [];
+  var failIds = [];
+  idsToRemove.forEach(function(mid){
+    var m = memberList.find(function(x){ return x.id === mid; });
+    if (!m) return;
+    // Check if member has other roles
+    var otherRoles = memberList.filter(function(x){ return x.id === m.id && x.roleId !== selectedRoleId; });
+    // For mock, simulate some members failing (those with only one role)
+    var memberRoles = memberList.filter(function(x){ return x.name === m.name && x.phone === m.phone; });
+    if (memberRoles.length <= 1) {
+      // In mock, some members might only have this role
+      // For demonstration, let's say most succeed
+      if (mid === 'm1' && selectedRoleId === 'r0') {
+        failIds.push(mid); // Main account in super admin role cannot be removed
+      } else {
+        successIds.push(mid);
+      }
+    } else {
+      successIds.push(mid);
+    }
+  });
+
+  if (failIds.length > 0 && successIds.length === 0) {
+    showToast('移除失败，成员至少拥有一个角色', 'warning');
+  } else if (failIds.length > 0) {
+    // Remove succeeded ones
+    for (var i = memberList.length - 1; i >= 0; i--) {
+      if (successIds.indexOf(memberList[i].id) !== -1 && memberList[i].roleId === selectedRoleId) {
+        memberList.splice(i, 1);
+      }
+    }
+    updateRoleMemberCount();
+    selectedMemberIds = [];
+    showToast(successIds.length + '人移除成功，' + failIds.length + '人移除失败（成员至少拥有一个角色）', 'warning');
+  } else {
+    // All succeeded
+    for (var i = memberList.length - 1; i >= 0; i--) {
+      if (successIds.indexOf(memberList[i].id) !== -1 && memberList[i].roleId === selectedRoleId) {
+        memberList.splice(i, 1);
+      }
+    }
+    updateRoleMemberCount();
+    selectedMemberIds = [];
+    showToast('移除成功', 'success');
+  }
+
+  closeRemoveMemberDialog();
+  renderRoleList();
+  renderDetail();
+}
+
+function updateRoleMemberCount() {
+  var role = selRole();
+  if (role) {
+    role.memberCount = roleMembers().length;
+  }
+}
+
+/* ================================================================
+   ADD MEMBER MODAL (Tree Structure)
+   ================================================================ */
+function openAddMemberModal() {
+  addMemberSelected = {};
+  addMemberDeptExpanded = {};
+  document.getElementById('addMemberSearch').value = '';
+  document.getElementById('addMemberModal').classList.remove('hidden');
+  renderDeptTree();
+  renderSelectedMembers();
+  updateAddMemberBtn();
+}
+
+function closeAddMemberModal() {
+  document.getElementById('addMemberModal').classList.add('hidden');
+  addMemberSelected = {};
+}
+
+function renderDeptTree(filterKw) {
+  var role = selRole();
+  var existingMemberIds = roleMembers().map(function(m){ return m.phone; });
+  var container = document.getElementById('deptTreeContainer');
+  if (!container) return;
+
+  var kw = filterKw ? filterKw.toLowerCase() : '';
+
+  // Pass 1: Find which node IDs are in the match path
+  var matchIds = {}; // nodeId -> true if this node or any descendant matches
+  function markMatches(nodes, path) {
+    var anyMatch = false;
+    nodes.forEach(function(node){
+      var nodeId = path + '|' + node.id;
+      var selfMatch = kw && node.name.toLowerCase().indexOf(kw) !== -1;
+      var childMatch = false;
+      if (node.children && node.children.length > 0) {
+        childMatch = markMatches(node.children, nodeId);
+      }
+      var memberMatch = false;
+      if (kw && node.members) {
+        memberMatch = node.members.some(function(m){ return m.name.toLowerCase().indexOf(kw) !== -1 || m.phone.indexOf(kw) !== -1; });
+      }
+      var matches = selfMatch || childMatch || memberMatch;
+      if (matches) matchIds[nodeId] = true;
+      anyMatch = anyMatch || matches;
+    });
+    return anyMatch;
+  }
+  if (kw) {
+    markMatches(deptTree, 'root');
+    // Auto-expand all nodes in match path
+    expandAllDeptNodes(deptTree, 'root');
+  }
+
+  // Pass 2: Collect visible rows (only matches + their ancestors when filtering)
+  var rows = [];
+  function walk(nodes, level, path) {
+    nodes.forEach(function(node){
+      var nodeId = path + '|' + node.id;
+      var hasChildren = node.children && node.children.length > 0;
+      var members = (node.members || []).slice();
+      var isExpanded = addMemberDeptExpanded[nodeId] !== false;
+
+      // Filter members by keyword
+      if (kw) {
+        members = members.filter(function(m){ return m.name.toLowerCase().indexOf(kw) !== -1 || m.phone.indexOf(kw) !== -1; });
+      }
+
+      // Skip non-matching nodes when filtering
+      if (kw && !matchIds[nodeId]) return;
+
+      rows.push({ node: node, nodeId: nodeId, level: level, hasChildren: hasChildren, members: members, isExpanded: isExpanded });
+
+      if (hasChildren && isExpanded) {
+        walk(node.children, level + 1, nodeId);
+      }
+    });
+  }
+  walk(deptTree, 0, 'root');
+
+  // Build flat HTML (unchanged)
+  var html = '';
+  rows.forEach(function(row){
+    var node = row.node, nodeId = row.nodeId, level = row.level, members = row.members;
+    var indent = level * 20;
+
+    html += '<div class="tree-node" style="padding-left:' + indent + 'px;">';
+    html += '<div class="flex items-center py-1.5 px-2 rounded hover:bg-bg-hover" style="min-height:32px;">';
+
+    // Toggle
+    if (row.hasChildren || (members.length > 0)) {
+      html += '<span class="perm-tree-toggle' + (row.isExpanded ? ' open' : '') + '" onclick="toggleDeptNode(event,\'' + nodeId + '\')">▶</span>';
+    } else {
+      html += '<span class="inline-block w-[18px]"></span>';
+    }
+
+    // Checkbox for dept (show for nodes with members or children)
+    var allDescMembers = collectAllMembers(node);
+    if (allDescMembers.length > 0) {
+      var allSelected = allDescMembers.every(function(m){ return addMemberSelected[m.id]; });
+      var someSelected = allDescMembers.some(function(m){ return addMemberSelected[m.id]; });
+      var cbClass = allSelected ? 'checked' : (someSelected ? 'partial' : '');
+      html += '<span class="perm-checkbox ' + cbClass + ' mr-2" onclick="toggleDeptMembers(event,\'' + nodeId + '\')"></span>';
+    } else {
+      html += '<span class="inline-block w-[19px] mr-2"></span>';
+    }
+
+    html += '<span class="text-[13px] text-ink-body select-none">' + node.name + '</span>';
+    html += '</div>';
+
+    // Render members
+    if (members.length > 0 && row.isExpanded) {
+      members.forEach(function(m){
+        var isExisting = existingMemberIds.indexOf(m.phone) !== -1;
+        var isSelected = addMemberSelected[m.id];
+        html += '<div class="flex items-center py-1.5 px-2 rounded hover:bg-bg-hover" style="min-height:32px;padding-left:' + (indent + 20) + 'px;">';
+        if (isExisting) {
+          html += '<span class="perm-checkbox mr-2" style="background:#E8EAED;border-color:#DFE1E5;cursor:not-allowed;"></span>';
+          html += '<span class="text-[13px] text-ink-muted select-none">' + m.name + '</span>';
+          html += '<span class="text-[12px] text-ink-muted ml-2">（已在角色中）</span>';
+        } else {
+          html += '<span class="perm-checkbox ' + (isSelected ? 'checked' : '') + ' mr-2" onclick="toggleAddMember(\'' + m.id + '\',\'' + m.name + '\',\'' + m.phone + '\')"></span>';
+          html += '<span class="text-[13px] text-ink-body select-none">' + m.name + '</span>';
+          html += '<span class="text-[12px] text-ink-muted ml-2 font-mono">' + m.phone + '</span>';
+        }
+        html += '</div>';
+      });
+    }
+
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function toggleDeptNode(e, nodeId) {
+  e.stopPropagation();
+  if (addMemberDeptExpanded[nodeId] === undefined) {
+    addMemberDeptExpanded[nodeId] = false;
+  } else {
+    addMemberDeptExpanded[nodeId] = !addMemberDeptExpanded[nodeId];
+  }
+  renderDeptTree(document.getElementById('addMemberSearch').value.trim());
+}
+
+function toggleDeptMembers(e, nodeId) {
+  e.stopPropagation();
+  var allMembers = collectAllMembersById(nodeId);
+  if (!allMembers || allMembers.length === 0) return;
+  var allSelected = allMembers.every(function(m){ return addMemberSelected[m.id]; });
+  allMembers.forEach(function(m){
+    if (allSelected) {
+      delete addMemberSelected[m.id];
+    } else {
+      if (Object.keys(addMemberSelected).length >= 1000) { return; }
+      addMemberSelected[m.id] = m;
+    }
+  });
+  renderDeptTree(document.getElementById('addMemberSearch').value.trim());
+  renderSelectedMembers();
+  updateAddMemberBtn();
+}
+
+/** Collect all descendant members of a tree node (including nested children) */
+function collectAllMembers(node) {
+  var result = [];
+  if (node.members) result = result.concat(node.members);
+  if (node.children) {
+    node.children.forEach(function(child){ result = result.concat(collectAllMembers(child)); });
+  }
+  return result;
+}
+
+/** Find node by nodeId path and collect all its descendant members */
+function collectAllMembersById(nodeId) {
+  var node = findDeptNodeById(nodeId);
+  return node ? collectAllMembers(node) : [];
+}
+
+function findDeptNodeById(nodeId) {
+  var pathParts = nodeId.split('|');
+  var nodeIdOnly = pathParts[pathParts.length - 1];
+  function findInTree(nodes) {
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].id === nodeIdOnly) return nodes[i];
+      if (nodes[i].children) {
+        var result = findInTree(nodes[i].children);
+        if (result) return result;
+      }
+    }
+    return null;
+  }
+  return findInTree(deptTree);
+}
+
+function toggleAddMember(id, name, phone) {
+  if (addMemberSelected[id]) {
+    delete addMemberSelected[id];
+  } else {
+    if (Object.keys(addMemberSelected).length >= 1000) {
+      showToast('最多可选1000人', 'warning');
+      return;
+    }
+    addMemberSelected[id] = { id: id, name: name, phone: phone };
+  }
+  renderDeptTree(document.getElementById('addMemberSearch').value.trim());
+  renderSelectedMembers();
+  updateAddMemberBtn();
+}
+
+function renderSelectedMembers() {
+  var container = document.getElementById('selectedMemberList');
+  var ids = Object.keys(addMemberSelected);
+  document.getElementById('selectedCount').textContent = ids.length;
+  if (ids.length === 0) {
+    container.innerHTML = '<p class="text-[13px] text-ink-muted text-center mt-10">暂未选择成员</p>';
+  } else {
+    var html = '';
+    ids.forEach(function(id){
+      var m = addMemberSelected[id];
+      html += '<div class="flex items-center justify-between py-2 px-2 rounded hover:bg-bg-hover">';
+      html += '<div class="flex items-center gap-2"><span class="avatar-circle" style="background:#0066FF;width:28px;height:28px;font-size:11px;">' + getInitials(m.name) + '</span><span class="text-[13px] text-ink-body">' + m.name + '</span></div>';
+      html += '<span class="cursor-pointer text-ink-muted hover:text-danger" onclick="toggleAddMember(\'' + id + '\')"><i data-lucide="x" class="w-[14px] h-[14px]"></i></span>';
+      html += '</div>';
+    });
+    container.innerHTML = html;
+    lucide.createIcons({attrs:{class:'w-[14px] h-[14px]'}});
+  }
+}
+
+function clearSelectedMembers() {
+  addMemberSelected = {};
+  renderDeptTree(document.getElementById('addMemberSearch').value.trim());
+  renderSelectedMembers();
+  updateAddMemberBtn();
+}
+
+function updateAddMemberBtn() {
+  var btn = document.getElementById('addMemberConfirmBtn');
+  var count = Object.keys(addMemberSelected).length;
+  btn.disabled = count === 0;
+  btn.textContent = '确定' + (count > 0 ? ' (' + count + '人)' : '');
+}
+
+function filterDeptTree() {
+  renderDeptTree(document.getElementById('addMemberSearch').value.trim());
+}
+
+function expandAllDeptNodes(nodes, parentPath) {
+  nodes.forEach(function(node){
+    var nodeId = parentPath + '|' + node.id;
+    addMemberDeptExpanded[nodeId] = true;
+    if (node.children) expandAllDeptNodes(node.children, nodeId);
+  });
+}
+
+function confirmAddMembers() {
+  var ids = Object.keys(addMemberSelected);
+  if (ids.length === 0) return;
+  var newMembers = ids.map(function(id){
+    var m = addMemberSelected[id];
+    return {
+      id: 'm' + Date.now() + '_' + id,
+      name: m.name,
+      nickname: '',
+      phone: m.phone,
+      deptName: '',
+      roleId: selectedRoleId,
+      isMain: false,
+      avatarColor: ['#0066FF','#0FC060','#E7772D','#0091D5','#8B5CF6','#EC4899','#F59E0B'][Math.floor(Math.random()*7)]
+    };
+  });
+  memberList.push.apply(memberList, newMembers);
+  updateRoleMemberCount();
+  showToast('添加成员成功', 'success');
+  closeAddMemberModal();
+  renderRoleList();
+  renderDetail();
+}
+
+/* ================================================================
+   DELETE ROLE
+   ================================================================ */
+function triggerDeleteRole(roleId) {
+  var role = roleList.find(function(r){ return r.id === roleId; });
+  if (!role) return;
+  if (role.isSystem) {
+    showToast('系统角色不可删除', 'warning');
+    return;
+  }
+  currentDeleteRoleId = roleId;
+  var memberCount = memberList.filter(function(m){ return m.roleId === roleId; }).length;
+  if (memberCount > 0) {
+    // Has members → block
+    document.getElementById('deleteBlockDialog').classList.remove('hidden');
+  } else {
+    // No members → confirm
+    document.getElementById('deleteConfirmDialog').classList.remove('hidden');
+  }
+}
+
+function closeDeleteBlockDialog() {
+  document.getElementById('deleteBlockDialog').classList.add('hidden');
+}
+
+function closeDeleteConfirmDialog() {
+  document.getElementById('deleteConfirmDialog').classList.add('hidden');
+  currentDeleteRoleId = null;
+}
+
+function confirmDeleteRole() {
+  var idx = roleList.findIndex(function(r){ return r.id === currentDeleteRoleId; });
+  if (idx !== -1) {
+    // Remove members of this role
+    for (var i = memberList.length - 1; i >= 0; i--) {
+      if (memberList[i].roleId === currentDeleteRoleId) memberList.splice(i, 1);
+    }
+    roleList.splice(idx, 1);
+  }
+  showToast('删除成功', 'success');
+  closeDeleteConfirmDialog();
+  // Switch to first role (super admin)
+  selectedRoleId = roleList.length > 0 ? roleList[0].id : null;
+  memberPage = 1;
+  selectedMemberIds = [];
+  renderRoleList();
+  renderDetail();
+}
+
+/* ================================================================
+   ROLE EDIT DRAWER
+   ================================================================ */
+function openRoleDrawer(mode, roleId) {
+  drawerMode = mode;
+  drawerEditRoleId = roleId || null;
+  permExpandedAll = false;
+  window._permExpandedNodes = {};
+  document.getElementById('drawerTitle').textContent = mode === 'add' ? '新增角色' : '编辑角色';
+
+  // Reset form
+  document.getElementById('drawerNameError').classList.add('hidden');
+  document.getElementById('drawerDataPermError').classList.add('hidden');
+
+  // Init permission state
+  drawerPermState = {};
+  permissionTree.forEach(function(node){ initPermState(node); });
+
+  if (mode === 'edit' && roleId) {
+    var role = roleList.find(function(r){ return r.id === roleId; });
+    if (role) {
+      document.getElementById('drawerRoleName').value = role.name;
+      updateCharCount('drawerRoleName', 'drawerNameCount', 20);
+      document.querySelector('input[name="drawerStatus"][value="' + role.status + '"]').checked = true;
+      document.getElementById('drawerRemark').value = role.description || '';
+      updateCharCount('drawerRemark', 'drawerRemarkCount', 100);
+      document.getElementById('drawerDataPerm').value = role.dataPerm || '';
+      // Preset some permissions for demo (mock: super admin has all)
+      if (role.isSystem) {
+        setAllPermState(permissionTree, true);
+      }
+    }
+  } else {
+    document.getElementById('drawerRoleName').value = '';
+    updateCharCount('drawerRoleName', 'drawerNameCount', 20);
+    document.querySelector('input[name="drawerStatus"][value="1"]').checked = true;
+    document.getElementById('drawerRemark').value = '';
+    updateCharCount('drawerRemark', 'drawerRemarkCount', 100);
+    document.getElementById('drawerDataPerm').value = '';
+  }
+
+  document.getElementById('roleDrawerOverlay').classList.remove('hidden');
+  renderPermTree();
+  updatePermAllCheck();
+  document.getElementById('permExpandAll').textContent = '▶ 全部展开';
+  permExpandedAll = false;
+
+  // Re-render annotation badges
+  setTimeout(renderAnnoBadges, 100);
+}
+
+function closeRoleDrawer() {
+  document.getElementById('roleDrawerOverlay').classList.add('hidden');
+}
+
+function initPermState(node) {
+  if (node.children) {
+    drawerPermState[node.id] = { checked: false, partial: false };
+    node.children.forEach(function(child){ initPermState(child); });
+  } else if (node.ops) {
+    var ops = {};
+    node.ops.forEach(function(op){ ops[op] = false; });
+    drawerPermState[node.id] = { checked: false, partial: false, ops: ops };
+  }
+}
+
+function setAllPermState(nodes, checked) {
+  nodes.forEach(function(node){
+    if (node.children) {
+      drawerPermState[node.id] = { checked: checked, partial: false };
+      setAllPermState(node.children, checked);
+    } else if (node.ops) {
+      var ops = {};
+      node.ops.forEach(function(op){ ops[op] = checked; });
+      drawerPermState[node.id] = { checked: checked, partial: false, ops: ops };
+    }
+  });
+}
+
+function computeNodeState(nodeId) {
+  var state = drawerPermState[nodeId];
+  if (!state) return;
+  if (state.ops) {
+    // Leaf node: compute checked/partial from ops
+    var opValues = Object.values(state.ops);
+    var allTrue = opValues.length > 0 && opValues.every(function(v){ return v; });
+    var anyTrue = opValues.some(function(v){ return v; });
+    state.checked = allTrue;
+    state.partial = anyTrue && !allTrue;
+  }
+  // Parent node state is set by updateParentPermState
+}
+
+function renderPermTree() {
+  var container = document.getElementById('permTreeContainer');
+  if (!container) return;
+  if (!window._permExpandedNodes) window._permExpandedNodes = {};
+
+  // Collect all nodes into a flat list with level info
+  var rows = [];
+
+  function walk(nodes, level) {
+    nodes.forEach(function(node){
+      var state = drawerPermState[node.id] || { checked: false, partial: false };
+      var hasChildren = node.children && node.children.length > 0;
+      var hasOps = node.ops && node.ops.length > 0;
+      var hasMultiOps = hasOps && node.ops.length > 1;
+      var isExpandable = hasChildren || hasMultiOps;
+      var isExpanded = !!(permExpandedAll || window._permExpandedNodes[node.id]);
+      rows.push({ node: node, level: level, state: state, hasChildren: hasChildren, hasMultiOps: hasMultiOps, isExpandable: isExpandable, isExpanded: isExpanded });
+      if (hasChildren && isExpanded) {
+        walk(node.children, level + 1);
+      }
+    });
+  }
+  walk(permissionTree, 0);
+
+  // Build flat HTML
+  var html = '';
+  rows.forEach(function(row){
+    var node = row.node, level = row.level, state = row.state;
+    var indent = level * 20;
+
+    html += '<div class="perm-tree-item" style="padding-left:' + indent + 'px;">';
+    html += '<div class="flex items-center py-1.5 px-2 rounded hover:bg-bg-hover" style="min-height:32px;">';
+
+    // Toggle arrow
+    if (row.isExpandable) {
+      html += '<span class="perm-tree-toggle' + (row.isExpanded ? ' open' : '') + '" onclick="togglePermNode(event,\'' + node.id + '\')">▶</span>';
+    } else {
+      html += '<span class="inline-block w-[18px]"></span>';
+    }
+
+    // Checkbox
+    var cbClass = state.checked ? 'checked' : (state.partial ? 'partial' : '');
+    if (row.hasChildren) {
+      html += '<span class="perm-checkbox ' + cbClass + ' mr-2" onclick="togglePermNodeAll(event,\'' + node.id + '\')"></span>';
+    } else if (node.ops && node.ops.length === 1) {
+      var opName = node.ops[0];
+      var opChecked = state.ops && state.ops[opName];
+      html += '<span class="perm-checkbox ' + (opChecked ? 'checked' : '') + ' mr-2" onclick="togglePermOp(event,\'' + node.id + '\',\'' + opName + '\')"></span>';
+    } else if (row.hasMultiOps) {
+      html += '<span class="perm-checkbox ' + cbClass + ' mr-2" onclick="togglePermNodeAll(event,\'' + node.id + '\')"></span>';
+    }
+
+    html += '<span class="text-[13px] text-ink-body select-none font-medium">' + node.label + '</span>';
+    html += '</div>';
+
+    // Inline operation checkboxes
+    if (row.hasMultiOps && row.isExpanded) {
+      html += '<div class="flex flex-wrap items-center gap-x-4 gap-y-1 py-1" style="padding-left:' + (indent + 18) + 'px;">';
+      node.ops.forEach(function(op){
+        var opChecked = state.ops && state.ops[op];
+        html += '<label class="flex items-center gap-1.5 cursor-pointer select-none text-[13px] text-ink-body">';
+        html += '<span class="perm-checkbox perm-checkbox-sm ' + (opChecked ? 'checked' : '') + '" onclick="togglePermOp(event,\'' + node.id + '\',\'' + op + '\')"></span>';
+        html += op;
+        html += '</label>';
+      });
+      html += '</div>';
+    }
+
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function togglePermNode(e, nodeId) {
+  e.stopPropagation();
+  if (!window._permExpandedNodes) window._permExpandedNodes = {};
+  window._permExpandedNodes[nodeId] = !window._permExpandedNodes[nodeId];
+  renderPermTree();
+}
+
+function togglePermNodeAll(e, nodeId) {
+  e.stopPropagation();
+  var node = findPermNode(nodeId);
+  if (!node) return;
+  var state = drawerPermState[nodeId] || { checked: false, partial: false };
+  // Toggle: if fully checked → uncheck all; otherwise → check all
+  var newChecked = !state.checked;
+
+  if (node.children) {
+    setAllPermState(node.children, newChecked);
+  } else if (node.ops) {
+    var ops = {};
+    node.ops.forEach(function(op){ ops[op] = newChecked; });
+    drawerPermState[nodeId] = { checked: newChecked, partial: false, ops: ops };
+  }
+  computeNodeState(nodeId);
+  updateParentPermState();
+  renderPermTree();
+  updatePermAllCheck();
+}
+
+function togglePermOp(e, nodeId, opName) {
+  e.stopPropagation();
+  var state = drawerPermState[nodeId];
+  if (!state || !state.ops) return;
+  // Toggle specific operation
+  state.ops[opName] = !state.ops[opName];
+  computeNodeState(nodeId);
+  updateParentPermState();
+  renderPermTree();
+  updatePermAllCheck();
+}
+
+function findPermNode(id, nodes) {
+  nodes = nodes || permissionTree;
+  for (var i = 0; i < nodes.length; i++) {
+    if (nodes[i].id === id) return nodes[i];
+    if (nodes[i].children) {
+      var found = findPermNode(id, nodes[i].children);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function updateParentPermState() {
+  function updateParents(nodes) {
+    nodes.forEach(function(node){
+      if (node.children) {
+        // Recurse first
+        updateParents(node.children);
+        // Compute state from children
+        var childStates = node.children.map(function(c){
+          var s = drawerPermState[c.id] || { checked: false, partial: false };
+          // For leaf nodes, use computed checked/partial
+          return s;
+        });
+        var allChecked = childStates.length > 0 && childStates.every(function(s){ return s.checked; });
+        var anyChecked = childStates.some(function(s){ return s.checked || s.partial; });
+        if (allChecked) {
+          drawerPermState[node.id] = { checked: true, partial: false };
+        } else if (anyChecked) {
+          drawerPermState[node.id] = { checked: false, partial: true };
+        } else {
+          drawerPermState[node.id] = { checked: false, partial: false };
+        }
+      }
+      // Leaf nodes: computeNodeState was already called when ops changed
+    });
+  }
+  updateParents(permissionTree);
+}
+
+function updatePermAllCheck() {
+  var allLeafChecked = true;
+  var anyLeafChecked = false;
+
+  function checkLeaves(nodes) {
+    nodes.forEach(function(node){
+      if (node.children) {
+        checkLeaves(node.children);
+      } else if (node.ops) {
+        var s = drawerPermState[node.id];
+        if (s) {
+          if (s.checked) anyLeafChecked = true;
+          else allLeafChecked = false;
+          if (s.partial) { anyLeafChecked = true; allLeafChecked = false; }
+        }
+      }
+    });
+  }
+  checkLeaves(permissionTree);
+
+  var checkEl = document.getElementById('permAllCheck');
+  if (!checkEl) return;
+  checkEl.className = 'perm-checkbox';
+  if (allLeafChecked && anyLeafChecked) checkEl.classList.add('checked');
+  else if (anyLeafChecked) checkEl.classList.add('partial');
+}
+
+function toggleAllPermissions() {
+  var allLeafChecked = true;
+  function checkLeaves(nodes) {
+    nodes.forEach(function(node){
+      if (node.children) { checkLeaves(node.children); }
+      else if (node.ops) {
+        var s = drawerPermState[node.id];
+        if (!s || !s.checked) allLeafChecked = false;
+      }
+    });
+  }
+  checkLeaves(permissionTree);
+  setAllPermState(permissionTree, !allLeafChecked);
+  // Recompute all leaf states
+  function recomputeLeaves(nodes) {
+    nodes.forEach(function(node){
+      if (node.children) { recomputeLeaves(node.children); }
+      else if (node.ops) { computeNodeState(node.id); }
+    });
+  }
+  recomputeLeaves(permissionTree);
+  updateParentPermState();
+  renderPermTree();
+  updatePermAllCheck();
+}
+
+function toggleExpandAll() {
+  permExpandedAll = !permExpandedAll;
+  document.getElementById('permExpandAll').textContent = permExpandedAll ? '▼ 全部收起' : '▶ 全部展开';
+  if (!permExpandedAll) window._permExpandedNodes = {};
+  renderPermTree();
+}
+
+function updateCharCount(inputId, countId, max) {
+  var val = document.getElementById(inputId).value;
+  document.getElementById(countId).textContent = val.length + '/' + max;
+}
+
+/* ================================================================
+   SAVE ROLE (Drawer)
+   ================================================================ */
+function saveRole() {
+  var name = document.getElementById('drawerRoleName').value.trim();
+  var statusVal = document.querySelector('input[name="drawerStatus"]:checked').value;
+  var remark = document.getElementById('drawerRemark').value.trim();
+  var dataPerm = document.getElementById('drawerDataPerm').value;
+  var status = parseInt(statusVal);
+
+  // Validate
+  var hasError = false;
+  document.getElementById('drawerNameError').classList.add('hidden');
+  document.getElementById('drawerDataPermError').classList.add('hidden');
+
+  if (!name) {
+    document.getElementById('drawerNameError').textContent = '请输入角色名称';
+    document.getElementById('drawerNameError').classList.remove('hidden');
+    document.getElementById('drawerRoleName').classList.add('error');
+    hasError = true;
+  } else if (name.length > 20) {
+    document.getElementById('drawerNameError').textContent = '角色名称不能超过20字';
+    document.getElementById('drawerNameError').classList.remove('hidden');
+    document.getElementById('drawerRoleName').classList.add('error');
+    hasError = true;
+  } else {
+    // Check duplicate
+    var excludeId = drawerMode === 'edit' ? drawerEditRoleId : null;
+    if (roleList.some(function(r){ return r.id !== excludeId && r.name === name; })) {
+      document.getElementById('drawerNameError').textContent = '角色名称已存在';
+      document.getElementById('drawerNameError').classList.remove('hidden');
+      document.getElementById('drawerRoleName').classList.add('error');
+      hasError = true;
+    }
+  }
+
+  if (!dataPerm) {
+    document.getElementById('drawerDataPermError').textContent = '请选择数据权限';
+    document.getElementById('drawerDataPermError').classList.remove('hidden');
+    hasError = true;
+  }
+
+  if (hasError) return;
+
+  if (drawerMode === 'edit' && drawerEditRoleId) {
+    var role = roleList.find(function(r){ return r.id === drawerEditRoleId; });
+    if (role) {
+      role.name = name;
+      role.status = status;
+      role.description = remark;
+      role.remark = remark || '——';
+      role.dataPerm = dataPerm;
+    }
+    showToast('编辑成功', 'success');
+  } else {
+    var now = new Date();
+    var timeStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' +
+                  String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+    var newRole = {
+      id: 'r' + Date.now(),
+      name: name,
+      description: remark,
+      status: status,
+      creator: '当前用户',
+      createTime: timeStr,
+      remark: remark || '——',
+      memberCount: 0,
+      isSystem: false,
+      dataPerm: dataPerm
+    };
+    roleList.push(newRole);
+    selectedRoleId = newRole.id;
+    showToast('新增角色成功', 'success');
+  }
+
+  closeRoleDrawer();
+  renderRoleList();
+  renderDetail();
+}
+
+// Clear error on input
+document.addEventListener('DOMContentLoaded', function(){
+  var nameInput = document.getElementById('drawerRoleName');
+  if (nameInput) {
+    nameInput.addEventListener('input', function(){
+      this.classList.remove('error');
+      document.getElementById('drawerNameError').classList.add('hidden');
+    });
+  }
+});
+
+/* ================================================================
+   TOAST
+   ================================================================ */
+var toastTimer = null;
+function showToast(msg, type) {
+  if (toastTimer) clearTimeout(toastTimer);
+  var el = document.getElementById('toast');
+  var colors = { info:{bg:'#1A1D24'}, success:{bg:'#0FC060'}, error:{bg:'#D9001B'}, warning:{bg:'#E7772D'} };
+  var c = colors[type] || colors.info;
+  el.textContent = msg;
+  el.style.background = c.bg;
+  el.style.color = '#fff';
+  el.style.opacity = '1';
+  toastTimer = setTimeout(function(){ el.style.opacity = '0'; }, 2500);
+}
+
+/* ================================================================
+   PORTAL ANNOTATION SYSTEM
+   ================================================================ */
+var annotations = {
+  1: { title: '角色管理页面', desc: [
+    '定位：系统设置下的角色管理页面，管理后台角色体系',
+    '页面结构：左角色列表栏 + 右角色详情区，左右独立滚动',
+    '支持角色的新增、编辑、删除、拖拽排序，以及角色内成员的增删管理'
+  ]},
+  2: { title: '角色搜索', desc: [
+    '触发：在搜索框输入角色名称关键字',
+    '响应：前端实时过滤角色列表，超级管理员始终置顶',
+    '搜索无结果时显示"未搜索到相关结果"空状态',
+    '清空搜索框后恢复完整列表'
+  ]},
+  3: { title: '角色列表', desc: [
+    '排序：超级管理员始终置顶第一位，其余角色按创建时间倒序',
+    '拖拽排序：非超级管理员角色可拖拽排序，超级管理员不可拖动',
+    '拖拽过程中有视觉浮起态，松手后排序立即生效',
+    '选中态：点击角色高亮选中，右侧切换对应详情',
+    '默认选中列表第一项（超级管理员）'
+  ]},
+  4: { title: '新增角色按钮', desc: [
+    '固定在左侧列表底部，不随列表滚动',
+    '点击后弹出"新增角色"抽屉弹窗（右侧滑出）',
+    '创建成功后：新角色插入列表顶部（超级管理员下方），自动选中并展示详情'
+  ]},
+  5: { title: '角色详情标题行', desc: [
+    '展示格式：角色名称（N人），N为当前角色成员总数',
+    '超级管理员：不显示【编辑】【删除】按钮',
+    '其他角色：显示【编辑】【删除】按钮',
+    '点击【编辑】打开编辑抽屉，点击【删除】触发删除流程'
+  ]},
+  6: { title: '角色元信息', desc: [
+    '展示字段：状态（已启用/已禁用）、创建人、创建时间、备注',
+    '超级管理员：创建人为"系统"，备注为"系统自动生成"',
+    '备注超出单行时截断显示"…"，hover时Tooltip展示完整内容'
+  ]},
+  7: { title: '详情Tab栏', desc: [
+    '三个Tab：角色成员、功能权限、数据权限',
+    '默认激活"角色成员"Tab',
+    '切换Tab时内容区更新，不重置成员搜索框'
+  ]},
+  8: { title: '成员搜索', desc: [
+    '支持按成员名称（模糊）、昵称（模糊）、手机号（精准）搜索',
+    '搜索无结果时显示空状态"未搜索到相关结果"',
+    '防抖300ms实时搜索'
+  ]},
+  9: { title: '成员列表', desc: [
+    '列：复选框、成员名称（圆形头像+名称）、昵称、手机号、所在部门、操作',
+    '主账号在头像右上角显示星形专属标识',
+    '超级管理员角色下的主账号：操作列显示"——"，不可移除',
+    '普通成员：操作列显示"移除"链接'
+  ]},
+  10: { title: '移除成员（批量）', desc: [
+    '无选中时点击：Toast提示"请选择要移除的成员"',
+    '有选中时点击：弹出二次确认弹窗',
+    '确认后校验：若成员无其他角色则移除失败，提示"成员至少拥有一个角色"',
+    '部分成功时：提示"X人移除成功，X人移除失败"'
+  ]},
+  11: { title: '添加成员按钮', desc: [
+    '点击弹出"选择成员"弹窗，左侧组织架构树 + 右侧已选区',
+    '支持搜索部门名称/成员名称/手机号',
+    '树形结构支持展开/收起，跨部门多选',
+    '已在角色中的成员置灰不可选',
+    '最多可选1000人，右侧实时显示已选数量，支持清空'
+  ]},
+  12: { title: '成员分页', desc: [
+    '默认每页10条，支持切换10/20/50条/页',
+    '页码导航 + 每页条数选择 + 跳至N页 + 记录统计'
+  ]},
+  13: { title: '功能权限Tab', desc: [
+    '只读展示角色的菜单功能权限',
+    '拥有全部权限时绿色标注"所有权限"',
+    '部分权限时列出拥有的权限名称，以"、"分隔',
+    '无任何权限的菜单行不显示',
+    '列表不分页，按菜单固定顺序排列'
+  ]},
+  14: { title: '数据权限Tab', desc: [
+    '只读展示角色的数据权限范围',
+    '仅一列"权限"，展示数据权限范围名称',
+    '每个角色只有一种数据权限范围'
+  ]},
+  15: { title: '角色信息编辑区', desc: [
+    '角色名称：必填（标红星*），最多20字，右侧实时显示字数',
+    '角色状态：单选（启用/禁用），新增默认启用',
+    '备注：非必填，多行文本，最多100字，右侧实时显示字数',
+    '校验时机：点击保存时校验'
+  ]},
+  16: { title: '数据权限编辑区', desc: [
+    '必填（标红星*），下拉单选',
+    '选项：全部数据 / 本部门及下级部门 / 本部门 / 仅本人',
+    '新增时不预选，需用户主动选择',
+    '点击"?"图标查看数据权限说明Tooltip'
+  ]},
+  17: { title: '功能权限编辑区', desc: [
+    '结构：一级菜单 → 子菜单（如有）→ 操作权限（查看、新增、编辑、删除等）',
+    '每个菜单模块下列出具体操作权限，独立勾选',
+    '"所有权限"复选框：三态（全选☑/半选—/未选☐），点击全选或全不选',
+    '勾选菜单节点：该节点下所有操作全选/全不选',
+    '子项部分选中时，父项显示半选态',
+    '全部展开/全部收起切换',
+    '"?" Tooltip：设置该角色可以查看的页面和操作。仅针对达人运营生效的权限，需要子账号的用户类型包含"达人运营"时，才会生效。',
+    '权限联动：仅勾选"查看"→只能查看页面无操作权限；未勾选"查看"但勾选了其他操作→隐含查看权限，用户依旧可以查看页面'
+  ]},
+  18: { title: '选择成员弹窗', desc: [
+    '左侧：企业组织架构树，支持展开/收起',
+    '搜索：实时过滤部门和成员',
+    '树节点：勾选部门可选中该部门下所有可选成员',
+    '右侧：已选成员列表，点击×取消，支持清空',
+    '确定按钮：未选择时置灰禁用'
+  ]}
+};
+
+var annoVisible = true;
+
+function renderAnnoBadges() {
+  var layer = document.getElementById('annoLayer');
+  layer.innerHTML = '';
+  if (!annoVisible) return;
+  var vw = window.innerWidth;
+  document.querySelectorAll('[data-anno]').forEach(function(el) {
+    var id = el.getAttribute('data-anno');
+    if (el.offsetParent === null && el.tagName !== 'BODY') return;
+    var target = resolveAnnoTarget(el, vw);
+    var rect = target.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return;
+    var badge = document.createElement('div');
+    badge.className = 'anno-portal-badge';
+    badge.textContent = id;
+    badge.style.top  = (rect.top  - 10) + 'px';
+    badge.style.left = (rect.right - 10) + 'px';
+    badge.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showAnnoPopup(id);
+    });
+    layer.appendChild(badge);
+  });
+}
+
+function resolveAnnoTarget(el, vw) {
+  var rect = el.getBoundingClientRect();
+  if (rect.width < 800 || rect.width < vw * 0.7) return el;
+  var inner = el.querySelector('h1, h2, h3, h4, h5, h6, button, .btn, input, select, .card-title, [class*="title"]');
+  if (inner) {
+    var innerRect = inner.getBoundingClientRect();
+    if (innerRect.width < rect.width * 0.8) return inner;
+  }
+  var first = el.firstElementChild;
+  if (first) {
+    var firstRect = first.getBoundingClientRect();
+    if (firstRect.width < rect.width * 0.9) return first;
+  }
+  return el;
+}
+
+function showAnnoPopup(id) {
+  var a = annotations[id];
+  if (!a) return;
+  document.getElementById('annoPopupTitle').textContent = '#' + id + ' ' + a.title;
+  document.getElementById('annoPopupBody').innerHTML = a.desc.map(function(d) {
+    return '<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>' + d + '</span></li>';
+  }).join('');
+  var box = document.getElementById('annoPopupBox');
+  box.style.top = '50%'; box.style.left = '50%'; box.style.transform = 'translate(-50%,-50%)';
+  document.getElementById('annoPopup').classList.remove('hidden');
+}
+
+function closeAnnoPopup() {
+  document.getElementById('annoPopup').classList.add('hidden');
+}
+
+/* Drag popup */
+var popupDrag = { offX: 0, offY: 0, moved: false };
+function startDragPopup(e) {
+  if (e.target.closest('button')) return;
+  popupDrag.moved = false;
+  var box = document.getElementById('annoPopupBox');
+  var rect = box.getBoundingClientRect();
+  popupDrag.offX = e.clientX - rect.left;
+  popupDrag.offY = e.clientY - rect.top;
+  document.addEventListener('mousemove', onDragPopup);
+  document.addEventListener('mouseup', stopDragPopup);
+}
+function onDragPopup(e) {
+  var dx = Math.abs(e.clientX - popupDrag.offX - document.getElementById('annoPopupBox').getBoundingClientRect().left);
+  if (dx < 3 && !popupDrag.moved) return;
+  popupDrag.moved = true;
+  var box = document.getElementById('annoPopupBox');
+  box.style.transform = 'none';
+  box.style.top  = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - popupDrag.offY)) + 'px';
+  box.style.left = Math.max(0, Math.min(window.innerWidth  - 100, e.clientX - popupDrag.offX)) + 'px';
+  document.getElementById('annoPopupDrag').style.cursor = 'grabbing';
+}
+function stopDragPopup() {
+  document.removeEventListener('mousemove', onDragPopup);
+  document.removeEventListener('mouseup', stopDragPopup);
+  var h = document.getElementById('annoPopupDrag');
+  if (h) h.style.cursor = 'grab';
+}
+
+/* Toggle annotations */
+document.getElementById('annoToggle').addEventListener('click', function(e) {
+  if (this.dataset.dragging === '1') return;
+  annoVisible = !annoVisible;
+  if (annoVisible) {
+    document.body.classList.remove('anno-hidden');
+    document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye');
+  } else {
+    document.body.classList.add('anno-hidden');
+    document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye-off');
+  }
+  lucide.createIcons({ attrs: { class: 'w-[13px] h-[13px]' } });
+  renderAnnoBadges();
+});
+
+/* Drag toggle */
+var dragToggleY = 0, dragToggleMoved = false;
+function startDragToggle(e) {
+  dragToggleY = e.clientY; dragToggleMoved = false;
+  document.addEventListener('mousemove', onDragToggle);
+  document.addEventListener('mouseup', stopDragToggle); e.preventDefault();
+}
+function onDragToggle(e) {
+  if (Math.abs(e.clientY - dragToggleY) < 5) return; dragToggleMoved = true;
+  var w = document.getElementById('annoToggle');
+  w.style.top = Math.max(60, Math.min(window.innerHeight - 60, e.clientY - 20)) + 'px';
+  w.style.right = '8px'; w.style.cursor = 'grabbing';
+}
+function stopDragToggle() {
+  document.removeEventListener('mousemove', onDragToggle);
+  document.removeEventListener('mouseup', stopDragToggle);
+  var w = document.getElementById('annoToggle');
+  if (w) { w.style.cursor = 'grab'; w.dataset.dragging = dragToggleMoved ? '1' : ''; }
+}
+
+/* Tooltip for drawer help icons */
+document.addEventListener('DOMContentLoaded', function(){
+  var dataPermIcon = document.querySelector('#dataPermTooltip i');
+  var dataPermTip = document.getElementById('dataPermTip');
+  if (dataPermIcon && dataPermTip) {
+    dataPermIcon.addEventListener('mouseenter', function(){ dataPermTip.classList.remove('hidden'); });
+    dataPermIcon.addEventListener('mouseleave', function(){ dataPermTip.classList.add('hidden'); });
+  }
+  var funcPermIcon = document.querySelector('#funcPermTooltip i');
+  var funcPermTip = document.getElementById('funcPermTip');
+  if (funcPermIcon && funcPermTip) {
+    funcPermIcon.addEventListener('mouseenter', function(){ funcPermTip.classList.remove('hidden'); });
+    funcPermIcon.addEventListener('mouseleave', function(){ funcPermTip.classList.add('hidden'); });
+  }
+});
+
+/* ================================================================
+   MENU SELECT SYSTEM
+   ================================================================ */
+function menuSelect(el) {
+  if (el.classList.contains('l1')) {
+    handleL1(el);
+  } else if (el.classList.contains('l2')) {
+    handleL2(el);
+  }
+}
+
+function handleL1(el) {
+  var subId = el.getAttribute('data-sub');
+  if (subId) {
+    handleL1Toggle(el, subId);
+  } else {
+    selectL1NoChildren(el);
+  }
+}
+
+function handleL1Toggle(el, subId) {
+  var sub = document.getElementById(subId);
+  if (!sub) return;
+  var arrow = el.querySelector('.menu-arrow');
+  var isExpanded = !sub.classList.contains('collapsed');
+  if (isExpanded) {
+    sub.classList.add('collapsed');
+    if (arrow) arrow.classList.remove('open');
+    if (!sub.querySelector('.menu-item.active-l2')) {
+      el.classList.remove('active-l1');
+    }
+  } else {
+    collapseAllExcept(subId);
+    sub.classList.remove('collapsed');
+    if (arrow) arrow.classList.add('open');
+    if (sub.querySelector('.menu-item.active-l2')) {
+      el.classList.add('active-l1');
+    }
+  }
+}
+
+function selectL1NoChildren(el) {
+  collapseAllExcept(null);
+  clearAllActive();
+  el.classList.add('active-l1');
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+function handleL2(el) {
+  var parentSub = el.closest('.submenu');
+  var parentSubId = parentSub ? parentSub.id : null;
+  collapseAllExcept(parentSubId);
+  if (parentSub && parentSub.classList.contains('collapsed')) {
+    parentSub.classList.remove('collapsed');
+  }
+  clearAllActive();
+  el.classList.add('active-l2');
+  var parentL1 = findParentL1BySubId(parentSubId);
+  if (parentL1) {
+    parentL1.classList.add('active-l1');
+    var arrow = parentL1.querySelector('.menu-arrow');
+    if (arrow) arrow.classList.add('open');
+  }
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+function collapseAllExcept(keepSubId) {
+  document.querySelectorAll('.submenu').forEach(function(sub) {
+    if (sub.id === keepSubId) return;
+    if (sub.classList.contains('collapsed')) return;
+    sub.classList.add('collapsed');
+    var l1 = findParentL1BySubId(sub.id);
+    if (l1) {
+      var arrow = l1.querySelector('.menu-arrow');
+      if (arrow) arrow.classList.remove('open');
+      if (!sub.querySelector('.menu-item.active-l2')) {
+        l1.classList.remove('active-l1');
+      }
+    }
+  });
+}
+
+function clearAllActive() {
+  document.querySelectorAll('.menu-item').forEach(function(item) {
+    item.classList.remove('active-l1', 'active-l2');
+  });
+}
+
+function findParentL1BySubId(subId) {
+  if (!subId) return null;
+  return document.querySelector('.menu-item.l1[data-sub="' + subId + '"]');
+}
+
+function navigateToPage(page) {
+  if (!page) return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = page.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  if (page.endsWith('.html')) {
+    window.location.href = page;
+  } else {
+    document.getElementById('mainContent').innerHTML =
+      '<div class="p-4">' +
+      '<div class="bg-white rounded-lg border border-line p-5 md:p-6">' +
+      '<h2 class="text-[16px] font-semibold text-ink-title mb-2">' + page + '</h2>' +
+      '<p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p>' +
+      '</div></div>';
+  }
+}
+
+function navigate(url) {
+  if (url === '#') return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = url.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  window.location.href = url;
+}
+
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+/* ================================================================
+   KEYBOARD: ESC to close dialogs
+   ================================================================ */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeRoleDrawer();
+    closeDeleteBlockDialog();
+    closeDeleteConfirmDialog();
+    closeRemoveMemberDialog();
+    closeAddMemberModal();
+    closeAnnoPopup();
+  }
+});
+
+/* ================================================================
+   INIT
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', function() {
+  lucide.createIcons();
+
+  // Role search
+  document.getElementById('roleSearch').addEventListener('input', function() {
+    roleSearchKw = this.value;
+    renderRoleList();
+  });
+
+  // Initial render
+  renderRoleList();
+  renderDetail();
+  renderAnnoBadges();
+
+  // Recalculate badges on scroll and resize
+  var mainContent = document.getElementById('mainContent');
+  if (mainContent) mainContent.addEventListener('scroll', renderAnnoBadges);
+  window.addEventListener('resize', function(){
+    renderAnnoBadges();
+    // Mobile: hide right panel when resizing to desktop
+    if (window.innerWidth > 768) {
+      var section = document.querySelector('#roleLayout > section');
+      if (section) section.classList.remove('show');
+    }
+  });
+});
+</script>
+</body>
+</html>

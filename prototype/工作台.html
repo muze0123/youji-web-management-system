@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>工作台 - 游寄后台管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+  <style>
+    body{overflow:hidden;}
+    /* Sidebar */
+    .menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+    .menu-item:hover{background:#F3F4F6;}
+    .menu-item.l1{padding-left:20px;font-weight:500;}
+    .menu-item.l2{padding-left:64px;font-size:13px;}
+    .menu-item.active-l1{color:#0066FF;}
+    .menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+    .menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+    .active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+    .menu-arrow.open{transform:rotate(180deg);}
+    .submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+    .submenu.collapsed{max-height:0!important;opacity:0;}
+    .new-tag{display:inline-block;padding:1px 7px;border-radius:8px;background:#0066FF;color:#fff;font-size:10px;font-weight:600;line-height:16px;margin-left:4px;}
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;}
+    .btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+    .btn-primary:hover{background:#0052CC;}
+    .btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+    .btn-default:hover{border-color:#0066FF;color:#0066FF;}
+    .btn-sm{height:26px;padding:0 10px;font-size:12px;}
+    /* Portal annotation layer */
+    .anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
+    .anno-portal-badge:hover{transform:scale(1.2);}
+    .anno-hidden .anno-portal-badge{display:none;}
+    /* Topbar icons */
+    .topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
+    .topbar-btn:hover{background:#E6F0FF;}
+    .topbar-btn:hover svg{stroke:#0066FF;}
+    .badge-dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:600;line-height:18px;text-align:center;}
+    /* Sidebar toggle (mobile) */
+    @media(max-width:768px){
+      .sidebar{display:none;}
+      .sidebar.open{display:flex;position:fixed;top:56px;left:0;bottom:0;z-index:50;}
+      .sidebar-overlay{display:none;}
+      .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;}
+    }
+    /* KPI card */
+    .kpi-card{border-radius:6px;border:1px solid #DFE1E5;padding:16px;background:#fff;transition:box-shadow .15s;}
+    .kpi-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06);}
+    .kpi-value{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:#1A1D24;}
+    /* Todo card */
+    .todo-card{border-radius:6px;border:1px solid #DFE1E5;padding:16px;background:#fff;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+    .todo-card:hover{border-color:#0066FF;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+    .todo-card.p0{border-left:3px solid #D9001B;}
+    .todo-card.dimmed{opacity:.5;pointer-events:none;}
+    .todo-card.dimmed:hover{border-color:#DFE1E5;box-shadow:none;}
+    .todo-count{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 8px;border-radius:14px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:#fff;}
+    .todo-count.warning-badge{background:#E7772D;}
+    .todo-count.danger-badge{background:#D9001B;}
+    .todo-count.info-badge{background:#0091D5;}
+    .todo-count.zero-badge{background:#C7CAD1;}
+    /* Alert row */
+    .alert-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:4px;font-size:13px;transition:background .15s;}
+    .alert-row:hover{background:#F3F4F6;}
+    .alert-row.danger-alert{background:#FFE8EB;}
+    .alert-row.warning-alert{background:#FDF2E9;}
+    .alert-row.success-alert{background:#E7F9F0;}
+    /* Quick entry card */
+    .quick-entry{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px 16px;border-radius:6px;border:1px solid #DFE1E5;background:#fff;cursor:pointer;transition:all .15s;text-decoration:none;color:inherit;}
+    .quick-entry:hover{border-color:#0066FF;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+    .quick-entry:hover .qe-icon{background:#0066FF;border-color:#0066FF;}
+    .quick-entry:hover .qe-icon svg{stroke:#fff;}
+    .qe-icon{width:44px;height:44px;border-radius:8px;border:1.5px solid #DFE1E5;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+    /* Role toggle switch */
+    .role-switch{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:#6E7685;cursor:pointer;user-select:none;}
+    .role-switch-track{width:36px;height:20px;background:#C7CAD1;border-radius:10px;position:relative;transition:background .25s;flex-shrink:0;}
+    .role-switch-track.admin{background:#0066FF;}
+    .role-switch-thumb{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .25s;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+    .role-switch-track.admin .role-switch-thumb{left:18px;}
+    /* Section title */
+    .section-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;color:#1A1D24;margin-bottom:16px;}
+    .section-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    /* Resp */
+    @media(max-width:768px){
+      .kpi-value{font-size:20px;}
+      .quick-entry{padding:14px 10px;}
+    }
+  </style>
+</head>
+<body class="font-sans flex flex-col h-screen">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-4 md:px-6 flex-shrink-0 gap-3">
+  <button class="topbar-btn md:hidden" onclick="toggleSidebar()" title="菜单">
+    <i data-lucide="menu" class="w-[18px] h-[18px]"></i>
+  </button>
+  <div class="flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigate('index.html')">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div>
+    <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
+  </div>
+  <div class="ml-auto flex items-center gap-3 md:gap-5">
+    <button class="topbar-btn" title="任务列表" onclick="navigate('任务中心.html')">
+      <i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="taskBadge">3</span>
+    </button>
+    <button class="topbar-btn" title="消息中心" onclick="navigate('消息中心.html')">
+      <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+      <span class="badge-dot" id="msgBadge">5</span>
+    </button>
+    <button class="topbar-btn" title="账号信息" onclick="navigate('账号信息.html')">
+      <i data-lucide="user" class="w-[18px] h-[18px]"></i>
+    </button>
+  </div>
+</header>
+
+<!-- ===== BODY: SIDEBAR + CONTENT ===== -->
+<div class="flex flex-1 min-h-0">
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+    <!-- 工作台 -->
+    <div class="menu-item l1 active-l1" data-page="工作台.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台
+    </div>
+
+    <!-- 数据概览 -->
+    <div class="menu-item l1" data-page="数据概览.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览
+    </div>
+
+    <!-- 订单管理 -->
+    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理
+    </div>
+
+    <!-- 异常工单 -->
+    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单
+    </div>
+
+    <!-- 柜机监控 -->
+    <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控
+    </div>
+
+    <!-- 对账中心 -->
+    <div class="menu-item l1" data-page="对账中心.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心
+    </div>
+
+    <!-- 运营配置 -->
+    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置
+    </div>
+
+    <!-- 系统设置（含二级菜单） -->
+    <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置
+      <span class="menu-arrow">▼</span>
+    </div>
+    <div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
+      <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
+      <div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div>
+      <div class="menu-item l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div>
+      <div class="menu-item l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div>
+      <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
+    </div>
+  </aside>
+
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
+    <div class="p-4">
+
+      <!-- ======== A: 欢迎/概览条 ======== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h2 data-anno="1" class="inline-block text-[18px] font-semibold text-ink-title">
+              你好，<span id="welcomeName">张明</span>
+            </h2>
+            <span id="roleBadge" class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[12px] font-medium bg-primary-bg text-primary">管理员</span>
+            <span class="text-[13px] text-ink-sub" id="todayDate">2026年7月5日 星期一</span>
+          </div>
+          <!-- 角色切换（原型演示） -->
+          <div data-anno="11" class="role-switch inline-flex items-center gap-2" onclick="toggleRole()" title="切换角色视角">
+            <span class="text-[12px] text-ink-muted">演示切换</span>
+            <div class="role-switch-track admin" id="roleTrack">
+              <div class="role-switch-thumb"></div>
+            </div>
+            <span class="text-[12px] text-ink-sub" id="roleLabel">管理员</span>
+          </div>
+        </div>
+
+        <!-- KPI 卡片行 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="kpi-card">
+            <div class="flex items-center gap-2 mb-2">
+              <i data-lucide="shopping-cart" class="w-[14px] h-[14px] text-primary"></i>
+              <span class="text-[12px] text-ink-sub">今日订单</span>
+            </div>
+            <div class="kpi-value" id="kpiOrders">1,286</div>
+            <div class="text-[12px] text-success mt-1 flex items-center gap-1">
+              <i data-lucide="trending-up" class="w-[12px] h-[12px]"></i> 较昨日 +12.5%
+            </div>
+          </div>
+          <div class="kpi-card" id="kpiRevenueCard">
+            <div class="flex items-center gap-2 mb-2">
+              <i data-lucide="banknote" class="w-[14px] h-[14px] text-primary"></i>
+              <span class="text-[12px] text-ink-sub" data-anno="2">今日收入</span>
+            </div>
+            <div class="kpi-value" id="kpiRevenue">¥8,520.00</div>
+            <div class="text-[12px] text-success mt-1 flex items-center gap-1">
+              <i data-lucide="trending-up" class="w-[12px] h-[12px]"></i> 较昨日 +8.3%
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="flex items-center gap-2 mb-2">
+              <i data-lucide="archive" class="w-[14px] h-[14px] text-primary"></i>
+              <span class="text-[12px] text-ink-sub">在存订单</span>
+            </div>
+            <div class="kpi-value" id="kpiActive">342</div>
+            <div class="text-[12px] text-ink-sub mt-1">寄存中 / 在途</div>
+          </div>
+          <div class="kpi-card">
+            <div class="flex items-center gap-2 mb-2">
+              <i data-lucide="clock" class="w-[14px] h-[14px] text-ink-muted"></i>
+              <span class="text-[12px] text-ink-sub" data-anno="3">数据时效</span>
+            </div>
+            <div class="kpi-value text-[16px] text-ink-sub font-normal font-sans" id="kpiUpdate">3 分钟前更新</div>
+            <div class="text-[12px] text-ink-muted mt-1">定时同步，存在延迟</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======== B: 待办事项区（核心） ======== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4" data-anno="4">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div class="section-title mb-0">
+            <div class="section-icon"><i data-lucide="clipboard-list" class="w-[18px] h-[18px] text-primary"></i></div>
+            待办事项
+            <span class="text-[13px] font-normal text-ink-sub" id="todoSummary" data-anno="7">共 18 项待处理</span>
+          </div>
+        </div>
+
+        <!-- 全空友好态 -->
+        <div id="todoEmpty" class="hidden flex flex-col items-center justify-center py-10 text-center">
+          <i data-lucide="check-circle" class="w-[48px] h-[48px] text-success mb-3"></i>
+          <p class="text-[15px] text-ink-title font-medium">暂无待办，一切正常</p>
+          <p class="text-[13px] text-ink-sub mt-1">当前没有需要处理的事项</p>
+        </div>
+
+        <!-- 待办卡片网格 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="todoGrid"></div>
+      </div>
+
+      <!-- ======== C: 异常/告警区 ======== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4" data-anno="8">
+        <div class="section-title">
+          <div class="section-icon"><i data-lucide="alert-triangle" class="w-[18px] h-[18px] text-warning"></i></div>
+          异常告警
+        </div>
+
+        <!-- 全正常态 -->
+        <div id="alertAllClear" class="hidden flex items-center gap-2 py-3 px-4 rounded bg-success-bg text-[14px] text-success font-medium">
+          <i data-lucide="shield-check" class="w-[16px] h-[16px]"></i> 系统运行正常，无异常告警
+        </div>
+
+        <!-- 告警列表 -->
+        <div class="space-y-1" id="alertList"></div>
+      </div>
+
+      <!-- ======== D: 快捷入口区 ======== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4" data-anno="9">
+        <div class="section-title">
+          <div class="section-icon"><i data-lucide="zap" class="w-[18px] h-[18px] text-primary"></i></div>
+          快捷入口
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" id="quickEntries"></div>
+      </div>
+
+      <!-- ======== E: 简要趋势 ======== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6" data-anno="10">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div class="section-title mb-0">
+            <div class="section-icon"><i data-lucide="trending-up" class="w-[18px] h-[18px] text-primary"></i></div>
+            近 7 天趋势
+          </div>
+          <button class="btn btn-sm btn-default text-[12px]" onclick="navigate('数据概览.html')">查看完整数据 <i data-lucide="arrow-right" class="w-[12px] h-[12px]"></i></button>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="relative" style="height:200px;">
+            <p class="text-[12px] text-ink-sub mb-2 font-medium">单量趋势（近7天）</p>
+            <div style="height:170px;"><canvas id="chartOrders"></canvas></div>
+          </div>
+          <div class="relative" id="revenueChartWrap" style="height:200px;">
+            <p class="text-[12px] text-ink-sub mb-2 font-medium">收入趋势（近7天）</p>
+            <div style="height:170px;"><canvas id="chartRevenue"></canvas></div>
+          </div>
+          <div id="revenueHidden" class="hidden flex items-center justify-center rounded-md border border-line bg-bg-page" style="height:200px;">
+            <div class="text-center">
+              <i data-lucide="lock" class="w-[32px] h-[32px] text-ink-muted mx-auto mb-2"></i>
+              <p class="text-[13px] text-ink-sub">收入数据仅管理员可见</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ===== PORTAL ANNOTATION LAYER ===== -->
+<div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
+
+<!-- Annotation toggle -->
+<div id="annoToggle" class="fixed z-[150]" style="right:8px;bottom:40px;cursor:grab;" onmousedown="startDragToggle(event)">
+  <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] bg-white/90 backdrop-blur text-primary border border-primary/30 shadow-sm">
+    <i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i> 标注
+  </div>
+</div>
+
+<!-- Annotation popup -->
+<div id="annoPopup" class="hidden fixed inset-0 z-[9999]" style="background:rgba(0,0,0,.2);" onclick="closeAnnoPopup()">
+  <div id="annoPopupBox" class="fixed bg-white rounded-lg shadow-xl p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto"
+       style="top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 12px 40px rgba(0,0,0,.18);"
+       onclick="event.stopPropagation()">
+    <button onclick="closeAnnoPopup()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted z-10"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+    <div id="annoPopupDrag" class="flex items-center gap-2 mb-3 select-none" style="cursor:grab;" onmousedown="startDragPopup(event)" title="拖拽移动弹窗">
+      <i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i>
+      <h3 id="annoPopupTitle" class="text-[16px] font-semibold text-ink-title"></h3>
+    </div>
+    <ul id="annoPopupBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   MOCK DATA
+   ================================================================ */
+var mockData = {
+  user: { name: '张明', role: 'admin' }, // 'admin' | 'operator'
+  today: {
+    orders: 1286, ordersTrend: 12.5,
+    revenue: 8520.00, revenueTrend: 8.3,
+    activeOrders: 342
+  },
+  updateMinutes: 3,
+  todos: [
+    { id:'t1', title:'待处理工单', desc:'需立即处理的异常工单', count:8, priority:'P0', badgeColor:'danger-badge', target:'异常工单.html', filter:'待处理' },
+    { id:'t2', title:'锁柜失败待处理', desc:'支付成功但锁柜失败，待核查处理', count:3, priority:'P0', badgeColor:'danger-badge', target:'异常工单.html', filter:'锁柜失败' },
+    { id:'t3', title:'待支付订单', desc:'用户已选柜但未完成支付', count:4, priority:'P1', badgeColor:'warning-badge', target:'订单管理.html', filter:'待支付' },
+    { id:'t4', title:'超时未取订单', desc:'超过预计取件时间未取的寄存订单', count:2, priority:'P1', badgeColor:'warning-badge', target:'订单管理.html', filter:'超时寄存中' },
+    { id:'t5', title:'退款处理中', desc:'用户申请退款待审核处理', count:1, priority:'P1', badgeColor:'info-badge', target:'订单管理.html', filter:'退款中' },
+    { id:'t6', title:'用户售后待处理', desc:'用户提交的售后工单待处理', count:0, priority:'P1', badgeColor:'zero-badge', target:'异常工单.html', filter:'用户售后' }
+  ],
+  alerts: [
+    { id:'a1', title:'柜机离线', detail:'3 台柜机离线，需立即处理', level:'danger', target:'柜机监控' },
+    { id:'a2', title:'异常率偏高', detail:'今日异常率 5.2%，超过阈值 3%', level:'warning', target:'异常工单.html' },
+    { id:'a3', title:'数据同步', detail:'最近同步正常', level:'success', target:null }
+  ],
+  quickEntries: [
+    { id:'q1', label:'订单看板', icon:'package', target:'订单管理.html', permission:'all' },
+    { id:'q2', label:'异常工单', icon:'alert-triangle', target:'异常工单.html', permission:'all' },
+    { id:'q3', label:'对账中心', icon:'file-text', target:'对账中心', permission:'all' },
+    { id:'q4', label:'数据概览', icon:'bar-chart-3', target:'数据概览.html', permission:'all' },
+    { id:'q5', label:'运营配置', icon:'sliders-horizontal', target:'运营配置', permission:'admin' }
+  ],
+  trend: {
+    labels: ['06-29','06-30','07-01','07-02','07-03','07-04','07-05'],
+    orders: [1050, 1180, 960, 1320, 1100, 1250, 1286],
+    revenue: [7350, 8260, 6720, 9240, 7700, 8750, 8520]
+  }
+};
+
+var currentRole = 'admin'; // 'admin' | 'operator'
+
+/* ================================================================
+   RENDERING
+   ================================================================ */
+
+/** Format number with commas (not using toLocaleString to avoid non-mono chars) */
+function fmtNum(n) {
+  if (n === 0) return '0';
+  var s = '';
+  var abs = Math.abs(n);
+  var str = String(abs);
+  var parts = [];
+  while (str.length > 3) {
+    parts.unshift(str.slice(-3));
+    str = str.slice(0, -3);
+  }
+  parts.unshift(str);
+  return (n < 0 ? '-' : '') + parts.join(',');
+}
+
+function fmtMoney(n) {
+  return '¥' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/** Render all dynamic sections */
+function renderAll() {
+  renderKPI();
+  renderTodos();
+  renderAlerts();
+  renderQuickEntries();
+  renderCharts();
+  lucide.createIcons();
+  setTimeout(function(){ renderAnnoBadges(); }, 100);
+}
+
+/** A: KPI cards — toggle revenue visibility */
+function renderKPI() {
+  document.getElementById('kpiOrders').textContent = fmtNum(mockData.today.orders);
+  document.getElementById('kpiRevenue').textContent = fmtMoney(mockData.today.revenue);
+  document.getElementById('kpiActive').textContent = fmtNum(mockData.today.activeOrders);
+  document.getElementById('kpiUpdate').textContent = mockData.updateMinutes + ' 分钟前更新';
+
+  var revCard = document.getElementById('kpiRevenueCard');
+  if (currentRole === 'operator') {
+    revCard.style.display = 'none';
+  } else {
+    revCard.style.display = '';
+  }
+}
+
+/** B: Todo cards */
+function renderTodos() {
+  var grid = document.getElementById('todoGrid');
+  var empty = document.getElementById('todoEmpty');
+  var summary = document.getElementById('todoSummary');
+
+  // Sort: P0 first, then by count desc
+  var sorted = mockData.todos.slice().sort(function(a, b) {
+    if (a.priority === 'P0' && b.priority !== 'P0') return -1;
+    if (b.priority === 'P0' && a.priority !== 'P0') return 1;
+    return b.count - a.count;
+  });
+
+  var totalCount = 0;
+  sorted.forEach(function(t) { totalCount += t.count; });
+
+  if (totalCount === 0) {
+    grid.innerHTML = '';
+    grid.classList.add('hidden');
+    empty.classList.remove('hidden');
+    summary.textContent = '暂无待办事项';
+  } else {
+    grid.classList.remove('hidden');
+    empty.classList.add('hidden');
+    summary.textContent = '共 ' + totalCount + ' 项待处理';
+
+    var html = '';
+    sorted.forEach(function(t, i) {
+      var dimClass = t.count === 0 ? ' dimmed' : '';
+      var p0Class = t.priority === 'P0' ? ' p0' : '';
+      var iconName = t.priority === 'P0' ? 'alert-circle' : 'chevron-right';
+      var iconColor = t.priority === 'P0' ? 'text-danger' : 'text-ink-sub';
+
+      html += '<div class="todo-card' + p0Class + dimClass + '" onclick="handleTodoClick(\'' + t.target + '\',\'' + t.filter + '\')" data-anno="' + (t.id === 't1' ? '5' : (t.id === 't2' ? '6' : '')) + '">';
+      html += '<div class="flex items-start justify-between gap-3">';
+      html += '<div class="flex-1 min-w-0">';
+      html += '<div class="flex items-center gap-2 mb-1">';
+      if (t.priority === 'P0') {
+        html += '<i data-lucide="alert-circle" class="w-[15px] h-[15px] text-danger flex-shrink-0"></i>';
+      }
+      html += '<span class="text-[14px] font-medium text-ink-title">' + t.title + '</span>';
+      if (t.priority === 'P0') {
+        html += '<span class="text-[10px] px-1.5 py-0.5 rounded bg-danger-bg text-danger font-medium">P0</span>';
+      }
+      html += '</div>';
+      html += '<p class="text-[12px] text-ink-sub">' + t.desc + '</p>';
+      html += '<span class="inline-flex items-center gap-1 text-[12px] text-primary font-medium mt-2">去处理 <i data-lucide="arrow-right" class="w-[12px] h-[12px]"></i></span>';
+      html += '</div>';
+      html += '<span class="todo-count ' + t.badgeColor + ' flex-shrink-0">' + t.count + '</span>';
+      html += '</div>';
+      html += '</div>';
+    });
+    grid.innerHTML = html;
+  }
+}
+
+/** C: Alert list */
+function renderAlerts() {
+  var container = document.getElementById('alertList');
+  var allClear = document.getElementById('alertAllClear');
+
+  var activeAlerts = mockData.alerts.filter(function(a) { return a.level !== 'success'; });
+
+  if (activeAlerts.length === 0) {
+    container.innerHTML = '';
+    container.classList.add('hidden');
+    allClear.classList.remove('hidden');
+  } else {
+    container.classList.remove('hidden');
+    allClear.classList.add('hidden');
+
+    var html = '';
+    mockData.alerts.forEach(function(a) {
+      var rowClass = a.level === 'danger' ? ' danger-alert' : (a.level === 'warning' ? ' warning-alert' : ' success-alert');
+      var iconName = a.level === 'danger' ? 'x-circle' : (a.level === 'warning' ? 'alert-triangle' : 'check-circle');
+      var iconColor = a.level === 'danger' ? 'text-danger' : (a.level === 'warning' ? 'text-warning' : 'text-success');
+      html += '<div class="alert-row' + rowClass + '">';
+      html += '<i data-lucide="' + iconName + '" class="w-[16px] h-[16px] ' + iconColor + ' flex-shrink-0"></i>';
+      html += '<span class="font-medium text-ink-title">' + a.title + '</span>';
+      html += '<span class="text-[12px] text-ink-sub flex-1">' + a.detail + '</span>';
+      if (a.target) {
+        html += '<button class="btn btn-sm btn-default text-[11px]" onclick="event.stopPropagation();navigate(\'' + a.target + '\')">查看</button>';
+      }
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+}
+
+/** D: Quick entry grid */
+function renderQuickEntries() {
+  var container = document.getElementById('quickEntries');
+  var html = '';
+  mockData.quickEntries.forEach(function(q) {
+    if (q.permission === 'admin' && currentRole !== 'admin') {
+      // Hide 运营配置 for operator
+      html += '<div class="quick-entry opacity-30 cursor-not-allowed" title="仅管理员可用">';
+      html += '<div class="qe-icon"><i data-lucide="' + q.icon + '" class="w-[20px] h-[20px] text-ink-muted"></i></div>';
+      html += '<span class="text-[12px] text-ink-muted">' + q.label + '</span>';
+      html += '<span class="text-[10px] text-ink-muted">需管理员权限</span>';
+      html += '</div>';
+    } else {
+      html += '<div class="quick-entry" onclick="navigate(\'' + q.target + '\')">';
+      html += '<div class="qe-icon"><i data-lucide="' + q.icon + '" class="w-[20px] h-[20px] text-ink-sub"></i></div>';
+      html += '<span class="text-[13px] font-medium text-ink-title">' + q.label + '</span>';
+      html += '</div>';
+    }
+  });
+  container.innerHTML = html;
+}
+
+/** E: Charts */
+var chartOrdersInst = null, chartRevenueInst = null;
+
+function renderCharts() {
+  var labels = mockData.trend.labels;
+  var orders = mockData.trend.orders;
+  var revenue = mockData.trend.revenue;
+
+  // Destroy existing
+  if (chartOrdersInst) chartOrdersInst.destroy();
+  if (chartRevenueInst) chartRevenueInst.destroy();
+
+  var chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#fff',
+        titleColor: '#1A1D24',
+        bodyColor: '#3A3F4A',
+        borderColor: '#DFE1E5',
+        borderWidth: 1,
+        cornerRadius: 4,
+        titleFont: { size: 13, family: '-apple-system, BlinkMacSystemFont, sans-serif' },
+        bodyFont: { size: 12, family: 'JetBrains Mono, monospace' },
+        padding: 10,
+        displayColors: false
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 11 }, color: '#9DA2AC' }
+      },
+      y: {
+        border: { dash: [4, 4] },
+        grid: { color: '#F0F1F3' },
+        ticks: { font: { size: 11 }, color: '#9DA2AC' }
+      }
+    }
+  };
+
+  // Orders chart
+  var ctxO = document.getElementById('chartOrders').getContext('2d');
+  chartOrdersInst = new Chart(ctxO, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: orders,
+        borderColor: '#0066FF',
+        backgroundColor: 'rgba(0,102,255,.06)',
+        borderWidth: 2,
+        fill: true,
+        tension: .35,
+        pointRadius: 3,
+        pointBackgroundColor: '#0066FF',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointHoverRadius: 5
+      }]
+    },
+    options: chartOptions
+  });
+
+  // Revenue chart (admin only)
+  var revCard = document.getElementById('revenueChartWrap');
+  var revHidden = document.getElementById('revenueHidden');
+  if (currentRole === 'operator') {
+    revCard.style.display = 'none';
+    revHidden.style.display = '';
+  } else {
+    revCard.style.display = '';
+    revHidden.style.display = 'none';
+    var ctxR = document.getElementById('chartRevenue').getContext('2d');
+    chartRevenueInst = new Chart(ctxR, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: revenue,
+          borderColor: '#0FC060',
+          backgroundColor: 'rgba(15,192,96,.06)',
+          borderWidth: 2,
+          fill: true,
+          tension: .35,
+          pointRadius: 3,
+          pointBackgroundColor: '#0FC060',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointHoverRadius: 5
+        }]
+      },
+      options: chartOptions
+    });
+  }
+}
+
+/* ================================================================
+   INTERACTIONS
+   ================================================================ */
+
+/** Toggle role between admin and operator */
+function toggleRole() {
+  currentRole = currentRole === 'admin' ? 'operator' : 'admin';
+  var track = document.getElementById('roleTrack');
+  var label = document.getElementById('roleLabel');
+  var badge = document.getElementById('roleBadge');
+
+  if (currentRole === 'admin') {
+    track.classList.add('admin');
+    label.textContent = '管理员';
+    badge.textContent = '管理员';
+    badge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded text-[12px] font-medium bg-primary-bg text-primary';
+  } else {
+    track.classList.remove('admin');
+    label.textContent = '运营员';
+    badge.textContent = '运营员';
+    badge.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded text-[12px] font-medium bg-info-bg text-info';
+  }
+
+  renderAll();
+}
+
+/** Handle todo card click → navigate to target with filter */
+function handleTodoClick(target, filter) {
+  // For prototype, navigate to target page. Filter is passed conceptually.
+  // In production, this would carry the filter as query param or state.
+  if (target) {
+    navigate(target);
+  }
+}
+
+/* ================================================================
+   MENU SELECT — unified sidebar menu interaction handler
+   ================================================================ */
+function menuSelect(el) {
+  if (el.classList.contains('l1')) {
+    handleL1(el);
+  } else if (el.classList.contains('l2')) {
+    handleL2(el);
+  }
+}
+
+function handleL1(el) {
+  var subId = el.getAttribute('data-sub');
+  if (subId) {
+    handleL1Toggle(el, subId);
+  } else {
+    selectL1NoChildren(el);
+  }
+}
+
+function handleL1Toggle(el, subId) {
+  var sub = document.getElementById(subId);
+  if (!sub) return;
+  var arrow = el.querySelector('.menu-arrow');
+  var isExpanded = !sub.classList.contains('collapsed');
+  if (isExpanded) {
+    sub.classList.add('collapsed');
+    if (arrow) arrow.classList.remove('open');
+    if (!sub.querySelector('.menu-item.active-l2')) {
+      el.classList.remove('active-l1');
+    }
+  } else {
+    collapseAllExcept(subId);
+    sub.classList.remove('collapsed');
+    if (arrow) arrow.classList.add('open');
+    if (sub.querySelector('.menu-item.active-l2')) {
+      el.classList.add('active-l1');
+    }
+  }
+}
+
+function selectL1NoChildren(el) {
+  collapseAllExcept(null);
+  clearAllActive();
+  el.classList.add('active-l1');
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+function handleL2(el) {
+  var parentSub = el.closest('.submenu');
+  var parentSubId = parentSub ? parentSub.id : null;
+  collapseAllExcept(parentSubId);
+  if (parentSub && parentSub.classList.contains('collapsed')) {
+    parentSub.classList.remove('collapsed');
+  }
+  clearAllActive();
+  el.classList.add('active-l2');
+  var parentL1 = findParentL1BySubId(parentSubId);
+  if (parentL1) {
+    parentL1.classList.add('active-l1');
+    var arrow = parentL1.querySelector('.menu-arrow');
+    if (arrow) arrow.classList.add('open');
+  }
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+function collapseAllExcept(keepSubId) {
+  document.querySelectorAll('.submenu').forEach(function(sub) {
+    if (sub.id === keepSubId) return;
+    if (sub.classList.contains('collapsed')) return;
+    sub.classList.add('collapsed');
+    var l1 = findParentL1BySubId(sub.id);
+    if (l1) {
+      var arrow = l1.querySelector('.menu-arrow');
+      if (arrow) arrow.classList.remove('open');
+      if (!sub.querySelector('.menu-item.active-l2')) {
+        l1.classList.remove('active-l1');
+      }
+    }
+  });
+}
+
+function clearAllActive() {
+  document.querySelectorAll('.menu-item').forEach(function(item) {
+    item.classList.remove('active-l1', 'active-l2');
+  });
+}
+
+function findParentL1BySubId(subId) {
+  if (!subId) return null;
+  return document.querySelector('.menu-item.l1[data-sub="' + subId + '"]');
+}
+
+function navigateToPage(page) {
+  if (!page) return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = page.split('/').pop();
+  var cur = window.location.pathname.split('/').pop();
+  if (fname === cur) return;
+  if (page.endsWith('.html')) {
+    window.location.href = page;
+  } else {
+    document.getElementById('mainContent').innerHTML =
+      '<div class="p-4">' +
+      '<div class="bg-white rounded-lg border border-line p-5 md:p-6">' +
+      '<h2 class="text-[16px] font-semibold text-ink-title mb-2">' + page + '</h2>' +
+      '<p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p>' +
+      '</div></div>';
+  }
+}
+
+/* ===== TOPBAR NAVIGATION ===== */
+function navigate(url) {
+  if (url === '#') return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
+  var fname = url.split('/').pop();
+  var cur = window.location.pathname.split('/').pop();
+  if (fname === cur) return;
+  if (url.endsWith('.html')) {
+    window.location.href = url;
+  } else {
+    navigateToPage(url);
+  }
+}
+
+/* ===== MOBILE SIDEBAR TOGGLE ===== */
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+/* ================================================================
+   PORTAL ANNOTATION SYSTEM
+   ================================================================ */
+var annotations = {
+  1: { title: '欢迎概览区', desc: [
+    '触发：页面加载时渲染',
+    '响应：展示欢迎语（用户名称）、角色 Badge、当前日期，下方 4 个 KPI 统计卡片',
+    '规则：数字使用 mono 字体；趋势箭头用语义色（success=涨、danger=跌）',
+    '布局：桌面 4 列网格，平板 2 列，手机 1 列自适应'
+  ]},
+  2: { title: '今日收入（权限控制）', desc: [
+    '规则：仅管理员角色可见，运营员不可见',
+    '触发：角色切换时动态显隐',
+    '原因：经营收入数据属敏感信息，运营员默认不展示',
+    '如业务需要可配置放开（见 PRD §9.1）'
+  ]},
+  3: { title: '数据时效', desc: [
+    '触发：页面加载时展示最近更新时间和同步说明',
+    '响应：标注"N 分钟前更新"，提示"定时同步，存在延迟"',
+    '规则：数据来自小铁定时同步，非实时数据',
+    '说明：数据存在分钟级延迟，运营参考时需注意'
+  ]},
+  4: { title: '待办事项区（核心）', desc: [
+    '触发：页面加载时按实时统计数据渲染 6 类待办',
+    '响应：每项待办展示名称 + 数量角标 + 简述 + "去处理"入口',
+    '规则：P0 待办（待处理工单、锁柜失败）置顶 + 左边框 danger 强调色',
+    '规则：数量 > 0 时角标用语义色（danger/warning/info）高亮',
+    '规则：数量 = 0 时整张卡片变灰弱化（opacity: 0.5）',
+    '规则：全部为 0 时展示"暂无待办，一切正常"友好态',
+    '跳转：点击 → 跳转目标模块并带筛选条件'
+  ]},
+  5: { title: '待处理工单', desc: [
+    '统计口径：状态 = 待处理 的异常工单数量',
+    '优先级：P0，运营每日必处理项',
+    '跳转：点击"去处理" → 异常工单页，筛选 = 待处理',
+    '强调：数量 > 0 时 danger 色左边框 + 红色角标'
+  ]},
+  6: { title: '锁柜失败待处理', desc: [
+    '统计口径：支付成功但锁柜失败 的待处理订单/工单',
+    '优先级：P0，运营每日必处理项',
+    '跳转：点击"去处理" → 异常工单页，类型 = 锁柜失败/开柜异常',
+    '强调：数量 > 0 时 danger 色左边框 + 红色角标',
+    '说明：用户已付款但柜门未锁闭，需立即核查处理'
+  ]},
+  7: { title: '待办数量角标规则', desc: [
+    '数量 > 0：语义色角标高亮（danger/warning/info 对应优先级）',
+    '数量 = 0：灰色角标，整卡 opacity 降低至 0.5',
+    '排序：P0 待办置顶 + 按数量降序',
+    '统计：顶部汇总"共 N 项待处理"总和'
+  ]},
+  8: { title: '异常/告警区', desc: [
+    '触发条件：柜机离线（online=offline）触发 danger 告警',
+    '触发条件：当日异常率超阈值（默认 3%）触发 warning 告警',
+    '触发条件：小铁同步失败/延迟过大触发 warning 告警',
+    '响应：有告警时列表展示，无告警时收起为"系统运行正常"成功态',
+    '跳转：点击"查看" → 跳对应模块（柜机监控/异常工单）'
+  ]},
+  9: { title: '快捷入口区', desc: [
+    '触发：页面加载按当前角色权限渲染入口宫格',
+    '入口：订单看板、异常工单、对账中心、数据概览（全员可见）',
+    '入口：运营配置（仅管理员可见）',
+    '规则：运营员不展示运营配置入口，展示"需管理员权限"占位',
+    '跳转：点击入口卡片 → 跳转对应模块页面'
+  ]},
+  10: { title: '简要趋势图', desc: [
+    '触发：页面加载时 Chart.js 渲染近 7 天折线图',
+    '图表一：近 7 天单量趋势（primary 蓝色，全员可见）',
+    '图表二：近 7 天收入趋势（success 绿色，仅管理员可见）',
+    '交互：hover 显示当日数值 tooltip',
+    '跳转：点击"查看完整数据" → 数据概览页',
+    '权限：运营员模式下收入区域替换为"仅管理员可见"提示'
+  ]},
+  11: { title: '角色切换（原型演示）', desc: [
+    '触发：点击右上角"演示切换"拨动开关',
+    '响应：切换管理员/运营员视角，即时显示权限差异',
+    '管理员：可见收入数据 + 收入趋势 + 运营配置入口',
+    '运营员：隐藏收入数据/KPI卡片 + 收入趋势替换为提示 + 运营配置灰化',
+    '说明：此开关为原型演示功能，生产环境由后端返回角色'
+  ]}
+};
+
+var annoVisible = true;
+
+function renderAnnoBadges() {
+  var layer = document.getElementById('annoLayer');
+  layer.innerHTML = '';
+  if (!annoVisible) return;
+  var vw = window.innerWidth;
+  document.querySelectorAll('[data-anno]').forEach(function(el) {
+    var id = el.getAttribute('data-anno');
+    if (el.offsetParent === null && el.tagName !== 'BODY') return;
+    var target = resolveAnnoTarget(el, vw);
+    var rect = target.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return;
+    var badge = document.createElement('div');
+    badge.className = 'anno-portal-badge';
+    badge.textContent = id;
+    badge.style.top  = (rect.top  - 10) + 'px';
+    badge.style.left = (rect.right - 10) + 'px';
+    badge.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showAnnoPopup(id);
+    });
+    layer.appendChild(badge);
+  });
+}
+
+function resolveAnnoTarget(el, vw) {
+  var rect = el.getBoundingClientRect();
+  if (rect.width < 800 || rect.width < vw * 0.7) return el;
+  var inner = el.querySelector('h1, h2, h3, h4, h5, h6, button, .btn, input, select, .card-title, [class*="title"]');
+  if (inner) {
+    var innerRect = inner.getBoundingClientRect();
+    if (innerRect.width < rect.width * 0.8) return inner;
+  }
+  var first = el.firstElementChild;
+  if (first) {
+    var firstRect = first.getBoundingClientRect();
+    if (firstRect.width < rect.width * 0.9) return first;
+  }
+  return el;
+}
+
+function showAnnoPopup(id) {
+  var a = annotations[id];
+  if (!a) return;
+  document.getElementById('annoPopupTitle').textContent = '#' + id + ' ' + a.title;
+  document.getElementById('annoPopupBody').innerHTML = a.desc.map(function(d) {
+    return '<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>' + d + '</span></li>';
+  }).join('');
+  var box = document.getElementById('annoPopupBox');
+  box.style.top = '50%'; box.style.left = '50%'; box.style.transform = 'translate(-50%,-50%)';
+  document.getElementById('annoPopup').classList.remove('hidden');
+}
+
+function closeAnnoPopup() {
+  document.getElementById('annoPopup').classList.add('hidden');
+}
+
+/* Drag popup */
+var popupDrag = { offX: 0, offY: 0, moved: false };
+function startDragPopup(e) {
+  if (e.target.closest('button')) return;
+  popupDrag.moved = false;
+  var box = document.getElementById('annoPopupBox');
+  var rect = box.getBoundingClientRect();
+  popupDrag.offX = e.clientX - rect.left;
+  popupDrag.offY = e.clientY - rect.top;
+  document.addEventListener('mousemove', onDragPopup);
+  document.addEventListener('mouseup', stopDragPopup);
+}
+function onDragPopup(e) {
+  var dx = Math.abs(e.clientX - popupDrag.offX - document.getElementById('annoPopupBox').getBoundingClientRect().left);
+  if (dx < 3 && !popupDrag.moved) return;
+  popupDrag.moved = true;
+  var box = document.getElementById('annoPopupBox');
+  box.style.transform = 'none';
+  box.style.top  = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - popupDrag.offY)) + 'px';
+  box.style.left = Math.max(0, Math.min(window.innerWidth  - 100, e.clientX - popupDrag.offX)) + 'px';
+  document.getElementById('annoPopupDrag').style.cursor = 'grabbing';
+}
+function stopDragPopup() {
+  document.removeEventListener('mousemove', onDragPopup);
+  document.removeEventListener('mouseup', stopDragPopup);
+  var h = document.getElementById('annoPopupDrag');
+  if (h) { h.style.cursor = 'grab'; }
+}
+
+/* Toggle annotations */
+document.getElementById('annoToggle').addEventListener('click', function(e) {
+  if (this.dataset.dragging === '1') return;
+  annoVisible = !annoVisible;
+  if (annoVisible) {
+    document.body.classList.remove('anno-hidden');
+    document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye');
+  } else {
+    document.body.classList.add('anno-hidden');
+    document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye-off');
+  }
+  lucide.createIcons({ attrs: { class: 'w-[13px] h-[13px]' } });
+  renderAnnoBadges();
+});
+
+/* Drag toggle */
+var dragToggleY = 0, dragToggleMoved = false;
+function startDragToggle(e) {
+  dragToggleY = e.clientY; dragToggleMoved = false;
+  document.addEventListener('mousemove', onDragToggle);
+  document.addEventListener('mouseup', stopDragToggle); e.preventDefault();
+}
+function onDragToggle(e) {
+  if (Math.abs(e.clientY - dragToggleY) < 5) return;
+  dragToggleMoved = true;
+  var w = document.getElementById('annoToggle');
+  w.style.top = Math.max(60, Math.min(window.innerHeight - 60, e.clientY - 20)) + 'px';
+  w.style.right = '8px'; w.style.cursor = 'grabbing';
+}
+function stopDragToggle() {
+  document.removeEventListener('mousemove', onDragToggle);
+  document.removeEventListener('mouseup', stopDragToggle);
+  var w = document.getElementById('annoToggle');
+  if (w) { w.style.cursor = 'grab'; w.dataset.dragging = dragToggleMoved ? '1' : ''; }
+}
+
+/* ===== INIT ===== */
+document.addEventListener('DOMContentLoaded', function() {
+  lucide.createIcons();
+  renderAll();
+  // Recalculate annotations on scroll/resize
+  document.getElementById('mainContent').addEventListener('scroll', renderAnnoBadges);
+  window.addEventListener('resize', function() {
+    renderCharts(); // Redraw charts on resize
+    renderAnnoBadges();
+  });
+});
+</script>
+</body>
+</html>
