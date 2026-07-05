@@ -166,22 +166,6 @@
       <!-- ===== Toast ===== -->
       <div id="toast"></div>
 
-      <!-- ===== A: 页面头 ===== -->
-      <!-- 区块A：面包屑 + 页面标题 + 最近更新时间 -->
-      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-        <div class="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <div class="text-[12px] text-ink-muted mb-1">数据概览</div>
-            <h1 class="text-[22px] font-bold text-ink-title inline-block" data-anno="1">数据概览</h1>
-          </div>
-          <div class="flex items-center gap-2 text-[12px] text-ink-muted" data-anno="7">
-            <i data-lucide="clock" class="w-[13px] h-[13px]"></i>
-            <span>数据更新时间：<span id="updateTime" class="font-mono">--</span></span>
-            <span class="text-ink-muted">（每5分钟同步一次）</span>
-          </div>
-        </div>
-      </div>
-
       <!-- ===== B: 时间范围筛选 ===== -->
       <!-- 区块B：快捷时间 + 自定义日期 + 业务类型 + 柜机筛选 -->
       <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
@@ -743,9 +727,6 @@ function renderKPICards() {
       '<div class="text-[11px] text-ink-sub mt-1">' + c.sub + '</div>' +
     '</div>';
   }).join('');
-
-  // Update time display
-  document.getElementById('updateTime').textContent = '2026-07-05 09:32:15';
 
   lucide.createIcons();
 }
