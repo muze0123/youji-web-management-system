@@ -158,20 +158,6 @@
   <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
     <div class="p-4">
 
-      <!-- ===== 区块A: 页面头 ===== -->
-      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-        <div class="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <div class="text-[12px] text-ink-muted mb-1">对账中心</div>
-            <h1 class="text-[22px] font-bold text-ink-title inline-block" data-anno="1">对账中心</h1>
-            <span class="transition-tag ml-2 align-middle" data-anno="2">过渡方案 · 只对账不结算</span>
-          </div>
-          <button class="btn btn-default btn-sm" onclick="exportCSV()" data-anno="3">
-            <i data-lucide="download" class="w-[13px] h-[13px]"></i> 导出 CSV
-          </button>
-        </div>
-      </div>
-
       <!-- ===== 区块B: 日期范围与同步 ===== -->
       <div class="bg-white rounded-lg border border-line p-4 mb-4" data-anno="4">
         <div class="flex flex-wrap items-center gap-3">
@@ -201,6 +187,12 @@
 
       <!-- ===== 区块D: 按日汇总表 ===== -->
       <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4" data-anno="6">
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <h2 class="text-[16px] font-semibold text-ink-title">对账列表</h2>
+          <button class="btn btn-default btn-sm" onclick="exportCSV()" data-anno="3">
+            <i data-lucide="download" class="w-[13px] h-[13px]"></i> 导出数据
+          </button>
+        </div>
         <div class="overflow-x-auto">
           <table class="data-table" id="summaryTable">
             <thead>
@@ -651,7 +643,7 @@ function toggleSidebar(){ var s=document.getElementById('sidebar'),o=document.ge
 var annotations = {
   1: { title: '对账中心页面标题', desc: ['触发：页面加载时渲染','展示模块名称"对账中心"，左侧导航"对账中心"高亮','点击 logo 可返回 index.html 导航页']},
   2: { title: '过渡方案标识', desc: ['触发：页面加载时渲染','标记"过渡方案 · 只对账不结算"','说明：一期为过渡方案，本地自动汇总 + 小铁接口自动拉取 + 自动算差异，运营人工核查标记','一期只对账不结算，追款/清结算为 V2','自动清结算待 V2 升级']},
-  3: { title: '导出 CSV', desc: ['触发：点击"导出 CSV"按钮','响应：导出当前对账周期的汇总数据为 CSV 文件','用途：供财务与小铁结算单人工比对','需先同步小铁数据后才可导出']},
+  3: { title: '导出数据', desc: ['触发：点击"导出数据"按钮','响应：导出当前对账周期的汇总数据为 CSV 文件','用途：供财务与小铁结算单人工比对','需先同步小铁数据后才可导出']},
   4: { title: '日期范围与同步', desc: ['触发：选择起止日期 + 点击"同步小铁数据"','响应：从小铁只读接口拉取该周期金额，汇总展示','规则：小铁接口约束单次时间范围 ≤7 天，超范围需分段同步','日期范围超 7 天时提示用户缩小范围','展示最近同步时间（sync-dot 绿=已同步 / 橙=待同步）','数据单位：小铁接口金额为分，页面上展示时转为元']},
   5: { title: '汇总概览条（KPI）', desc: ['触发：同步成功后渲染','响应：展示所选周期的 5 项汇总指标','总订单数 / 本地合计 / 小铁合计 / 差异合计 / 差异笔数','规则：差异金额 = 本地 − 小铁，非 0 时用 danger 红色强调 + KPI 卡片红框高亮','数字使用 mono 字体','金额展示单位为元，保留两位小数']},
   6: { title: '按日汇总表', desc: ['触发：同步成功后渲染','响应：按日展示对账汇总数据','列：对账日期 / 订单数 / 本地金额 / 小铁金额 / 差异金额 / 退款金额 / 差异状态 / 操作','差异金额非 0 用 danger/warning 色强调，行底色变黄（row-warning）','差异状态 Badge：一致(success 绿) / 待核查(warning 橙) / 已确认(ink-muted 灰)','操作：查看明细(下钻订单级比对) / 标记差异(待核查日可见)','金额含退款、超时补费等口径，与订单管理一致']},
