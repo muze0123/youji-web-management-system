@@ -124,8 +124,8 @@
     <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
   </div>
   <div class="ml-auto flex items-center gap-3 md:gap-5">
-    <button class="topbar-btn" title="任务列表" onclick="navigate('任务中心.html')"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i><span class="badge-dot" id="taskBadge" style="display:none;">0</span></button>
-    <button class="topbar-btn" title="消息中心" onclick="navigate('消息中心.html')"><i data-lucide="bell" class="w-[18px] h-[18px]"></i><span class="badge-dot" id="msgBadge">5</span></button>
+    <button class="topbar-btn" data-tip="任务列表" onclick="openTaskDrawer()"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i><span class="badge-dot" id="taskBadge" style="display:none;">0</span></button>
+    <button class="topbar-btn" data-tip="消息中心" onclick="navigate('消息中心.html')"><i data-lucide="bell" class="w-[18px] h-[18px]"></i><span class="badge-dot" id="msgBadge">5</span></button>
     <button class="topbar-btn" title="账号信息" onclick="navigate('账号信息.html')"><i data-lucide="user" class="w-[18px] h-[18px]"></i></button>
   </div>
 </header>
@@ -158,20 +158,6 @@
   <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
     <div class="p-4">
 
-      <!-- ===== 区块A: 页面头 ===== -->
-      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-        <div class="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <div class="text-[12px] text-ink-muted mb-1">对账中心</div>
-            <h1 class="text-[22px] font-bold text-ink-title inline-block" data-anno="1">对账中心</h1>
-            <span class="transition-tag ml-2 align-middle" data-anno="2">过渡方案 · 只对账不结算</span>
-          </div>
-          <button class="btn btn-default btn-sm" onclick="exportCSV()" data-anno="3">
-            <i data-lucide="download" class="w-[13px] h-[13px]"></i> 导出 CSV
-          </button>
-        </div>
-      </div>
-
       <!-- ===== 区块B: 日期范围与同步 ===== -->
       <div class="bg-white rounded-lg border border-line p-4 mb-4" data-anno="4">
         <div class="flex flex-wrap items-center gap-3">
@@ -201,6 +187,12 @@
 
       <!-- ===== 区块D: 按日汇总表 ===== -->
       <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4" data-anno="6">
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <h2 class="text-[16px] font-semibold text-ink-title">对账列表</h2>
+          <button class="btn btn-default btn-sm" onclick="exportCSV()" data-anno="3">
+            <i data-lucide="download" class="w-[13px] h-[13px]"></i> 导出数据
+          </button>
+        </div>
         <div class="overflow-x-auto">
           <table class="data-table" id="summaryTable">
             <thead>
@@ -651,7 +643,7 @@ function toggleSidebar(){ var s=document.getElementById('sidebar'),o=document.ge
 var annotations = {
   1: { title: '对账中心页面标题', desc: ['触发：页面加载时渲染','展示模块名称"对账中心"，左侧导航"对账中心"高亮','点击 logo 可返回 index.html 导航页']},
   2: { title: '过渡方案标识', desc: ['触发：页面加载时渲染','标记"过渡方案 · 只对账不结算"','说明：一期为过渡方案，本地自动汇总 + 小铁接口自动拉取 + 自动算差异，运营人工核查标记','一期只对账不结算，追款/清结算为 V2','自动清结算待 V2 升级']},
-  3: { title: '导出 CSV', desc: ['触发：点击"导出 CSV"按钮','响应：导出当前对账周期的汇总数据为 CSV 文件','用途：供财务与小铁结算单人工比对','需先同步小铁数据后才可导出']},
+  3: { title: '导出数据', desc: ['触发：点击"导出数据"按钮','响应：导出当前对账周期的汇总数据为 CSV 文件','用途：供财务与小铁结算单人工比对','需先同步小铁数据后才可导出']},
   4: { title: '日期范围与同步', desc: ['触发：选择起止日期 + 点击"同步小铁数据"','响应：从小铁只读接口拉取该周期金额，汇总展示','规则：小铁接口约束单次时间范围 ≤7 天，超范围需分段同步','日期范围超 7 天时提示用户缩小范围','展示最近同步时间（sync-dot 绿=已同步 / 橙=待同步）','数据单位：小铁接口金额为分，页面上展示时转为元']},
   5: { title: '汇总概览条（KPI）', desc: ['触发：同步成功后渲染','响应：展示所选周期的 5 项汇总指标','总订单数 / 本地合计 / 小铁合计 / 差异合计 / 差异笔数','规则：差异金额 = 本地 − 小铁，非 0 时用 danger 红色强调 + KPI 卡片红框高亮','数字使用 mono 字体','金额展示单位为元，保留两位小数']},
   6: { title: '按日汇总表', desc: ['触发：同步成功后渲染','响应：按日展示对账汇总数据','列：对账日期 / 订单数 / 本地金额 / 小铁金额 / 差异金额 / 退款金额 / 差异状态 / 操作','差异金额非 0 用 danger/warning 色强调，行底色变黄（row-warning）','差异状态 Badge：一致(success 绿) / 待核查(warning 橙) / 已确认(ink-muted 灰)','操作：查看明细(下钻订单级比对) / 标记差异(待核查日可见)','金额含退款、超时补费等口径，与订单管理一致']},
@@ -700,6 +692,424 @@ document.addEventListener('DOMContentLoaded',function(){
   // Initial: show empty state
   renderSummary();
 });
+</script>
+<!-- ================================================================
+     GLOBAL COMPONENT: 任务列表抽屉（顶栏入口，全站共享）
+     PRD: PRD/基础服务/任务列表PRD.md · 视觉: design.md §5.4/5.5/5.7
+     所有 id/class 以 tk- 前缀隔离，避免与页面样式冲突
+     ================================================================ -->
+<style>
+  /* --- 顶栏图标气泡提示 --- */
+  .topbar-btn[data-tip]{position:relative;}
+  .topbar-btn[data-tip]::after{content:attr(data-tip);position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(-4px);background:#1A1D24;color:#fff;font-size:12px;line-height:1;padding:6px 10px;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;z-index:60;}
+  .topbar-btn[data-tip]::before{content:'';position:absolute;top:calc(100% - 2px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:#1A1D24;opacity:0;pointer-events:none;transition:opacity .15s;z-index:60;}
+  .topbar-btn[data-tip]:hover::after{opacity:1;transform:translateX(-50%) translateY(0);}
+  .topbar-btn[data-tip]:hover::before{opacity:1;}
+  /* --- 抽屉（design.md §5.7：右滑 800px，遮罩 .3，中阴影） --- */
+  .tk-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1100;}
+  .tk-drawer{position:absolute;top:0;right:0;bottom:0;width:800px;max-width:100%;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.1);display:flex;flex-direction:column;animation:tk-drawer-in .22s ease;}
+  @keyframes tk-drawer-in{from{transform:translateX(100%);}to{transform:translateX(0);}}
+  .tk-header{height:56px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #DFE1E5;flex-shrink:0;}
+  .tk-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:#9DA2AC;cursor:pointer;background:none;border:none;transition:background .15s;}
+  .tk-close:hover{background:#F3F4F6;}
+  /* --- Tab 栏：底部整体分割线，激活蓝色下划线覆盖其上 --- */
+  .tk-tabs{display:flex;padding:0 24px;border-bottom:1px solid #DFE1E5;flex-shrink:0;}
+  .tk-tab{padding:10px 20px;font-size:14px;font-weight:500;color:#6E7685;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;}
+  .tk-tab:hover{color:#0066FF;}
+  .tk-tab.active{color:#0066FF;border-bottom-color:#0066FF;}
+  /* --- 筛选区（design.md §5.4，抽屉内 2 列） --- */
+  .tk-filters{padding:16px 24px;border-bottom:1px solid #F0F1F3;flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;}
+  @media(max-width:640px){.tk-filters{grid-template-columns:1fr;}}
+  .tk-filter-item{display:flex;align-items:center;}
+  .tk-filter-label{width:78px;flex-shrink:0;text-align:right;font-size:14px;color:#1A1D24;line-height:32px;white-space:nowrap;}
+  .tk-filter-label::after{content:'：';}
+  .tk-ctrl{flex:1;min-width:0;display:flex;align-items:center;gap:4px;}
+  .tk-input,.tk-select{width:100%;height:32px;font-size:14px;padding:0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;font-family:inherit;background:#fff;}
+  .tk-input::placeholder{color:#9DA2AC;font-size:14px;}
+  .tk-input:focus,.tk-select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+  .tk-select{appearance:none;-webkit-appearance:none;padding-right:24px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239DA2AC' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+  .tk-date-sep{font-size:14px;color:#9DA2AC;flex-shrink:0;margin:0 2px;}
+  .tk-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;font-family:inherit;}
+  .tk-btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+  .tk-btn-primary:hover{background:#0052CC;}
+  .tk-btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+  .tk-btn-default:hover{border-color:#0066FF;color:#0066FF;}
+  /* --- 下载任务说明文案 --- */
+  .tk-note{margin:12px 24px 0;padding:8px 12px;background:#E4F4FB;border-radius:4px;font-size:12px;color:#0091D5;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  /* --- 表格（design.md §5.2，表头吸顶） --- */
+  .tk-body{flex:1;overflow:auto;padding:12px 24px 0;}
+  .tk-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;min-width:700px;}
+  .tk-table thead th{position:sticky;top:0;background:#F0F1F3;color:#6E7685;font-weight:600;font-size:12px;padding:9px 12px;text-align:left;border-bottom:1px solid #DFE1E5;white-space:nowrap;z-index:1;}
+  .tk-table tbody td{padding:9px 12px;color:#3A3F4A;border-bottom:1px solid #F0F1F3;text-align:left;vertical-align:middle;}
+  .tk-table tbody tr{transition:background .12s;}
+  .tk-table tbody tr:hover{background:#F3F4F6;}
+  .tk-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .tk-progress{height:4px;background:#E6F0FF;border-radius:2px;overflow:hidden;margin-top:4px;max-width:130px;}
+  .tk-progress-fill{height:100%;background:#0066FF;border-radius:2px;transition:width .3s;}
+  .tk-link{color:#0066FF;cursor:pointer;}
+  .tk-link:hover{color:#0052CC;text-decoration:underline;}
+  .tk-link.tk-disabled{color:#9DA2AC;cursor:not-allowed;}
+  .tk-link.tk-disabled:hover{color:#9DA2AC;text-decoration:none;}
+  .tk-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 0;color:#9DA2AC;}
+  /* --- 分页（design.md §5.5，吸底） --- */
+  .tk-footer{flex-shrink:0;border-top:1px solid #DFE1E5;padding:12px 24px;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:16px;font-size:12px;background:#fff;}
+  .tk-pg-nav{display:flex;gap:4px;}
+  .tk-pg-btn{min-width:30px;height:30px;padding:0 8px;font-size:12px;font-weight:500;font-family:inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
+  .tk-pg-btn:hover:not(.tk-pg-current):not(:disabled){color:#0066FF;border-color:#0066FF;}
+  .tk-pg-btn.tk-pg-current{background:#0066FF;border-color:#0066FF;color:#fff;}
+  .tk-pg-btn:disabled{color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;border-color:#DFE1E5;}
+  .tk-pg-ellipsis{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;font-size:13px;}
+  .tk-pg-select-wrap{position:relative;display:inline-flex;align-items:center;}
+  .tk-pg-select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+  .tk-pg-select{font-size:12px;font-family:inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;}
+  .tk-pg-jump{font-size:12px;font-family:inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+  .tk-pg-jump:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+  .tk-pg-stats{color:#9DA2AC;white-space:nowrap;}
+  /* --- Toast --- */
+  #tkToast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1A1D24;color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:4px;z-index:1300;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
+</style>
+
+<!-- 任务列表抽屉：遮罩点击不关闭（PRD §12.4），仅 × 关闭 -->
+<div class="tk-overlay" id="tkOverlay" style="display:none;">
+  <aside class="tk-drawer" role="dialog" aria-label="任务列表">
+    <!-- 头部 -->
+    <header class="tk-header">
+      <h3 class="text-[16px] font-semibold text-ink-title inline-block">任务列表</h3>
+      <button class="tk-close" data-tk-anno="close" onclick="closeTaskDrawer()" aria-label="关闭"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+    </header>
+    <!-- Tab 栏 -->
+    <nav class="tk-tabs">
+      <div class="tk-tab active" id="tkTabImport" data-tk-anno="tabs" onclick="tkSwitchTab('import')">导入任务</div>
+      <div class="tk-tab" id="tkTabDownload" onclick="tkSwitchTab('download')">下载任务</div>
+    </nav>
+    <!-- 筛选区 -->
+    <div class="tk-filters">
+      <div class="tk-filter-item">
+        <label class="tk-filter-label">任务模块</label>
+        <div class="tk-ctrl"><select class="tk-select" id="tkFilterModule"><option value="">全部</option><option value="订单管理">订单管理</option><option value="异常工单">异常工单</option></select></div>
+      </div>
+      <div class="tk-filter-item">
+        <label class="tk-filter-label">操作人</label>
+        <div class="tk-ctrl"><input class="tk-input" id="tkFilterOp" list="tkOpsList" placeholder="全部（输入姓名模糊搜索）"><datalist id="tkOpsList"></datalist></div>
+      </div>
+      <div class="tk-filter-item">
+        <label class="tk-filter-label">操作时间</label>
+        <div class="tk-ctrl">
+          <input type="date" class="tk-input" id="tkDateFrom" title="开始时间">
+          <span class="tk-date-sep">~</span>
+          <input type="date" class="tk-input" id="tkDateTo" title="结束时间">
+        </div>
+      </div>
+      <div class="tk-filter-item">
+        <label class="tk-filter-label" style="visibility:hidden;">占位</label>
+        <div class="tk-ctrl">
+          <button class="tk-btn tk-btn-primary" data-tk-anno="filters" onclick="tkSearch()">搜索</button>
+          <button class="tk-btn tk-btn-default" style="margin-left:8px;" onclick="tkReset()">重置</button>
+        </div>
+      </div>
+    </div>
+    <!-- 下载任务说明（仅下载 Tab 展示，PRD §7.4） -->
+    <div class="tk-note" id="tkNote" style="display:none;">
+      <i data-lucide="info" class="w-[13px] h-[13px] flex-shrink-0"></i>
+      <span data-tk-anno="note">说明：导出数据在系统平台内记录最多保留 30 天，30 天后自动清除</span>
+    </div>
+    <!-- 表格（表头吸顶，数据区独立滚动） -->
+    <div class="tk-body" id="tkBody">
+      <table class="tk-table">
+        <colgroup><col style="width:120px;"><col><col style="width:90px;"><col style="width:150px;"><col style="width:180px;"><col style="width:100px;"></colgroup>
+        <thead>
+          <tr>
+            <th>模块</th><th>文件名称</th><th>操作人</th><th>操作时间</th>
+            <th data-tk-anno="stage">任务阶段</th><th data-tk-anno="ops">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tkTbody"></tbody>
+      </table>
+      <div class="tk-empty" id="tkEmpty" style="display:none;">
+        <i data-lucide="inbox" class="w-[44px] h-[44px] mb-3"></i>
+        <p class="text-[13px]" id="tkEmptyText">暂无任务记录</p>
+      </div>
+    </div>
+    <!-- 分页栏（吸底，design.md §5.5） -->
+    <footer class="tk-footer">
+      <div class="tk-pg-nav" id="tkPgNav" data-tk-anno="pager"></div>
+      <span class="tk-pg-select-wrap"><select class="tk-pg-select" id="tkPgSize" onchange="tkChangePageSize()"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
+      <span class="flex items-center gap-1">跳至 <input class="tk-pg-jump" id="tkPgJump" onkeydown="if(event.key==='Enter')tkJumpPage()"> 页</span>
+      <span class="tk-pg-stats" id="tkPgStats"></span>
+    </footer>
+  </aside>
+</div>
+<div id="tkToast"></div>
+
+<script>
+/* ================================================================
+   任务列表抽屉 — 全站共享组件（IIFE 隔离，仅暴露 open/close）
+   ================================================================ */
+(function(){
+  'use strict';
+  /* ===== MOCK DATA（PRD §6/§7，按操作时间倒序） ===== */
+  var TK_NOW = new Date('2026-07-05T15:30:00');
+  var tkImport = [
+    {module:'异常工单', file:'异常工单导入_20260705.xlsx',   op:'张三', time:'2026-07-05 09:15:30', status:'processing', progress:66},
+    {module:'订单管理', file:'订单批量导入_20260704.xlsx',   op:'李四', time:'2026-07-04 15:42:18', status:'processing', progress:32},
+    {module:'订单管理', file:'订单批量导入_20260701.xlsx',   op:'张三', time:'2026-07-01 10:23:45', status:'partial_fail', total:100, ok:98, fail:2},
+    {module:'订单管理', file:'订单批量导入_20260630.xlsx',   op:'李四', time:'2026-06-30 16:08:12', status:'success', total:50, ok:50, fail:0},
+    {module:'异常工单', file:'异常工单导入_20260629.xlsx',   op:'王五', time:'2026-06-29 11:05:27', status:'partial_fail', total:36, ok:30, fail:6},
+    {module:'订单管理', file:'订单补录导入_20260628.xlsx',   op:'赵六', time:'2026-06-28 14:37:56', status:'success', total:220, ok:220, fail:0},
+    {module:'异常工单', file:'异常工单导入_20260626.xlsx',   op:'张三', time:'2026-06-26 09:48:03', status:'fail'},
+    {module:'订单管理', file:'订单批量导入_20260624.xlsx',   op:'王五', time:'2026-06-24 17:22:41', status:'success', total:78, ok:78, fail:0},
+    {module:'订单管理', file:'订单批量导入_20260620.xlsx',   op:'李四', time:'2026-06-20 10:11:09', status:'partial_fail', total:150, ok:141, fail:9},
+    {module:'异常工单', file:'异常工单导入_20260618.xlsx',   op:'钱七', time:'2026-06-18 13:59:34', status:'success', total:12, ok:12, fail:0},
+    {module:'订单管理', file:'订单批量导入_20260615.xlsx',   op:'张三', time:'2026-06-15 08:30:22', status:'fail'}
+  ];
+  var tkDownload = [
+    {module:'异常工单', file:'异常工单导出_20260705100812.xlsx', op:'王五', time:'2026-07-05 10:08:12', status:'processing', progress:40},
+    {module:'订单管理', file:'订单管理导出_20260704161530.xlsx', op:'张三', time:'2026-07-04 16:15:30', status:'success'},
+    {module:'订单管理', file:'订单管理导出_20260701131516.xlsx', op:'张三', time:'2026-07-01 13:15:16', status:'success'},
+    {module:'订单管理', file:'订单管理导出_20260630095820.xlsx', op:'李四', time:'2026-06-30 09:58:20', status:'success'},
+    {module:'异常工单', file:'异常工单导出_20260628143022.xlsx', op:'王五', time:'2026-06-28 14:30:22', status:'fail'},
+    {module:'订单管理', file:'订单管理导出_20260625174455.xlsx', op:'赵六', time:'2026-06-25 17:44:55', status:'success'},
+    {module:'异常工单', file:'异常工单导出_20260622112748.xlsx', op:'张三', time:'2026-06-22 11:27:48', status:'success'},
+    {module:'订单管理', file:'订单管理导出_20260618150233.xlsx', op:'李四', time:'2026-06-18 15:02:33', status:'success'},
+    {module:'订单管理', file:'订单管理导出_20260604093015.xlsx', op:'钱七', time:'2026-06-04 09:30:15', status:'success'},
+    {module:'异常工单', file:'异常工单导出_20260601082247.xlsx', op:'王五', time:'2026-06-01 08:22:47', status:'success'},
+    {module:'订单管理', file:'订单管理导出_20260530164109.xlsx', op:'张三', time:'2026-05-30 16:41:09', status:'success'}
+  ];
+  var tkMembers = ['张三','李四','王五','赵六','钱七'];
+
+  /* ===== STATE ===== */
+  var tkTab = 'import';                 // 当前 Tab
+  var tkFilter = {module:'', op:'', from:'', to:''}; // 已应用的筛选（点搜索才生效）
+  var tkPage = 1, tkPageSize = 10;
+  var tkTimer = null;                   // 处理中轮询（10s）
+
+  /* ===== HELPERS ===== */
+  function $(id){ return document.getElementById(id); }
+  function tkData(){ return tkTab === 'import' ? tkImport : tkDownload; }
+  function tkIsExpired(t){ return (TK_NOW - new Date(t.time.replace(' ','T'))) > 30*24*3600*1000; } // 导出文件保留 30 天
+  function tkEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  var tkToastTimer = null;
+  function tkToast(msg){
+    var el = $('tkToast');
+    el.textContent = msg; el.style.opacity = '1';
+    if (tkToastTimer) clearTimeout(tkToastTimer);
+    tkToastTimer = setTimeout(function(){ el.style.opacity = '0'; }, 2200);
+  }
+
+  /* 有筛选值 = 搜索态（决定空状态文案，PRD §10） */
+  function tkIsFiltered(){ return !!(tkFilter.module || tkFilter.op || tkFilter.from || tkFilter.to); }
+
+  function tkFiltered(){
+    return tkData().filter(function(t){
+      if (tkFilter.module && t.module !== tkFilter.module) return false;
+      if (tkFilter.op && t.op.indexOf(tkFilter.op) === -1) return false;   // 姓名模糊匹配
+      var d = t.time.slice(0,10);
+      if (tkFilter.from && d < tkFilter.from) return false;
+      if (tkFilter.to && d > tkFilter.to) return false;
+      return true;
+    }).sort(function(a,b){ return a.time < b.time ? 1 : -1; });            // 操作时间倒序
+  }
+
+  /* ===== RENDER：任务阶段列（PRD §6.2/§7.2） ===== */
+  function tkStageHtml(t){
+    if (t.status === 'processing')
+      return '<span style="color:#0066FF;">处理中 ' + t.progress + '%</span>' +
+             '<div class="tk-progress"><div class="tk-progress-fill" style="width:' + t.progress + '%;"></div></div>';
+    if (tkTab === 'import') {
+      if (t.status === 'success')      return '<span style="color:#0FC060;">总数' + t.total + '条，成功' + t.ok + '条，失败0条</span>';
+      if (t.status === 'partial_fail') return '总数' + t.total + '条，成功' + t.ok + '条，<span style="color:#D9001B;font-weight:700;">失败' + t.fail + '条</span>';
+      return '<span style="color:#D9001B;">导入失败</span>';
+    }
+    if (t.status === 'success') return '<span style="color:#0FC060;">导出成功</span>';
+    return '<span style="color:#D9001B;">导出失败</span>';
+  }
+
+  /* ===== RENDER：操作列（PRD §6.3/§7.3） ===== */
+  function tkOpHtml(t, idx){
+    if (tkTab === 'import') {
+      if (t.status === 'partial_fail') return '<span class="tk-link" onclick="tkDownloadErr(' + idx + ')">下载错误数据</span>';
+      return '<span style="color:#9DA2AC;">——</span>';
+    }
+    if (t.status === 'success') {
+      if (tkIsExpired(t)) return '<span class="tk-link tk-disabled" title="文件已过期，无法下载">下载文件</span>';
+      return '<span class="tk-link" onclick="tkDownloadFile(' + idx + ')">下载文件</span>';
+    }
+    return '<span style="color:#9DA2AC;">——</span>';
+  }
+
+  /* ===== RENDER：列表 + 分页 ===== */
+  function tkRender(){
+    var list = tkFiltered();
+    var totalPages = Math.max(1, Math.ceil(list.length / tkPageSize));
+    if (tkPage > totalPages) tkPage = totalPages;
+    var rows = list.slice((tkPage-1)*tkPageSize, tkPage*tkPageSize);
+
+    $('tkNote').style.display = (tkTab === 'download') ? 'flex' : 'none';
+    $('tkTbody').innerHTML = rows.map(function(t){
+      var idx = tkData().indexOf(t);
+      return '<tr>' +
+        '<td>' + tkEsc(t.module) + '</td>' +
+        '<td class="tk-ellipsis" title="' + tkEsc(t.file) + '">' + tkEsc(t.file) + '</td>' +   // 超长 hover 全显
+        '<td>' + tkEsc(t.op) + '</td>' +
+        '<td class="font-mono" style="font-size:12px;">' + t.time + '</td>' +
+        '<td>' + tkStageHtml(t) + '</td>' +
+        '<td>' + tkOpHtml(t, idx) + '</td>' +
+      '</tr>';
+    }).join('');
+
+    var empty = rows.length === 0;
+    $('tkEmpty').style.display = empty ? 'flex' : 'none';
+    $('tkEmptyText').textContent = tkIsFiltered() ? '暂无数据' : '暂无任务记录';
+
+    tkRenderPager(list.length, totalPages);
+    tkUpdateBadge();
+    tkRefreshAnnos();
+  }
+
+  /* 页码逻辑：≤7 全显；>7 首末页 + 当前±1 + 省略号（design.md §5.5） */
+  function tkPageList(totalPages){
+    if (totalPages <= 7) { var a=[]; for (var i=1;i<=totalPages;i++) a.push(i); return a; }
+    var pages = [1];
+    if (tkPage > 3) pages.push('…');
+    for (var p = Math.max(2, tkPage-1); p <= Math.min(totalPages-1, tkPage+1); p++) pages.push(p);
+    if (tkPage < totalPages - 2) pages.push('…');
+    pages.push(totalPages);
+    return pages;
+  }
+
+  function tkRenderPager(total, totalPages){
+    var html = '<button class="tk-pg-btn" ' + (tkPage<=1?'disabled':'') + ' onclick="tkGoPage(' + (tkPage-1) + ')">‹</button>';
+    tkPageList(totalPages).forEach(function(p){
+      if (p === '…') { html += '<span class="tk-pg-ellipsis">…</span>'; return; }
+      html += '<button class="tk-pg-btn' + (p===tkPage?' tk-pg-current':'') + '" onclick="tkGoPage(' + p + ')">' + p + '</button>';
+    });
+    html += '<button class="tk-pg-btn" ' + (tkPage>=totalPages?'disabled':'') + ' onclick="tkGoPage(' + (tkPage+1) + ')">›</button>';
+    $('tkPgNav').innerHTML = html;
+    $('tkPgStats').textContent = '共' + total + '条记录 第' + tkPage + '/' + totalPages + '页';
+  }
+
+  /* ===== 顶栏角标：处理中任务数 ===== */
+  function tkUpdateBadge(){
+    var n = tkImport.concat(tkDownload).filter(function(t){ return t.status==='processing'; }).length;
+    var b = $('taskBadge');
+    if (b) { b.textContent = n; b.style.display = n > 0 ? '' : 'none'; }
+  }
+
+  /* ===== 处理中轮询：每 10s 更新进度，完成自动转终态（PRD §12.3） ===== */
+  function tkTick(){
+    var changed = false;
+    tkImport.concat(tkDownload).forEach(function(t){
+      if (t.status !== 'processing') return;
+      t.progress = Math.min(100, t.progress + 8 + Math.floor(Math.random()*10));
+      if (t.progress >= 100) {
+        if (tkImport.indexOf(t) > -1) { t.status='success'; t.total=40; t.ok=40; t.fail=0; }
+        else t.status = 'success';
+      }
+      changed = true;
+    });
+    if (changed && $('tkOverlay').style.display !== 'none') tkRender();
+    else if (changed) tkUpdateBadge();
+  }
+
+  /* ===== 交互标注接入：沿用页面 Portal 标注系统，编号接在现有最大号之后 ===== */
+  var tkAnnoDefs = [
+    {key:'tabs',    title:'任务列表 Tab 切换',   desc:['导入任务：Excel 批量导入记录；下载任务：导出文件记录','切换 Tab 时筛选条件重置为默认值，列表回到第 1 页','关闭抽屉后记住最后访问的 Tab（会话内有效，刷新重置）','从导入/导出 Toast「点击查看」跳转时自动定位对应 Tab']},
+    {key:'filters', title:'筛选区',              desc:['任务模块：全部/订单管理/异常工单（后续随模块迭代补充）','操作人：全部成员，支持输入姓名关键词模糊搜索','操作时间：日期区间（开始时间 ~ 结束时间），精确到日','点击【搜索】应用条件回第 1 页；【重置】恢复默认；条件间 AND 关系']},
+    {key:'note',    title:'下载任务保留说明',    desc:['仅下载任务 Tab 展示','导出数据在平台内记录最多保留 30 天，30 天后自动清除']},
+    {key:'stage',   title:'任务阶段',            desc:['处理中：蓝色「处理中 N%」+ 线形进度条，每 10 秒轮询刷新进度，完成自动转终态','导入-全部成功：绿色「总数N条，成功N条，失败0条」','导入-部分失败：失败数量红色加粗；导入-处理失败：红色「导入失败」','下载：导出成功（绿）/ 导出失败（红）']},
+    {key:'ops',     title:'操作列',              desc:['导入-部分失败：【下载错误数据】蓝色链接，命名 {模块名}导入错误数据_{YYYYMMDDHHMMSS}.xlsx','下载-导出成功（30 天内）：【下载文件】可重复点击，点击 Toast「开始下载」','下载-导出成功（已过期）：链接置灰不可点，hover 提示「文件已过期，无法下载」','处理中 / 全部成功 / 失败：显示 ——（无操作）']},
+    {key:'pager',   title:'分页栏',              desc:['吸底固定，不随内容滚动','每页条数 10/20/50，默认 10；修改后回第 1 页','跳页输入超出范围 Toast「请输入有效页码」','页码 >7 页时首末页恒显 + 当前页 ±1 + 省略号折叠']},
+    {key:'close',   title:'关闭抽屉',            desc:['仅点击 × 关闭，点击遮罩不关闭','关闭后记住本次最后访问的 Tab，下次打开恢复（会话内有效）']}
+  ];
+  function tkInitAnnos(){
+    if (typeof window.annotations !== 'object' || window.annotations === null) return;
+    var base = Math.max.apply(null, [0].concat(Object.keys(window.annotations).map(Number).filter(function(n){ return !isNaN(n); })));
+    tkAnnoDefs.forEach(function(d, i){
+      var n = base + 1 + i;
+      window.annotations[n] = { title: d.title, desc: d.desc };
+      var el = document.querySelector('[data-tk-anno="' + d.key + '"]');
+      if (el) el.setAttribute('data-anno', n);
+    });
+  }
+  function tkRefreshAnnos(){
+    if (typeof window.renderAnnoBadges === 'function') setTimeout(window.renderAnnoBadges, 50);
+  }
+
+  /* ===== 打开 / 关闭 / Tab 切换 ===== */
+  window.openTaskDrawer = function(tab){
+    // 进入方式决定默认 Tab（PRD §4）：显式指定 > 会话记忆 > 导入任务
+    tkTab = tab || sessionStorage.getItem('tk_last_tab') || 'import';
+    tkApplyTabUI();
+    if (!tab) { tkResetFilterUI(); tkPage = 1; }
+    $('tkOverlay').style.display = '';
+    if (window.lucide) lucide.createIcons();
+    tkRender();
+    if (!tkTimer) tkTimer = setInterval(tkTick, 10000);
+  };
+  window.closeTaskDrawer = function(){
+    $('tkOverlay').style.display = 'none';
+    sessionStorage.setItem('tk_last_tab', tkTab);   // 记住最后访问 Tab（会话内）
+    if (tkTimer) { clearInterval(tkTimer); tkTimer = null; }
+    tkRefreshAnnos();
+  };
+  window.tkSwitchTab = function(tab){
+    if (tkTab === tab) return;
+    tkTab = tab;
+    sessionStorage.setItem('tk_last_tab', tkTab);
+    tkApplyTabUI();
+    tkResetFilterUI();      // 切换 Tab 重置筛选（PRD §4）
+    tkPage = 1;
+    tkRender();
+    if (window.lucide) lucide.createIcons();
+  };
+  function tkApplyTabUI(){
+    $('tkTabImport').classList.toggle('active', tkTab === 'import');
+    $('tkTabDownload').classList.toggle('active', tkTab === 'download');
+  }
+  function tkResetFilterUI(){
+    $('tkFilterModule').value = ''; $('tkFilterOp').value = '';
+    $('tkDateFrom').value = ''; $('tkDateTo').value = '';
+    tkFilter = {module:'', op:'', from:'', to:''};
+  }
+
+  /* ===== 筛选 / 分页交互 ===== */
+  window.tkSearch = function(){
+    tkFilter = { module: $('tkFilterModule').value, op: $('tkFilterOp').value.trim(),
+                 from: $('tkDateFrom').value, to: $('tkDateTo').value };
+    tkPage = 1; tkRender();
+  };
+  window.tkReset = function(){ tkResetFilterUI(); tkPage = 1; tkRender(); };
+  window.tkGoPage = function(p){
+    var totalPages = Math.max(1, Math.ceil(tkFiltered().length / tkPageSize));
+    if (p < 1 || p > totalPages) return;
+    tkPage = p; tkRender();
+  };
+  window.tkChangePageSize = function(){
+    tkPageSize = parseInt($('tkPgSize').value, 10); tkPage = 1; tkRender();
+  };
+  window.tkJumpPage = function(){
+    var v = parseInt($('tkPgJump').value, 10);
+    var totalPages = Math.max(1, Math.ceil(tkFiltered().length / tkPageSize));
+    if (isNaN(v) || v < 1 || v > totalPages) { tkToast('请输入有效页码'); return; }  // PRD §9
+    tkPage = v; $('tkPgJump').value = ''; tkRender();
+  };
+
+  /* ===== 下载行为（PRD §12.2） ===== */
+  window.tkDownloadFile = function(){ tkToast('开始下载'); };
+  window.tkDownloadErr  = function(){ tkToast('开始下载'); };
+
+  /* ===== INIT ===== */
+  document.addEventListener('DOMContentLoaded', function(){
+    $('tkOpsList').innerHTML = tkMembers.map(function(m){ return '<option value="' + m + '">'; }).join('');
+    tkInitAnnos();
+    tkUpdateBadge();
+    // 抽屉内容滚动时重算标注徽标位置
+    $('tkBody').addEventListener('scroll', function(){ tkRefreshAnnos(); });
+    // 支持 ?open=tasks 直接打开抽屉（index 导航卡片入口）
+    if (/[?&]open=tasks/.test(location.search)) setTimeout(function(){ openTaskDrawer(); }, 200);
+  });
+})();
 </script>
 </body>
 </html>
