@@ -2,10 +2,9 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>柜机监控 - 游寄后台管理系统</title>
+  <title>操作日志 - 游寄后台管理系统</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
   <style>
@@ -23,95 +22,23 @@
     .menu-arrow.open{transform:rotate(180deg);}
     .submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
     .submenu.collapsed{max-height:0!important;opacity:0;}
+    .new-tag{display:inline-block;padding:1px 7px;border-radius:8px;background:#0066FF;color:#fff;font-size:10px;font-weight:600;line-height:16px;margin-left:4px;}
     /* Buttons */
     .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;}
     .btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
     .btn-primary:hover{background:#0052CC;}
     .btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
     .btn-default:hover{border-color:#0066FF;color:#0066FF;}
-    .btn-sm{height:28px;padding:0 10px;font-size:12px;}
-    /* KPI card */
-    .kpi-card{border-radius:6px;border:1px solid #E8EAED;background:#fff;padding:14px 18px;transition:box-shadow .15s;cursor:pointer;}
-    .kpi-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06);}
-    .kpi-card.danger-highlight{border-color:#D9001B;background:#FFFAFA;}
-    /* Data table */
-    .data-table{width:100%;border-collapse:collapse;font-size:13px;}
-    .data-table thead th{background:#F0F1F3;color:#6E7685;font-weight:600;font-size:12px;padding:9px 12px;text-align:left;border-bottom:1px solid #DFE1E5;white-space:nowrap;}
-    .data-table tbody td{padding:9px 12px;color:#3A3F4A;border-bottom:1px solid #E8EAED;text-align:left;}
-    .data-table tbody tr{transition:background .12s;}
-    .data-table tbody tr:hover{background:#F3F4F6;}
-    .data-table tbody tr.row-danger{background:#FFF5F5;}
-    .data-table tbody tr.row-danger:hover{background:#FFE8EB;}
-    .data-table tbody tr.row-warning{background:#FFFCF5;}
-    .data-table tbody tr.row-warning:hover{background:#FDF2E9;}
-    .data-table tbody tr.row-disabled{background:#F7F8FA;}
-    .data-table tbody tr.row-disabled:hover{background:#F0F1F3;}
-    .data-table tbody tr.row-disabled td{color:#9DA2AC;}
-    /* Badge */
-    .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:500;white-space:nowrap;}
-    .badge-success{color:#0FC060;background:#E7F9F0;}
-    .badge-danger{color:#D9001B;background:#FFE8EB;}
-    .badge-warning{color:#E7772D;background:#FDF2E9;}
-    .badge-muted{color:#9DA2AC;background:#F0F1F3;}
-    /* Action links in table */
-    .action-link{color:#0066FF;cursor:pointer;font-size:13px;transition:opacity .12s;text-decoration:none;}
-    .action-link:hover{opacity:.8;text-decoration:underline;}
-    .action-link+.action-link{margin-left:12px;}
-    .action-link.danger{color:#D9001B;}
-    /* Filter */
-    .filter-select{font-family:inherit;font-size:13px;height:32px;padding:0 28px 0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;}
-    .filter-input{font-family:inherit;font-size:13px;height:32px;padding:0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;width:200px;}
-    .filter-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
-    .filter-input::placeholder{color:#9DA2AC;}
-    .select-wrap{position:relative;display:inline-flex;align-items:center;}
-    .select-wrap::after{content:'▼';position:absolute;right:10px;font-size:8px;color:#9DA2AC;pointer-events:none;}
-    /* Topbar */
+    /* Portal annotation layer */
+    .anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
+    .anno-portal-badge:hover{transform:scale(1.2);}
+    .anno-hidden .anno-portal-badge{display:none;}
+    /* Topbar icons */
     .topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
     .topbar-btn:hover{background:#E6F0FF;}
     .topbar-btn:hover svg{stroke:#0066FF;}
     .badge-dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:600;line-height:18px;text-align:center;}
-    /* Drawer */
-    .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1100;display:none;}
-    .drawer-overlay.show{display:block;}
-    .drawer{position:fixed;top:0;right:0;bottom:0;width:800px;max-width:100%;background:#fff;z-index:1101;box-shadow:-4px 0 24px rgba(0,0,0,.1);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease;}
-    .drawer.open{transform:translateX(0);}
-    .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #DFE1E5;flex-shrink:0;}
-    .drawer-body{flex:1;overflow-y:auto;padding:24px;}
-    .drawer-footer{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:16px 24px;border-top:1px solid #DFE1E5;flex-shrink:0;}
-    /* Locker grid */
-    .locker-grid{display:grid;gap:4px;}
-    .locker-cell{width:100%;aspect-ratio:1;border-radius:3px;cursor:pointer;transition:all .12s;position:relative;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#fff;font-family:'JetBrains Mono',monospace;}
-    .locker-cell:hover{transform:scale(1.08);z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.2);}
-    .locker-cell.free{background:#0FC060;}
-    .locker-cell.occupied{background:#0066FF;}
-    .locker-cell.maintenance{background:#E7772D;}
-    .locker-cell.disabled-cell{background:#C7CAD1;}
-    /* Locker tooltip */
-    .locker-tooltip{position:fixed;z-index:9999;background:#1A1D24;color:#fff;padding:8px 12px;border-radius:4px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .12s;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);}
-    .locker-tooltip.show{opacity:1;}
-    /* Portal annotation */
-    .anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
-    .anno-portal-badge:hover{transform:scale(1.2);}
-    .anno-hidden .anno-portal-badge{display:none;}
-    /* Usage bar */
-    .usage-bar{height:6px;border-radius:3px;background:#F0F1F3;overflow:hidden;}
-    .usage-bar-fill{height:100%;border-radius:3px;transition:width .3s ease;}
-    /* Tab toggle */
-    .view-tab{padding:6px 14px;font-size:13px;color:#6E7685;cursor:pointer;border-radius:4px;transition:all .15s;white-space:nowrap;border:1px solid transparent;display:inline-flex;align-items:center;gap:5px;}
-    .view-tab:hover{color:#0066FF;background:#E6F0FF;}
-    .view-tab.active{background:#0066FF;color:#fff;font-weight:500;}
-    /* Info row */
-    .info-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F0F1F3;}
-    .info-row:last-child{border-bottom:none;}
-    .info-label{width:100px;flex-shrink:0;font-size:13px;color:#6E7685;}
-    .info-value{font-size:13px;color:#3A3F4A;}
-    /* Sync badge */
-    .sync-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#9DA2AC;padding:2px 8px;border-radius:4px;background:#F7F8FA;}
-    .sync-dot{width:6px;height:6px;border-radius:50%;background:#0FC060;}
-    /* Skeleton */
-    @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
-    .skeleton{background:linear-gradient(90deg,#F0F1F3 25%,#E8EAED 50%,#F0F1F3 75%);background-size:800px 100%;animation:shimmer 1.5s infinite;}
-    /* Responsive */
+    /* Sidebar toggle (mobile) */
     @media(max-width:768px){
       .sidebar{display:none;}
       .sidebar.open{display:flex;position:fixed;top:56px;left:0;bottom:0;z-index:50;}
@@ -124,13 +51,16 @@
 
 <!-- ===== TOP BAR ===== -->
 <header class="h-14 bg-white border-b border-line flex items-center px-4 md:px-6 flex-shrink-0 gap-3">
+  <!-- Mobile menu toggle -->
   <button class="topbar-btn md:hidden" onclick="toggleSidebar()" title="菜单">
     <i data-lucide="menu" class="w-[18px] h-[18px]"></i>
   </button>
+  <!-- Logo + Name -->
   <div class="flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigate('index.html')">
     <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div>
     <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
   </div>
+  <!-- Right icons -->
   <div class="ml-auto flex items-center gap-3 md:gap-5">
     <button class="topbar-btn" data-tip="任务列表" onclick="openTaskDrawer()">
       <i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i>
@@ -148,8 +78,10 @@
 
 <!-- ===== BODY: SIDEBAR + CONTENT ===== -->
 <div class="flex flex-1 min-h-0">
+  <!-- Mobile overlay -->
   <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
+  <!-- Sidebar -->
   <!-- Sidebar -->
   <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
     <!-- 工作台 -->
@@ -172,8 +104,8 @@
       <div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单
     </div>
 
-    <!-- 柜机监控（当前页） -->
-    <div class="menu-item l1 active-l1" data-page="柜机监控.html" onclick="menuSelect(this)">
+    <!-- 柜机监控 -->
+    <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)">
       <div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控
     </div>
 
@@ -188,188 +120,44 @@
     </div>
 
     <!-- 系统设置（含二级菜单） -->
-    <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置<span class="menu-arrow">▼</span>
+    <div class="menu-item l1 active-l1" data-sub="sub-settings" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置
+      <span class="menu-arrow open">▼</span>
     </div>
-    <div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
+    <div class="submenu" id="sub-settings" style="max-height:400px;">
       <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
       <div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div>
       <div class="menu-item l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div>
       <div class="menu-item l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div>
       <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
-      <div class="menu-item l2" data-page="操作日志.html" onclick="menuSelect(this)">操作日志</div>
+      <div class="menu-item l2 active-l2" data-page="操作日志.html" onclick="menuSelect(this)">操作日志</div>
     </div>
   </aside>
 
+
   <!-- ===== MAIN CONTENT ===== -->
+  <!--
+    内容区布局规则（详见 design.md §6.1）：
+    - 单区块：p-4 容器加 min-h-full flex flex-col，卡片加 flex-1 撑满；内容超过时自动增高
+    - 多区块（≥2）：p-4 容器不设高度，卡片高度由内容决定，mb-4 间距
+    本模板演示多区块场景（≥2），单区块示例见下方注释。
+  -->
   <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
     <div class="p-4">
 
-      <!-- ===== 区块A: 视图切换 + 同步/刷新（单行） ===== -->
-      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-        <div class="flex items-center justify-between flex-wrap gap-3">
-          <!-- 视图切换 -->
-          <div class="flex items-center gap-2" data-anno="3">
-            <button class="view-tab active" id="tabList" onclick="switchView('list')">
-              <i data-lucide="list" class="w-[14px] h-[14px]"></i> 列表视图
-            </button>
-            <button class="view-tab" id="tabMap" onclick="switchView('map')">
-              <i data-lucide="map" class="w-[14px] h-[14px]"></i> 地图视图
-            </button>
-          </div>
-          <div class="flex items-center gap-3" data-anno="2">
-            <span class="sync-badge">
-              <span class="sync-dot" id="syncDot"></span>
-              <span id="syncTime">最近同步：--</span>
-            </span>
-            <button class="btn btn-default btn-sm" onclick="refreshData()">
-              <i data-lucide="refresh-cw" class="w-[13px] h-[13px]"></i> 刷新
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== LIST VIEW ===== -->
-      <div id="listView">
-
-        <!-- ===== 区块B: 状态概览条 ===== -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4" data-anno="4">
-          <div class="kpi-card" id="kpiTotal">
-            <div class="text-[12px] text-ink-sub mb-1">柜机总数</div>
-            <div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiTotalVal">--</div>
-          </div>
-          <div class="kpi-card" id="kpiOnline">
-            <div class="text-[12px] text-success mb-1">在线</div>
-            <div class="text-[24px] font-semibold text-success font-mono" id="kpiOnlineVal">--</div>
-          </div>
-          <div class="kpi-card" id="kpiOffline">
-            <div class="text-[12px] text-danger mb-1">离线</div>
-            <div class="text-[24px] font-semibold text-danger font-mono" id="kpiOfflineVal">--</div>
-          </div>
-          <div class="kpi-card" id="kpiFull">
-            <div class="text-[12px] text-warning mb-1">满柜</div>
-            <div class="text-[24px] font-semibold text-warning font-mono" id="kpiFullVal">--</div>
-          </div>
-          <div class="kpi-card" id="kpiUsage">
-            <div class="text-[12px] text-ink-sub mb-1">格口使用率</div>
-            <div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiUsageVal">--</div>
-            <div class="usage-bar mt-2"><div class="usage-bar-fill bg-primary" id="usageBarFill" style="width:0%"></div></div>
-          </div>
-        </div>
-
-        <!-- ===== 区块C: 筛选/搜索 ===== -->
-        <div class="bg-white rounded-lg border border-line p-4 mb-4" data-anno="5">
-          <div class="flex flex-wrap items-center gap-3">
-            <div class="select-wrap">
-              <select class="filter-select" id="filterLocation" onchange="applyFilters()">
-                <option value="">全部网点</option>
-              </select>
-            </div>
-            <div class="select-wrap">
-              <select class="filter-select" id="filterStatus" onchange="applyFilters()">
-                <option value="">全部状态</option>
-                <option value="online">在线</option>
-                <option value="offline">离线</option>
-                <option value="disabled">停用</option>
-                <option value="full">满柜</option>
-              </select>
-            </div>
-            <input type="text" class="filter-input" id="filterSearch" placeholder="柜机名称 / 机柜编码" oninput="applyFilters()">
-            <button class="btn btn-default btn-sm" onclick="resetFilters()">
-              <i data-lucide="rotate-ccw" class="w-[13px] h-[13px]"></i> 重置
-            </button>
-            <span class="text-[12px] text-ink-muted ml-auto" id="filterCount">共 0 条</span>
-          </div>
-        </div>
-
-        <!-- ===== 区块D: 柜机列表表格 ===== -->
-        <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4" data-anno="6">
-          <div class="overflow-x-auto">
-            <table class="data-table" id="cabinetTable">
-              <thead>
-                <tr>
-                  <th>机柜编码</th>
-                  <th>机柜名称</th>
-                  <th>网点</th>
-                  <th>位置</th>
-                  <th>柜机状态</th>
-                  <th>格口占用</th>
-                  <th>各柜型可用</th>
-                  <th>最近上线/离线时间</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody id="cabinetTbody"></tbody>
-            </table>
-          </div>
-          <!-- 空状态 -->
-          <div id="emptyState" class="hidden flex flex-col items-center justify-center py-16 text-center">
-            <i data-lucide="monitor-off" class="w-[48px] h-[48px] text-ink-muted mb-3"></i>
-            <p class="text-[14px] text-ink-sub mb-1">暂无匹配的柜机</p>
-            <p class="text-[12px] text-ink-muted">请调整筛选条件或重置</p>
-          </div>
-          <!-- 加载骨架屏 -->
-          <div id="loadingSkeleton" class="hidden space-y-3 py-2">
-            <div class="skeleton h-10 rounded w-full"></div>
-            <div class="skeleton h-10 rounded w-full"></div>
-            <div class="skeleton h-10 rounded w-full"></div>
-            <div class="skeleton h-10 rounded w-full"></div>
-            <div class="skeleton h-10 rounded w-full"></div>
-          </div>
-          <!-- ===== 分页（design.md §5.5） ===== -->
-          <div class="flex items-center justify-end flex-wrap gap-4 pt-5" id="pagination" data-anno="7">
-            <div class="pg-nav" id="pgNav"></div>
-            <span class="pg-select-wrap"><select class="pg-select" id="pageSize" onchange="changePageSize()"><option value="10">10条/页</option><option value="15" selected>15条/页</option><option value="20">20条/页</option></select></span>
-            <span class="flex items-center gap-1 text-[12px] text-ink-body">跳至 <input class="pg-jump" id="pgJump" onkeydown="if(event.key==='Enter')jumpPage()"> 页</span>
-            <span class="pg-stats" id="pgStats">共 0 条记录</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== MAP VIEW (placeholder) ===== -->
-      <div id="mapView" class="hidden">
-        <div class="bg-white rounded-lg border border-line p-5 md:p-6" data-anno="8">
-          <div class="flex flex-col items-center justify-center py-20 text-center">
-            <i data-lucide="map-pin" class="w-[64px] h-[64px] text-ink-muted mb-4" style="opacity:.3;"></i>
-            <h3 class="text-[16px] font-semibold text-ink-title mb-2">地图视图</h3>
-            <p class="text-[13px] text-ink-sub mb-1">在地图上展示柜机分布与状态，直观看哪片区域有离线/满柜</p>
-            <p class="text-[12px] text-ink-muted mb-6">依赖柜机经纬度数据（小铁接口待提供），一期暂以列表视图为主</p>
-            <div class="grid grid-cols-4 gap-4 text-center max-w-[500px]">
-              <div><span class="inline-block w-3 h-3 rounded-full bg-success mr-1"></span><span class="text-[12px] text-ink-sub">在线</span></div>
-              <div><span class="inline-block w-3 h-3 rounded-full bg-danger mr-1"></span><span class="text-[12px] text-ink-sub">离线</span></div>
-              <div><span class="inline-block w-3 h-3 rounded-full bg-warning mr-1"></span><span class="text-[12px] text-ink-sub">满柜</span></div>
-              <div><span class="inline-block w-3 h-3 rounded-full bg-ink-muted mr-1" style="background:#C7CAD1;"></span><span class="text-[12px] text-ink-sub">停用</span></div>
-            </div>
-          </div>
+      <!-- 操作日志占位卡片（页面暂未开发） -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6">
+        <h2 class="text-[16px] font-semibold text-ink-title mb-4 inline-block" data-anno="1">操作日志</h2>
+        <div class="flex flex-col items-center justify-center py-20 text-center">
+          <i data-lucide="file-clock" class="w-[56px] h-[56px] text-ink-muted mb-4" style="opacity:.35;"></i>
+          <p class="text-[15px] font-medium text-ink-title mb-1.5">页面建设中</p>
+          <p class="text-[13px] text-ink-muted leading-relaxed">操作日志将记录成员的登录与关键操作流水（模块、操作人、操作内容、IP、时间），<br class="hidden md:block">并支持按模块 / 操作人 / 时间范围筛选与导出。</p>
         </div>
       </div>
 
     </div>
   </main>
 </div>
-
-<!-- ===== DETAIL DRAWER ===== -->
-<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
-<div class="drawer" id="detailDrawer">
-  <div class="drawer-header">
-    <h2 class="text-[16px] font-semibold text-ink-title flex items-center gap-2">
-      <i data-lucide="monitor" class="w-[18px] h-[18px] text-primary"></i>
-      <span id="drawerTitle">柜机详情</span>
-    </h2>
-    <button onclick="closeDrawer()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted">
-      <i data-lucide="x" class="w-[20px] h-[20px]"></i>
-    </button>
-  </div>
-  <div class="drawer-body" id="drawerBody">
-    <!-- Populated by JS -->
-  </div>
-  <div class="drawer-footer">
-    <button class="btn btn-default" onclick="closeDrawer()">关闭</button>
-  </div>
-</div>
-
-<!-- Locker tooltip -->
-<div class="locker-tooltip" id="lockerTooltip"></div>
 
 <!-- ===== PORTAL ANNOTATION LAYER ===== -->
 <div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
@@ -397,536 +185,154 @@
 
 <script>
 /* ================================================================
-   MOCK DATA
-   ================================================================ */
-var cabinetStatuses = ['online','online','online','online','online','online','online','online','offline','offline','full','disabled'];
-var locations = ['湖滨银泰A区','湖滨银泰B区','西湖天地','杭州东站','萧山机场T3','杭州大厦'];
-
-var rawCabinets = [
-  { code:'HUBIN-A01', name:'湖滨A区1号柜', location:'湖滨银泰A区', address:'杭州市上城区湖滨路1号B1层', status:'online', totalLockers:24, occupiedLockers:18, smallTotal:8, smallFree:2, mediumTotal:10, mediumFree:3, largeTotal:6, largeFree:1, lastOnline:'2026-07-05 14:30:22', lastOffline:null },
-  { code:'HUBIN-A02', name:'湖滨A区2号柜', location:'湖滨银泰A区', address:'杭州市上城区湖滨路1号B1层', status:'online', totalLockers:24, occupiedLockers:14, smallTotal:8, smallFree:4, mediumTotal:10, mediumFree:5, largeTotal:6, largeFree:1, lastOnline:'2026-07-05 14:28:15', lastOffline:null },
-  { code:'HUBIN-B01', name:'湖滨B区1号柜', location:'湖滨银泰B区', address:'杭州市上城区湖滨路8号1层', status:'full', totalLockers:18, occupiedLockers:18, smallTotal:6, smallFree:0, mediumTotal:8, mediumFree:0, largeTotal:4, largeFree:0, lastOnline:'2026-07-05 14:25:30', lastOffline:null },
-  { code:'HUBIN-B02', name:'湖滨B区2号柜', location:'湖滨银泰B区', address:'杭州市上城区湖滨路8号1层', status:'online', totalLockers:18, occupiedLockers:10, smallTotal:6, smallFree:3, mediumTotal:8, mediumFree:3, largeTotal:4, largeFree:2, lastOnline:'2026-07-05 14:20:10', lastOffline:null },
-  { code:'XHTD-01', name:'西湖天地1号柜', location:'西湖天地', address:'杭州市上城区南山路147号', status:'offline', totalLockers:20, occupiedLockers:12, smallTotal:6, smallFree:0, mediumTotal:8, mediumFree:5, largeTotal:6, largeFree:3, lastOnline:'2026-07-05 08:15:00', lastOffline:'2026-07-05 10:32:45' },
-  { code:'XHTD-02', name:'西湖天地2号柜', location:'西湖天地', address:'杭州市上城区南山路147号', status:'online', totalLockers:20, occupiedLockers:8, smallTotal:6, smallFree:5, mediumTotal:8, mediumFree:5, largeTotal:6, largeFree:2, lastOnline:'2026-07-05 14:29:55', lastOffline:null },
-  { code:'HZDZ-01', name:'杭州东站1号柜', location:'杭州东站', address:'杭州市江干区东站到达层B2', status:'online', totalLockers:30, occupiedLockers:22, smallTotal:10, smallFree:3, mediumTotal:12, mediumFree:3, largeTotal:8, largeFree:2, lastOnline:'2026-07-05 14:31:05', lastOffline:'2026-07-04 22:10:00' },
-  { code:'HZDZ-02', name:'杭州东站2号柜', location:'杭州东站', address:'杭州市江干区东站到达层B2', status:'offline', totalLockers:30, occupiedLockers:20, smallTotal:10, smallFree:0, mediumTotal:12, mediumFree:5, largeTotal:8, largeFree:5, lastOnline:'2026-07-05 08:00:00', lastOffline:'2026-07-05 11:15:30' },
-  { code:'HZDZ-03', name:'杭州东站3号柜', location:'杭州东站', address:'杭州市江干区东站到达层B2', status:'online', totalLockers:24, occupiedLockers:16, smallTotal:8, smallFree:4, mediumTotal:10, mediumFree:3, largeTotal:6, largeFree:1, lastOnline:'2026-07-05 14:28:40', lastOffline:null },
-  { code:'XSGJ-T3A', name:'萧山T3-A柜', location:'萧山机场T3', address:'杭州市萧山区萧山机场T3航站楼', status:'disabled', totalLockers:24, occupiedLockers:0, smallTotal:8, smallFree:8, mediumTotal:10, mediumFree:10, largeTotal:6, largeFree:6, lastOnline:null, lastOffline:'2026-07-01 09:00:00' },
-  { code:'XSGJ-T3B', name:'萧山T3-B柜', location:'萧山机场T3', address:'杭州市萧山区萧山机场T3航站楼', status:'online', totalLockers:24, occupiedLockers:20, smallTotal:8, smallFree:1, mediumTotal:10, mediumFree:2, largeTotal:6, largeFree:1, lastOnline:'2026-07-05 14:29:10', lastOffline:null },
-  { code:'HZDS-01', name:'杭州大厦1号柜', location:'杭州大厦', address:'杭州市下城区武林广场21号B1', status:'full', totalLockers:16, occupiedLockers:16, smallTotal:4, smallFree:0, mediumTotal:8, mediumFree:0, largeTotal:4, largeFree:0, lastOnline:'2026-07-05 14:15:00', lastOffline:null },
-  { code:'HZDS-02', name:'杭州大厦2号柜', location:'杭州大厦', address:'杭州市下城区武林广场21号B1', status:'online', totalLockers:16, occupiedLockers:9, smallTotal:4, smallFree:2, mediumTotal:8, mediumFree:4, largeTotal:4, largeFree:1, lastOnline:'2026-07-05 14:27:50', lastOffline:null },
-  { code:'HUBIN-A03', name:'湖滨A区3号柜', location:'湖滨银泰A区', address:'杭州市上城区湖滨路1号B1层', status:'online', totalLockers:24, occupiedLockers:21, smallTotal:8, smallFree:1, mediumTotal:10, mediumFree:1, largeTotal:6, largeFree:1, lastOnline:'2026-07-05 14:30:00', lastOffline:null },
-  { code:'XHTD-03', name:'西湖天地3号柜', location:'西湖天地', address:'杭州市上城区南山路147号', status:'online', totalLockers:20, occupiedLockers:6, smallTotal:6, smallFree:5, mediumTotal:8, mediumFree:6, largeTotal:6, largeFree:3, lastOnline:'2026-07-05 14:26:30', lastOffline:null },
-];
-
-/* Generate locker-level data for each cabinet */
-function generateLockers(cab) {
-  var lockers = [];
-  var types = [];
-  // Build type array
-  for (var i = 0; i < cab.smallTotal; i++) types.push('S');
-  for (var i = 0; i < cab.mediumTotal; i++) types.push('M');
-  for (var i = 0; i < cab.largeTotal; i++) types.push('L');
-  // Determine status for each locker based on free counts
-  var smallFilled = cab.smallTotal - cab.smallFree;
-  var mediumFilled = cab.mediumTotal - cab.mediumFree;
-  var largeFilled = cab.largeTotal - cab.largeFree;
-  var sCount = 0, mCount = 0, lCount = 0;
-  for (var i = 0; i < types.length; i++) {
-    var t = types[i];
-    var status;
-    if (cab.status === 'disabled') {
-      status = 'disabled-cell';
-    } else {
-      if (t === 'S') { sCount++; status = sCount <= smallFilled ? 'occupied' : 'free'; }
-      else if (t === 'M') { mCount++; status = mCount <= mediumFilled ? 'occupied' : 'free'; }
-      else { lCount++; status = lCount <= largeFilled ? 'occupied' : 'free'; }
-    }
-    // Random maintenance (5% chance for online cabinets)
-    if (cab.status === 'online' && Math.random() < 0.05) status = 'maintenance';
-    lockers.push({
-      id: cab.code + '-L' + String(i+1).padStart(2,'0'),
-      type: t,
-      status: status,
-      orderNo: status === 'occupied' ? 'YK20260705' + String(Math.floor(Math.random()*9000)+1000) : null
-    });
-  }
-  return lockers;
-}
-
-// Build cabinet data with lockers
-var cabinets = rawCabinets.map(function(c) {
-  c.lockers = generateLockers(c);
-  c.usageRate = c.totalLockers > 0 ? Math.round(c.occupiedLockers / c.totalLockers * 100) : 0;
-  return c;
-});
-
-/* ================================================================
-   STATE
-   ================================================================ */
-var currentView = 'list';
-var currentPage = 1;
-var pageSize = 15;
-var filteredCabinets = cabinets.slice();
-var activeFilters = { location:'', status:'', search:'' };
-var lastSyncTime = null;
-var selectedCabinet = null;
-
-/* ================================================================
-   RENDER — List View
-   ================================================================ */
-function updateKPIs(list) {
-  var total = list.length;
-  var online = list.filter(function(c){return c.status==='online';}).length;
-  var offline = list.filter(function(c){return c.status==='offline';}).length;
-  var full = list.filter(function(c){return c.status==='full';}).length;
-  var disabled = list.filter(function(c){return c.status==='disabled';}).length;
-  var totalLockers = list.reduce(function(s,c){return s+c.totalLockers;},0);
-  var occLockers = list.reduce(function(s,c){return s+c.occupiedLockers;},0);
-  var usageRate = totalLockers > 0 ? Math.round(occLockers / totalLockers * 100) : 0;
-
-  document.getElementById('kpiTotalVal').textContent = total;
-  document.getElementById('kpiOnlineVal').textContent = online;
-  document.getElementById('kpiOfflineVal').textContent = offline;
-  document.getElementById('kpiFullVal').textContent = full;
-  document.getElementById('kpiUsageVal').textContent = usageRate + '%';
-  document.getElementById('usageBarFill').style.width = usageRate + '%';
-
-  // Highlight danger KPI if offline > 0
-  var kpiOff = document.getElementById('kpiOffline');
-  if (offline > 0) { kpiOff.classList.add('danger-highlight'); }
-  else { kpiOff.classList.remove('danger-highlight'); }
-
-  var kpiFull = document.getElementById('kpiFull');
-  if (full > 0) { kpiFull.classList.add('danger-highlight'); kpiFull.style.borderColor = '#E7772D'; kpiFull.style.background = '#FFFCF5'; }
-  else { kpiFull.classList.remove('danger-highlight'); kpiFull.style.borderColor = '#E8EAED'; kpiFull.style.background = '#fff'; }
-}
-
-function getStatusBadge(status) {
-  var map = {
-    'online':   { cls:'badge-success', label:'在线' },
-    'offline':  { cls:'badge-danger', label:'离线' },
-    'disabled': { cls:'badge-muted', label:'停用' },
-    'full':     { cls:'badge-warning', label:'满柜' }
-  };
-  var b = map[status] || map['online'];
-  return '<span class="badge '+b.cls+'">'+b.label+'</span>';
-}
-
-function getRowClass(status) {
-  if (status === 'offline') return 'row-danger';
-  if (status === 'full') return 'row-warning';
-  if (status === 'disabled') return 'row-disabled';
-  return '';
-}
-
-function renderTable() {
-  var start = (currentPage - 1) * pageSize;
-  var end = Math.min(start + pageSize, filteredCabinets.length);
-  var pageData = filteredCabinets.slice(start, end);
-  var tbody = document.getElementById('cabinetTbody');
-  var empty = document.getElementById('emptyState');
-
-  if (filteredCabinets.length === 0) {
-    tbody.innerHTML = '';
-    empty.classList.remove('hidden');
-    document.getElementById('pagination').style.display = 'none';
-    document.getElementById('filterCount').textContent = '共 0 条';
-    return;
-  }
-
-  empty.classList.add('hidden');
-  document.getElementById('pagination').style.display = 'flex';
-  document.getElementById('filterCount').textContent = '共 ' + filteredCabinets.length + ' 条';
-
-  var html = '';
-  for (var i = 0; i < pageData.length; i++) {
-    var c = pageData[i];
-    var rowCls = getRowClass(c.status);
-    var usageRate = c.usageRate;
-    var usageColor = usageRate >= 90 ? 'text-danger' : (usageRate >= 70 ? 'text-warning' : 'text-ink-body');
-    var timeDisplay = c.lastOffline
-      ? '<span class="text-danger font-mono">'+c.lastOffline+'</span>'
-      : '<span class="font-mono text-ink-muted">'+c.lastOnline+'</span>';
-
-    html += '<tr class="'+rowCls+' cursor-pointer" onclick="openDetail(\''+c.code+'\')">';
-    html += '<td class="font-mono text-ink-body">'+c.code+'</td>';
-    html += '<td class="text-ink-body font-medium">'+c.name+'</td>';
-    html += '<td class="text-ink-body">'+c.location+'</td>';
-    html += '<td class="text-ink-sub text-[12px] max-w-[180px] truncate" title="'+c.address+'">'+c.address+'</td>';
-    html += '<td>'+getStatusBadge(c.status)+'</td>';
-    html += '<td class="font-mono '+usageColor+'">'+c.occupiedLockers+'/'+c.totalLockers+' <span class="text-[11px] text-ink-muted">('+usageRate+'%)</span></td>';
-    html += '<td class="text-[12px] text-ink-body">';
-    html += '<span title="小型">小</span><span class="font-mono">'+c.smallFree+'</span> ';
-    html += '<span title="中型">中</span><span class="font-mono">'+c.mediumFree+'</span> ';
-    html += '<span title="大型">大</span><span class="font-mono">'+c.largeFree+'</span>';
-    html += '</td>';
-    html += '<td class="text-[12px]">'+timeDisplay+'</td>';
-    html += '<td class="whitespace-nowrap"><a class="action-link" onclick="event.stopPropagation();openDetail(\''+c.code+'\')">查看详情</a></td>';
-    html += '</tr>';
-  }
-  tbody.innerHTML = html;
-  lucide.createIcons();
-}
-
-function renderPagination() {
-  var totalPages = Math.ceil(filteredCabinets.length / pageSize);
-  var nav = document.getElementById('pgNav');
-  var stats = document.getElementById('pgStats');
-  var total = filteredCabinets.length;
-
-  stats.textContent = '共 '+total+' 条记录　第 '+currentPage+'/'+Math.max(1,totalPages)+' 页';
-
-  var html = '';
-  html += '<button class="pg-btn" ' + (currentPage<=1?'disabled':'') + ' onclick="goPage('+(currentPage-1)+')">‹</button>';
-  if (totalPages <= 7) {
-    for (var i = 1; i <= totalPages; i++) {
-      html += '<button class="pg-btn'+(i===currentPage?' pg-current':'')+'" onclick="goPage('+i+')">'+i+'</button>';
-    }
-  } else {
-    html += '<button class="pg-btn'+(1===currentPage?' pg-current':'')+'" onclick="goPage(1)">1</button>';
-    if (currentPage > 3) html += '<span class="pg-ellipsis">…</span>';
-    var s = Math.max(2, currentPage-1), e = Math.min(totalPages-1, currentPage+1);
-    for (var i = s; i <= e; i++) {
-      html += '<button class="pg-btn'+(i===currentPage?' pg-current':'')+'" onclick="goPage('+i+')">'+i+'</button>';
-    }
-    if (currentPage < totalPages-2) html += '<span class="pg-ellipsis">…</span>';
-    html += '<button class="pg-btn'+(totalPages===currentPage?' pg-current':'')+'" onclick="goPage('+totalPages+')">'+totalPages+'</button>';
-  }
-  html += '<button class="pg-btn" ' + (currentPage>=totalPages?'disabled':'') + ' onclick="goPage('+(currentPage+1)+')">›</button>';
-  nav.innerHTML = html;
-}
-
-function goPage(p) {
-  var total = Math.ceil(filteredCabinets.length / pageSize);
-  if (p < 1 || p > total) return;
-  currentPage = p;
-  renderTable();
-  renderPagination();
-  document.getElementById('mainContent').scrollTop = 0;
-}
-
-function changePageSize() {
-  pageSize = parseInt(document.getElementById('pageSize').value);
-  currentPage = 1;
-  renderTable();
-  renderPagination();
-}
-
-function jumpPage() { var p=parseInt(document.getElementById('pgJump').value); if(isNaN(p)||p<1){alert('请输入有效页码');return;} var t=Math.ceil(filteredCabinets.length/pageSize); if(p>t){alert('请输入有效页码（最大'+t+'）');return;} currentPage=p; renderTable(); renderPagination(); document.getElementById('pgJump').value=''; }
-
-/* ================================================================
-   FILTERS
-   ================================================================ */
-function applyFilters() {
-  activeFilters.location = document.getElementById('filterLocation').value;
-  activeFilters.status = document.getElementById('filterStatus').value;
-  activeFilters.search = document.getElementById('filterSearch').value.toLowerCase().trim();
-
-  // Check for pre-filter from URL params (workstation alert linkage)
-  var params = new URLSearchParams(window.location.search);
-  var preStatus = params.get('status');
-  if (preStatus && !activeFilters.status) {
-    activeFilters.status = preStatus;
-    document.getElementById('filterStatus').value = preStatus;
-  }
-
-  filteredCabinets = cabinets.filter(function(c) {
-    if (activeFilters.location && c.location !== activeFilters.location) return false;
-    if (activeFilters.status && c.status !== activeFilters.status) return false;
-    if (activeFilters.search) {
-      var q = activeFilters.search;
-      if (c.code.toLowerCase().indexOf(q)===-1 && c.name.toLowerCase().indexOf(q)===-1) return false;
-    }
-    return true;
-  });
-
-  currentPage = 1;
-  updateKPIs(filteredCabinets);
-  renderTable();
-  renderPagination();
-}
-
-function resetFilters() {
-  document.getElementById('filterLocation').value = '';
-  document.getElementById('filterStatus').value = '';
-  document.getElementById('filterSearch').value = '';
-  applyFilters();
-}
-
-/* Populate location filter */
-function initFilters() {
-  var sel = document.getElementById('filterLocation');
-  var seen = {};
-  for (var i = 0; i < cabinets.length; i++) {
-    if (!seen[cabinets[i].location]) {
-      seen[cabinets[i].location] = true;
-      sel.innerHTML += '<option value="'+cabinets[i].location+'">'+cabinets[i].location+'</option>';
-    }
-  }
-  // Apply pre-filter from URL (workstation alert → pre-filter offline)
-  var params = new URLSearchParams(window.location.search);
-  var preStatus = params.get('status');
-  if (preStatus) {
-    document.getElementById('filterStatus').value = preStatus;
-  }
-}
-
-/* ================================================================
-   VIEW SWITCHING
-   ================================================================ */
-function switchView(view) {
-  currentView = view;
-  document.getElementById('listView').classList.toggle('hidden', view !== 'list');
-  document.getElementById('mapView').classList.toggle('hidden', view !== 'map');
-  document.getElementById('tabList').classList.toggle('active', view === 'list');
-  document.getElementById('tabMap').classList.toggle('active', view === 'map');
-  if (annoVisible) { setTimeout(renderAnnoBadges, 50); }
-}
-
-/* ================================================================
-   DETAIL DRAWER
-   ================================================================ */
-function openDetail(code) {
-  var cab = cabinets.find(function(c){return c.code===code;});
-  if (!cab) return;
-  selectedCabinet = cab;
-  document.getElementById('drawerTitle').textContent = cab.name + '（'+cab.code+'）';
-  document.getElementById('drawerOverlay').classList.add('show');
-  document.getElementById('detailDrawer').classList.add('open');
-
-  var body = document.getElementById('drawerBody');
-
-  // Block A: Cabinet basic info
-  var infoHtml = '<div data-anno="9" class="mb-6">';
-  infoHtml += '<h3 class="text-[14px] font-semibold text-ink-title mb-3 flex items-center gap-2"><i data-lucide="info" class="w-[16px] h-[16px] text-primary"></i>柜机基本信息</h3>';
-  infoHtml += '<div class="bg-bg-page rounded-md p-4">';
-  infoHtml += '<div class="info-row"><span class="info-label">机柜编码</span><span class="info-value font-mono">'+cab.code+'</span></div>';
-  infoHtml += '<div class="info-row"><span class="info-label">机柜名称</span><span class="info-value font-medium">'+cab.name+'</span></div>';
-  infoHtml += '<div class="info-row"><span class="info-label">所属网点</span><span class="info-value">'+cab.location+'</span></div>';
-  infoHtml += '<div class="info-row"><span class="info-label">详细位置</span><span class="info-value">'+cab.address+'</span></div>';
-  infoHtml += '<div class="info-row"><span class="info-label">柜机状态</span><span class="info-value">'+getStatusBadge(cab.status)+'</span></div>';
-  infoHtml += '<div class="info-row"><span class="info-label">最近上线</span><span class="info-value font-mono text-[12px]">'+(cab.lastOnline||'--')+'</span></div>';
-  if (cab.lastOffline) {
-    infoHtml += '<div class="info-row"><span class="info-label">最近离线</span><span class="info-value font-mono text-[12px] text-danger">'+cab.lastOffline+'</span></div>';
-  }
-  infoHtml += '</div></div>';
-
-  // Block B: Locker occupancy overview
-  var freeLockers = cab.totalLockers - cab.occupiedLockers;
-  infoHtml += '<div data-anno="10" class="mb-6">';
-  infoHtml += '<h3 class="text-[14px] font-semibold text-ink-title mb-3 flex items-center gap-2"><i data-lucide="grid-3x3" class="w-[16px] h-[16px] text-primary"></i>格口占用概览</h3>';
-  infoHtml += '<div class="grid grid-cols-4 gap-3 mb-4">';
-  infoHtml += '<div class="text-center p-3 bg-bg-page rounded"><div class="text-[20px] font-semibold text-ink-title font-mono">'+cab.totalLockers+'</div><div class="text-[11px] text-ink-sub">总数</div></div>';
-  infoHtml += '<div class="text-center p-3 bg-success-bg rounded"><div class="text-[20px] font-semibold text-success font-mono">'+freeLockers+'</div><div class="text-[11px] text-ink-sub">空闲</div></div>';
-  infoHtml += '<div class="text-center p-3 bg-primary-bg rounded"><div class="text-[20px] font-semibold text-primary font-mono">'+cab.occupiedLockers+'</div><div class="text-[11px] text-ink-sub">占用</div></div>';
-  infoHtml += '<div class="text-center p-3 bg-bg-page rounded"><div class="text-[20px] font-semibold text-ink-title font-mono">'+cab.usageRate+'%</div><div class="text-[11px] text-ink-sub">使用率</div></div>';
-  infoHtml += '</div>';
-  // Usage bar
-  infoHtml += '<div class="usage-bar" style="height:8px;"><div class="usage-bar-fill" style="width:'+cab.usageRate+'%;background:'+(cab.usageRate>=90?'#D9001B':(cab.usageRate>=70?'#E7772D':'#0066FF'))+';"></div></div>';
-  infoHtml += '<div class="flex justify-between text-[11px] text-ink-muted mt-1"><span>0</span><span>'+cab.totalLockers+' 格口</span></div>';
-  infoHtml += '</div>';
-
-  // Block C: Locker grid visualization
-  infoHtml += '<div data-anno="11" class="mb-6">';
-  infoHtml += '<h3 class="text-[14px] font-semibold text-ink-title mb-3 flex items-center gap-2"><i data-lucide="layout-grid" class="w-[16px] h-[16px] text-primary"></i>格口分布可视化 <span class="text-[11px] text-ink-muted font-normal">（只读，不可操作）</span></h3>';
-
-  // Legend
-  infoHtml += '<div class="flex items-center gap-4 mb-3 text-[12px]">';
-  infoHtml += '<span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm" style="background:#0FC060;"></span> 空闲</span>';
-  infoHtml += '<span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm" style="background:#0066FF;"></span> 占用</span>';
-  infoHtml += '<span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm" style="background:#E7772D;"></span> 维护</span>';
-  infoHtml += '<span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm" style="background:#C7CAD1;"></span> 停用</span>';
-  infoHtml += '</div>';
-
-  // Grid
-  var cols = cab.totalLockers <= 18 ? 6 : (cab.totalLockers <= 24 ? 6 : 6);
-  infoHtml += '<div class="locker-grid" style="grid-template-columns:repeat('+cols+',1fr);max-width:420px;" id="lockerGrid">';
-  for (var i = 0; i < cab.lockers.length; i++) {
-    var l = cab.lockers[i];
-    infoHtml += '<div class="locker-cell '+l.status+'" data-locker-id="'+l.id+'" data-locker-type="'+l.type+'" data-locker-status="'+l.status+'"'+(l.orderNo?' data-order="'+l.orderNo+'"':'')+' onmouseenter="showLockerTooltip(event,\''+l.id+'\',\''+l.type+'\',\''+l.status+'\',\''+(l.orderNo||'')+'\')" onmouseleave="hideLockerTooltip()" onclick="onLockerClick(event,\''+l.id+'\',\''+l.type+'\',\''+l.status+'\',\''+(l.orderNo||'')+'\')">'+l.type+'</div>';
-  }
-  infoHtml += '</div>';
-  infoHtml += '<p class="text-[11px] text-ink-muted mt-2">Hover 格口查看详情；点击查看格口信息（一期只读，不做控制操作）</p>';
-  infoHtml += '</div>';
-
-  // Block D: Related orders
-  var occupiedLockers = cab.lockers.filter(function(l){return l.status==='occupied' && l.orderNo;});
-  infoHtml += '<div data-anno="12" class="mb-6">';
-  infoHtml += '<h3 class="text-[14px] font-semibold text-ink-title mb-3 flex items-center gap-2"><i data-lucide="package" class="w-[16px] h-[16px] text-primary"></i>关联订单</h3>';
-  if (occupiedLockers.length === 0) {
-    infoHtml += '<div class="text-center py-8 text-[13px] text-ink-muted">当前无占用格口关联的订单</div>';
-  } else {
-    infoHtml += '<div class="overflow-x-auto"><table class="data-table"><thead><tr><th>格口编号</th><th>订单号</th><th>柜型</th><th>操作</th></tr></thead><tbody>';
-    for (var i = 0; i < Math.min(occupiedLockers.length, 10); i++) {
-      var ol = occupiedLockers[i];
-      infoHtml += '<tr><td class="font-mono">'+ol.id+'</td><td class="font-mono"><a class="action-link" onclick="event.stopPropagation();navigate(\'订单管理.html\')">'+ol.orderNo+'</a></td><td>'+ol.type+' 型</td><td class="whitespace-nowrap"><a class="action-link" onclick="event.stopPropagation();navigate(\'订单管理.html\')">查看订单</a></td></tr>';
-    }
-    infoHtml += '</tbody></table></div>';
-  }
-  infoHtml += '</div>';
-
-  body.innerHTML = infoHtml;
-  lucide.createIcons();
-
-  // Refresh annotation badges for drawer content
-  if (annoVisible) { setTimeout(renderAnnoBadges, 100); }
-  pushAnnoScope(document.getElementById('detailDrawer'));
-}
-
-function closeDrawer() {
-  document.getElementById('drawerOverlay').classList.remove('show');
-  document.getElementById('detailDrawer').classList.remove('open');
-  selectedCabinet = null;
-  if (annoVisible) { setTimeout(renderAnnoBadges, 50); }
-  popAnnoScope(document.getElementById('detailDrawer'));
-}
-
-/* ================================================================
-   LOCKER TOOLTIP & CLICK
-   ================================================================ */
-var statusLabels = { free:'空闲', occupied:'占用', maintenance:'维护中', 'disabled-cell':'停用' };
-
-function showLockerTooltip(e, id, type, status, orderNo) {
-  var tip = document.getElementById('lockerTooltip');
-  var label = statusLabels[status] || status;
-  var typeLabel = type==='S'?'小型':(type==='M'?'中型':'大型');
-  var html = '<div><b>'+id+'</b> · '+typeLabel+' · '+label+'</div>';
-  if (orderNo) html += '<div style="margin-top:2px;opacity:.7;">关联订单：'+orderNo+'</div>';
-  tip.innerHTML = html;
-  tip.style.left = (e.clientX + 12) + 'px';
-  tip.style.top = (e.clientY - 40) + 'px';
-  tip.classList.add('show');
-}
-
-function hideLockerTooltip() {
-  document.getElementById('lockerTooltip').classList.remove('show');
-}
-
-function onLockerClick(e, id, type, status, orderNo) {
-  var label = statusLabels[status] || status;
-  var typeLabel = type==='S'?'小型':(type==='M'?'中型':'大型');
-  var msg = '格口 ' + id + '\n类型：' + typeLabel + '\n状态：' + label;
-  if (orderNo) msg += '\n关联订单：' + orderNo;
-  msg += '\n\n一期只读，不可进行控制操作。';
-  alert(msg);
-}
-
-/* ================================================================
-   DATA REFRESH & SYNC
-   ================================================================ */
-function refreshData() {
-  // Simulate refresh
-  var btn = document.querySelector('#mainContent .btn-default.btn-sm');
-  var icon = btn.querySelector('[data-lucide]');
-  btn.disabled = true;
-  icon.style.animation = 'spin 1s linear infinite';
-
-  setTimeout(function() {
-    lastSyncTime = new Date();
-    updateSyncTime();
-    btn.disabled = false;
-    icon.style.animation = '';
-    // Simulate slight data changes
-    applyFilters();
-  }, 800);
-}
-
-function updateSyncTime() {
-  var now = lastSyncTime || new Date();
-  var ts = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
-  document.getElementById('syncTime').textContent = '最近同步：'+ts;
-}
-
-/* Add spin animation */
-var spinStyle = document.createElement('style');
-spinStyle.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
-document.head.appendChild(spinStyle);
-
-/* ================================================================
    MENU SELECT — unified sidebar menu interaction handler
+   - L1 without children → select + navigate
+   - L1 with children    → toggle expand/collapse only (no nav)
+   - L2                   → select self + parent L1 + navigate
+   - Only one submenu expanded at a time
+   - Clicking already-selected L2 re-navigates
    ================================================================ */
 function menuSelect(el) {
-  if (el.classList.contains('l1')) { handleL1(el); }
-  else if (el.classList.contains('l2')) { handleL2(el); }
+  if (el.classList.contains('l1')) {
+    handleL1(el);
+  } else if (el.classList.contains('l2')) {
+    handleL2(el);
+  }
 }
+
+/* ---- L1: handle both leaf and expandable ---- */
 function handleL1(el) {
   var subId = el.getAttribute('data-sub');
-  if (subId) { handleL1Toggle(el, subId); }
-  else { selectL1NoChildren(el); }
+  if (subId) {
+    handleL1Toggle(el, subId);
+  } else {
+    selectL1NoChildren(el);
+  }
 }
+
+/* L1 with children — toggle expand / collapse */
 function handleL1Toggle(el, subId) {
   var sub = document.getElementById(subId);
   if (!sub) return;
   var arrow = el.querySelector('.menu-arrow');
   var isExpanded = !sub.classList.contains('collapsed');
+
   if (isExpanded) {
+    // Collapse this submenu
     sub.classList.add('collapsed');
     if (arrow) arrow.classList.remove('open');
-    if (!sub.querySelector('.menu-item.active-l2')) { el.classList.remove('active-l1'); }
+    // Remove active-l1 only if no child is selected
+    if (!sub.querySelector('.menu-item.active-l2')) {
+      el.classList.remove('active-l1');
+    }
   } else {
+    // Collapse all other submenus first (exclusive expand)
     collapseAllExcept(subId);
+    // Expand this submenu
     sub.classList.remove('collapsed');
     if (arrow) arrow.classList.add('open');
-    if (sub.querySelector('.menu-item.active-l2')) { el.classList.add('active-l1'); }
+    // If a child was previously selected, restore parent active state
+    if (sub.querySelector('.menu-item.active-l2')) {
+      el.classList.add('active-l1');
+    }
   }
 }
+
+/* L1 without children — select and navigate */
 function selectL1NoChildren(el) {
   collapseAllExcept(null);
   clearAllActive();
-  // Don't re-select if already active (prevents duplicate navigation)
-  if (!el.classList.contains('active-l1')) {
-    el.classList.add('active-l1');
-    var page = el.getAttribute('data-page');
-    navigateToPage(page);
-  }
-}
-function handleL2(el) {
-  var parentSub = el.closest('.submenu');
-  var parentSubId = parentSub ? parentSub.id : null;
-  collapseAllExcept(parentSubId);
-  if (parentSub && parentSub.classList.contains('collapsed')) { parentSub.classList.remove('collapsed'); }
-  clearAllActive();
-  el.classList.add('active-l2');
-  var parentL1 = findParentL1BySubId(parentSubId);
-  if (parentL1) { parentL1.classList.add('active-l1'); var arrow = parentL1.querySelector('.menu-arrow'); if (arrow) arrow.classList.add('open'); }
+  el.classList.add('active-l1');
   var page = el.getAttribute('data-page');
   navigateToPage(page);
 }
+
+/* ---- L2: select self + parent, then navigate ---- */
+function handleL2(el) {
+  var parentSub = el.closest('.submenu');
+  var parentSubId = parentSub ? parentSub.id : null;
+
+  // Keep parent submenu expanded, collapse others
+  collapseAllExcept(parentSubId);
+
+  // Ensure parent submenu is expanded
+  if (parentSub && parentSub.classList.contains('collapsed')) {
+    parentSub.classList.remove('collapsed');
+  }
+
+  // Clear all, then set self + parent active
+  clearAllActive();
+  el.classList.add('active-l2');
+
+  var parentL1 = findParentL1BySubId(parentSubId);
+  if (parentL1) {
+    parentL1.classList.add('active-l1');
+    var arrow = parentL1.querySelector('.menu-arrow');
+    if (arrow) arrow.classList.add('open');
+  }
+
+  // Navigate
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+
+/* ---- Helpers ---- */
+
+/** Collapse all submenus except the one with keepSubId */
 function collapseAllExcept(keepSubId) {
   document.querySelectorAll('.submenu').forEach(function(sub) {
     if (sub.id === keepSubId) return;
     if (sub.classList.contains('collapsed')) return;
     sub.classList.add('collapsed');
+    // Reset parent L1 arrow and active state
     var l1 = findParentL1BySubId(sub.id);
-    if (l1) { var arrow = l1.querySelector('.menu-arrow'); if (arrow) arrow.classList.remove('open'); if (!sub.querySelector('.menu-item.active-l2')) { l1.classList.remove('active-l1'); } }
+    if (l1) {
+      var arrow = l1.querySelector('.menu-arrow');
+      if (arrow) arrow.classList.remove('open');
+      if (!sub.querySelector('.menu-item.active-l2')) {
+        l1.classList.remove('active-l1');
+      }
+    }
   });
 }
+
+/** Remove all active-l1 / active-l2 classes */
 function clearAllActive() {
-  document.querySelectorAll('.menu-item').forEach(function(item) { item.classList.remove('active-l1', 'active-l2'); });
+  document.querySelectorAll('.menu-item').forEach(function(item) {
+    item.classList.remove('active-l1', 'active-l2');
+  });
 }
+
+/** Find the parent L1 element by submenu ID */
 function findParentL1BySubId(subId) {
   if (!subId) return null;
-  return document.querySelector('.menu-item.l1[data-sub="'+subId+'"]');
+  return document.querySelector('.menu-item.l1[data-sub="' + subId + '"]');
 }
+
+/** Navigate: .html → page jump; otherwise → show placeholder in content area */
 function navigateToPage(page) {
   if (!page) return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
   var fname = page.split("/").pop();
   var cur = window.location.pathname.split("/").pop();
   if (fname === cur) return;
-  if (page.endsWith('.html')) { window.location.href = page; }
-  else {
+  if (page.endsWith('.html')) {
+    window.location.href = page;
+  } else {
+    // Placeholder — render inline
     document.getElementById('mainContent').innerHTML =
-      '<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6">'+
-      '<h2 class="text-[16px] font-semibold text-ink-title mb-2">'+page+'</h2>'+
-      '<p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p></div></div>';
+      '<div class="p-4">' +
+      '<div class="bg-white rounded-lg border border-line p-5 md:p-6">' +
+      '<h2 class="text-[16px] font-semibold text-ink-title mb-2">' + page + '</h2>' +
+      '<p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p>' +
+      '</div></div>';
   }
 }
 
 /* ===== TOPBAR NAVIGATION ===== */
 function navigate(url) {
   if (url === '#') return;
+  // Guard: skip if already on this page (prevents file:// self-navigation error)
   var fname = url.split("/").pop();
   var cur = window.location.pathname.split("/").pop();
   if (fname === cur) return;
@@ -943,95 +349,16 @@ function toggleSidebar() {
 
 /* ================================================================
    PORTAL ANNOTATION SYSTEM
+   - Badges rendered in body-level layer, fully decoupled from page DOM
+   - Uses getBoundingClientRect() for pixel-perfect positioning
+   - Recalculates on resize/scroll
    ================================================================ */
 var annotations = {
-  1: { title: '柜机监控页面标题', desc: [
-    '触发：页面加载时渲染',
-    '展示模块名称"柜机监控"，左侧导航"柜机监控"高亮',
-    '点击"游寄后台管理系统"logo 可返回 index.html 导航页'
-  ]},
-  2: { title: '数据同步状态与刷新', desc: [
-    '触发：页面加载/点击刷新按钮',
-    '响应：展示最近一次数据同步时间',
-    '规则：数据来自小铁只读接口，定时同步存在延迟，页面须标注时效',
-    '刷新时按钮 loading 动画 + 数据重新模拟同步',
-    '一期只读，刷新仅重新拉取最新同步数据，不下发控制指令'
-  ]},
-  3: { title: '视图切换', desc: [
-    '触发：点击"列表视图" / "地图视图"标签',
-    '响应：切换主内容区视图',
-    '列表视图：柜机概览表格（一期主要视图）',
-    '地图视图：柜机在地图上按状态着色标记（依赖经纬度数据，一期为 placeholder）'
-  ]},
-  4: { title: '状态概览条（KPI）', desc: [
-    '触发：页面加载/筛选/刷新时更新',
-    '响应：展示柜机总数、在线数、离线数、满柜数、格口使用率',
-    '规则：离线数 > 0 时 KPI 卡片边框变 danger 红强调',
-    '满柜数 > 0 时 KPI 卡片边框变 warning 橙强调',
-    '格口使用率 = 已占用格口 / 总格口 × 100%，配进度条',
-    '数字使用 mono 字体'
-  ]},
-  5: { title: '筛选/搜索', desc: [
-    '触发：选择网点/状态、输入搜索关键词',
-    '响应：前端过滤柜机列表，KPI 同步更新',
-    '网点：按所属网点筛选（全部/指定网点）',
-    '状态：全部/在线/离线/停用/满柜',
-    '搜索：按机柜编码或名称模糊匹配',
-    '点击"重置"清空所有筛选条件',
-    '与工作台告警联动：通过 URL 参数 ?status=offline 可预筛选离线柜机'
-  ]},
-  6: { title: '柜机列表表格', desc: [
-    '触发：页面加载/筛选/翻页时渲染',
-    '响应：展示机柜编码、名称、网点、位置、状态、格口占用、柜型可用、时间、操作',
-    '规则：离线行 danger 红底强调（row-danger），满柜行 warning 黄底强调（row-warning），停用行 muted 灰底灰字（row-disabled）',
-    '状态优先级展示：离线 > 停用 > 满柜 > 在线（异常态优先提示）',
-    '格口占用列：已占用/总数 + 使用率百分比，使用率 ≥90% 红色、≥70% 橙色',
-    '数字列使用 mono 字体',
-    '表格所有列左对齐',
-    '点击行或"查看详情"→ 打开柜机详情抽屉'
-  ]},
-  7: { title: '分页器', desc: [
-    '触发：数据超过每页条数时出现',
-    '响应：切换页码、改变每页条数、展示总记录数和当前页',
-    '规则：≤7 页全显示；>7 页首尾 + 当前页 ±1 + 省略号',
-    '每页可选 10/15/20 条'
-  ]},
-  8: { title: '地图视图（一期占位）', desc: [
-    '触发：点击"地图视图"标签切换',
-    '响应：展示地图视图说明页',
-    '规则：依赖柜机经纬度数据（小铁接口待提供），一期暂以列表视图为主',
-    '后续可在地图上按状态着色标记柜机（在线绿/离线红/满柜橙/停用灰）',
-    '点击标记弹出柜机简况卡 + "查看详情"入口'
-  ]},
-  9: { title: '柜机基本信息（详情抽屉）', desc: [
-    '触发：点击柜机列表行或"查看详情"按钮',
-    '响应：右侧滑出抽屉，展示柜机基本信息',
-    '包含：机柜编码（mono）、名称、网点、位置、在线状态 Badge、最近上线/离线时间',
-    '离线柜机：最近离线时间用 danger 色强调',
-    '遮罩点击或右上角 × 关闭抽屉'
-  ]},
-  10: { title: '格口占用概览（详情抽屉）', desc: [
-    '触发：抽屉打开时渲染',
-    '响应：展示总数、空闲、占用、使用率四个指标卡片 + 进度条',
-    '规则：数字用 mono，使用率 ≥90% 红色条、≥70% 橙色条',
-    '指标卡片用对应语义色浅底（success-bg / primary-bg）'
-  ]},
-  11: { title: '格口分布可视化（详情抽屉）', desc: [
-    '触发：抽屉打开时渲染',
-    '响应：以网格还原柜体格口布局，每格按状态着色',
-    '四态着色：空闲-绿色(success)、占用-蓝色(primary)、维护-橙色(warning)、停用-灰色(ink-muted)',
-    'Hover 格口：弹出 tooltip 显示格口编号、柜型、状态、（占用时）关联订单号',
-    '点击格口：弹窗展示格口详细信息',
-    '一期只读，不可进行任何柜机控制操作',
-    '格口布局为 mock 示意（实际行列结构依赖小铁提供数据）'
-  ]},
-  12: { title: '关联订单（详情抽屉）', desc: [
-    '触发：抽屉打开时渲染',
-    '响应：列出当前占用格口对应的进行中订单',
-    '包含：格口编号、订单号（mono）、柜型',
-    '点击订单号或"查看订单"→ 跳转至订单管理页',
-    '无占用订单时显示空状态',
-    '关联关系依赖格口占用与订单的关联标识（待小铁确认）'
+  1: { title: '操作日志（建设中占位页）', desc: [
+    '状态：功能暂未开发，本页为占位原型',
+    '入口：顶栏用户气泡卡片「操作日志」/ 侧边栏 系统设置 → 操作日志',
+    '规划能力：成员登录与关键操作流水（模块、操作人、操作内容、IP、时间）',
+    '规划交互：按模块 / 操作人 / 时间范围筛选，导出接入任务列表「下载任务」'
   ]}
 };
 
@@ -1059,6 +386,7 @@ function renderAnnoBadges() {
   var container = scope || document;
   container.querySelectorAll('[data-anno]').forEach(function(el) {
     var id = el.getAttribute('data-anno');
+    // Skip hidden elements (modals, dialogs) — zero-size rect means invisible
     if (el.offsetParent === null && el.tagName !== 'BODY') return;
     var target = resolveAnnoTarget(el, vw);
     var rect = target.getBoundingClientRect();
@@ -1068,18 +396,32 @@ function renderAnnoBadges() {
     badge.textContent = id;
     badge.style.top  = (rect.top  - 10) + 'px';
     badge.style.left = (rect.right - 10) + 'px';
-    badge.addEventListener('click', function(e) { e.stopPropagation(); showAnnoPopup(id); });
+    badge.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showAnnoPopup(id);
+    });
     layer.appendChild(badge);
   });
 }
 
+/** Smart targeting: if data-anno is on a full-width container, drill down to the core inner element */
 function resolveAnnoTarget(el, vw) {
   var rect = el.getBoundingClientRect();
+  // Not a full-width block → use as-is
   if (rect.width < 800 || rect.width < vw * 0.7) return el;
+  // Try to find a meaningful inner element
   var inner = el.querySelector('h1, h2, h3, h4, h5, h6, button, .btn, input, select, .card-title, [class*="title"]');
-  if (inner) { var ir = inner.getBoundingClientRect(); if (ir.width < rect.width * 0.8) return inner; }
+  if (inner) {
+    var innerRect = inner.getBoundingClientRect();
+    // Only use inner if it's meaningfully narrower than the container
+    if (innerRect.width < rect.width * 0.8) return inner;
+  }
+  // Fallback: first child element
   var first = el.firstElementChild;
-  if (first) { var fr = first.getBoundingClientRect(); if (fr.width < rect.width * 0.9) return first; }
+  if (first) {
+    var firstRect = first.getBoundingClientRect();
+    if (firstRect.width < rect.width * 0.9) return first;
+  }
   return el;
 }
 
@@ -1088,8 +430,9 @@ function showAnnoPopup(id) {
   if (!a) return;
   document.getElementById('annoPopupTitle').textContent = '#' + id + ' ' + a.title;
   document.getElementById('annoPopupBody').innerHTML = a.desc.map(function(d) {
-    return '<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>'+d+'</span></li>';
+    return '<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>' + d + '</span></li>';
   }).join('');
+  // Reset to center
   var box = document.getElementById('annoPopupBox');
   box.style.top = '50%'; box.style.left = '50%'; box.style.transform = 'translate(-50%,-50%)';
   document.getElementById('annoPopup').classList.remove('hidden');
@@ -1100,11 +443,12 @@ function closeAnnoPopup() {
 }
 
 /* Drag popup */
-var popupDrag = { offX:0, offY:0, moved:false };
+var popupDrag = { offX: 0, offY: 0, moved: false };
 function startDragPopup(e) {
   if (e.target.closest('button')) return;
   popupDrag.moved = false;
   var box = document.getElementById('annoPopupBox');
+  // Convert centered position to pixel coordinates
   var rect = box.getBoundingClientRect();
   popupDrag.offX = e.clientX - rect.left;
   popupDrag.offY = e.clientY - rect.top;
@@ -1128,7 +472,7 @@ function stopDragPopup() {
   if (h) h.style.cursor = 'grab';
 }
 
-/* Toggle annotations */
+/* Toggle annotations on/off */
 document.getElementById('annoToggle').addEventListener('click', function(e) {
   if (this.dataset.dragging === '1') return;
   annoVisible = !annoVisible;
@@ -1166,23 +510,11 @@ function stopDragToggle() {
 
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', function() {
-  lastSyncTime = new Date();
-  updateSyncTime();
-  initFilters();
-  filteredCabinets = cabinets.slice();
-  updateKPIs(filteredCabinets);
-  renderTable();
-  renderPagination();
   lucide.createIcons();
   renderAnnoBadges();
+  // Recalculate on scroll (main content area) and resize
   document.getElementById('mainContent').addEventListener('scroll', renderAnnoBadges);
   window.addEventListener('resize', renderAnnoBadges);
-
-  // Check for pre-filter from URL (workstation alert linkage)
-  var params = new URLSearchParams(window.location.search);
-  if (params.get('status')) {
-    applyFilters();
-  }
 });
 </script>
 <!-- ================================================================
@@ -1257,19 +589,6 @@ document.addEventListener('DOMContentLoaded', function() {
   .tk-pg-jump{font-size:12px;font-family:inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
   .tk-pg-jump:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
   .tk-pg-stats{color:#9DA2AC;white-space:nowrap;}
-  /* --- 内容区分页（design.md §5.5） --- */
-  .pg-nav{display:flex;gap:4px;}
-  .pg-btn{min-width:30px;height:30px;padding:0 8px;font-size:12px;font-weight:500;font-family:inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
-  .pg-btn:hover:not(.pg-current):not(:disabled){color:#0066FF;border-color:#0066FF;}
-  .pg-btn.pg-current{background:#0066FF;border-color:#0066FF;color:#fff;}
-  .pg-btn:disabled{color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;border-color:#DFE1E5;}
-  .pg-ellipsis{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;font-size:13px;}
-  .pg-select-wrap{position:relative;display:inline-flex;align-items:center;}
-  .pg-select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
-  .pg-select{font-size:12px;font-family:inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;}
-  .pg-jump{font-size:12px;font-family:inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
-  .pg-jump:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
-  .pg-stats{color:#9DA2AC;white-space:nowrap;}
   /* --- Toast --- */
   #tkToast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1A1D24;color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:4px;z-index:1300;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
 </style>

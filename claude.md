@@ -146,8 +146,8 @@ var annotations = {
 ```html
 <!-- 标注徽标层（body 直属，fixed 定位，完全脱离页面文档流） -->
 <div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
-<!-- 可拖拽浮动开关 -->
-<div id="annoToggle" class="fixed z-[150]" style="right:8px;top:120px;cursor:grab;" ...>...</div>
+<!-- 可拖拽浮动开关（z-[9997]：高于所有抽屉/弹窗遮罩、低于徽标层，保证抽屉打开时仍可切换标注显隐） -->
+<div id="annoToggle" class="fixed z-[9997]" style="right:8px;top:120px;cursor:grab;" ...>...</div>
 <!-- 说明弹窗（居中，有遮罩，点击遮罩关闭） -->
 <div id="annoPopup" class="hidden fixed inset-0 z-[9999]" ...>...</div>
 ```

@@ -161,9 +161,9 @@
       <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
       <span class="badge-dot" id="msgBadge">5</span>
     </button>
-    <button class="topbar-btn" title="账号信息" onclick="navigate('账号信息.html')">
-      <i data-lucide="user" class="w-[18px] h-[18px]"></i>
-    </button>
+    <div class="uc-wrap" id="ucWrap" onmouseenter="ucShowCard()" onmouseleave="ucScheduleHide()">
+      <button class="uc-avatar" id="ucAvatar" data-uc-anno="trigger" aria-label="用户信息"></button>
+    </div>
   </div>
 </header>
 
@@ -220,6 +220,7 @@
       <div class="menu-item l2 active-l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div>
       <div class="menu-item l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div>
       <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
+      <div class="menu-item l2" data-page="操作日志.html" onclick="menuSelect(this)">操作日志</div>
     </div>
   </aside>
 
@@ -271,7 +272,7 @@
 
 <!-- ===== PORTAL ANNOTATION LAYER ===== -->
 <div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
-<div id="annoToggle" class="fixed z-[150]" style="right:8px;bottom:40px;cursor:grab;" onmousedown="startDragToggle(event)">
+<div id="annoToggle" class="fixed z-[9997]" style="right:8px;bottom:40px;cursor:grab;" onmousedown="startDragToggle(event)">
   <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] bg-white/90 backdrop-blur text-primary border border-primary/30 shadow-sm">
     <i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i> 标注
   </div>
@@ -580,7 +581,8 @@ var permissionTree = [
     { id:'m5-2', label:'部门管理', ops:['查看','新增','编辑'] },
     { id:'m5-3', label:'角色管理', ops:['查看','新增','编辑','删除'] },
     { id:'m5-4', label:'消息设置', ops:['查看','编辑'] },
-    { id:'m5-5', label:'账号信息', ops:['查看'] }
+    { id:'m5-5', label:'账号信息', ops:['查看'] },
+    { id:'m5-6', label:'操作日志', ops:['查看'] }
   ]}
 ];
 
@@ -2457,7 +2459,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- 任务列表抽屉：遮罩点击不关闭（PRD §12.4），仅 × 关闭 -->
 <div class="tk-overlay" id="tkOverlay" style="display:none;">
-  <aside class="tk-drawer" role="dialog" aria-label="任务列表">
+  <aside class="tk-drawer" id="tkDrawerPanel" role="dialog" aria-label="任务列表">
     <!-- 头部 -->
     <header class="tk-header">
       <h3 class="text-[16px] font-semibold text-ink-title inline-block">任务列表</h3>
@@ -2731,13 +2733,17 @@ document.addEventListener('DOMContentLoaded', function() {
     $('tkOverlay').style.display = '';
     if (window.lucide) lucide.createIcons();
     tkRender();
+    // 标注作用域（claude.md §7.9）：打开后将标注范围限定在抽屉面板内，页面级徽标自动隐藏
+    if (typeof window.pushAnnoScope === 'function') pushAnnoScope($('tkDrawerPanel'));
     if (!tkTimer) tkTimer = setInterval(tkTick, 10000);
   };
   window.closeTaskDrawer = function(){
     $('tkOverlay').style.display = 'none';
     sessionStorage.setItem('tk_last_tab', tkTab);   // 记住最后访问 Tab（会话内）
     if (tkTimer) { clearInterval(tkTimer); tkTimer = null; }
-    tkRefreshAnnos();
+    // 标注作用域（claude.md §7.9）：关闭后恢复上一级标注范围
+    if (typeof window.popAnnoScope === 'function') popAnnoScope($('tkDrawerPanel'));
+    else tkRefreshAnnos();
   };
   window.tkSwitchTab = function(tab){
     if (tkTab === tab) return;
@@ -2794,6 +2800,279 @@ document.addEventListener('DOMContentLoaded', function() {
     $('tkBody').addEventListener('scroll', function(){ tkRefreshAnnos(); });
     // 支持 ?open=tasks 直接打开抽屉（index 导航卡片入口）
     if (/[?&]open=tasks/.test(location.search)) setTimeout(function(){ openTaskDrawer(); }, 200);
+  });
+})();
+</script>
+<!-- ================================================================
+     GLOBAL COMPONENT: 顶栏用户气泡卡片 + 修改账号信息弹窗（全站共享）
+     视觉: design.md §5.9/5.10 · 弹窗与 账号信息.html「修改账号信息」一致
+     交互: hover 头像显示气泡（移出 150ms 缓冲）；弹窗遵循 claude.md §7.9 标注作用域
+     所有 id/class 以 uc- 前缀隔离，避免与页面样式冲突
+     ================================================================ -->
+<style>
+  /* --- 顶栏头像（28px 圆形，主色底 + 名称首字符，点击无动作） --- */
+  .uc-wrap{position:relative;display:flex;align-items:center;}
+  .uc-avatar{width:28px;height:28px;border-radius:50%;background:#0066FF;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;border:none;padding:0;cursor:default;font-family:inherit;line-height:1;flex-shrink:0;}
+  /* --- 气泡卡片（fixed 右对齐头像，顶栏 56px 下方） --- */
+  .uc-card{position:fixed;top:60px;width:240px;background:#fff;border:1px solid #DFE1E5;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.12);padding:20px 16px 8px;z-index:1000;display:none;}
+  .uc-card::before{content:'';position:absolute;top:-6px;right:14px;width:10px;height:10px;background:#fff;border-left:1px solid #DFE1E5;border-top:1px solid #DFE1E5;transform:rotate(45deg);}
+  .uc-avatar-lg{width:60px;height:60px;border-radius:50%;background:#0066FF;color:#fff;font-size:24px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;line-height:1;}
+  .uc-name-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px;}
+  .uc-name{font-size:15px;font-weight:600;color:#1A1D24;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .uc-edit{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border:none;background:none;border-radius:4px;color:#9DA2AC;cursor:pointer;padding:0;transition:all .15s;}
+  .uc-edit:hover{color:#0066FF;background:#E6F0FF;}
+  /* --- 角色标签（primary 字 + primary-bg 底，前 3 个 + 「+n」） --- */
+  .uc-roles{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding-bottom:14px;border-bottom:1px solid #F0F1F3;}
+  .uc-role-tag{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:12px;line-height:18px;background:#E6F0FF;color:#0066FF;font-weight:500;}
+  /* --- 操作入口（ico + 名称居左 + > 居右） --- */
+  .uc-menu{padding-top:6px;}
+  .uc-menu-item{display:flex;align-items:center;gap:8px;height:36px;padding:0 8px;border-radius:4px;font-size:13px;color:#3A3F4A;cursor:pointer;transition:background .12s;}
+  .uc-menu-item:hover{background:#F3F4F6;color:#1A1D24;}
+  .uc-mi-ico{color:#6E7685;flex-shrink:0;display:flex;}
+  .uc-mi-label{flex:1;}
+  .uc-mi-arrow{color:#9DA2AC;flex-shrink:0;display:flex;}
+  .uc-divider{height:1px;background:#F0F1F3;margin:4px 8px;}
+  /* --- 修改账号信息弹窗（与 账号信息.html 弹窗规范一致） --- */
+  .uc-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1100;display:flex;align-items:center;justify-content:center;}
+  .uc-modal-overlay.hidden{display:none;}
+  .uc-modal-box{background:#fff;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.12);width:760px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;position:relative;}
+  .uc-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #DFE1E5;}
+  .uc-modal-header h3{font-size:16px;font-weight:600;color:#1A1D24;margin:0;}
+  .uc-modal-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:none;background:none;border-radius:4px;color:#9DA2AC;cursor:pointer;padding:0;transition:background .15s;}
+  .uc-modal-close:hover{background:#F3F4F6;}
+  .uc-modal-body{padding:24px;overflow-y:auto;}
+  .uc-modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:12px 24px;border-top:1px solid #DFE1E5;}
+  .uc-form-field{display:flex;align-items:flex-start;margin-bottom:20px;}
+  .uc-form-label{width:110px;text-align:right;font-size:14px;color:#3A3F4A;padding-top:6px;padding-right:12px;flex-shrink:0;line-height:22px;}
+  .uc-form-label.required::before{content:'* ';color:#D9001B;} /* design.md §5.9：必填 * 位于标签文字左侧 */
+  .uc-form-wrap{flex:1;min-width:0;max-width:400px;}
+  .uc-form-input,.uc-form-select{width:100%;height:32px;padding:0 10px;font-size:13px;color:#3A3F4A;border:1px solid #DFE1E5;border-radius:4px;outline:none;transition:border-color .15s;background:#fff;font-family:inherit;}
+  .uc-form-input:focus,.uc-form-select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+  .uc-form-input.error,.uc-form-select.error{border-color:#D9001B;}
+  .uc-form-error{font-size:12px;color:#D9001B;margin-top:4px;display:none;}
+  .uc-form-error.show{display:block;}
+  .uc-form-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239DA2AC' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:28px;}
+  .uc-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;font-family:inherit;}
+  .uc-btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+  .uc-btn-primary:hover{background:#0052CC;}
+  .uc-btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+  .uc-btn-default:hover{border-color:#0066FF;color:#0066FF;}
+  #ucToast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1A1D24;color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:4px;z-index:1300;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
+</style>
+
+<!-- 用户气泡卡片（hover 顶栏头像触发） -->
+<div class="uc-card" id="ucCard" onmouseenter="ucCancelHide()" onmouseleave="ucScheduleHide()">
+  <div class="uc-avatar-lg" id="ucCardAvatar"></div>
+  <div class="uc-name-row">
+    <span class="uc-name" id="ucName"></span>
+    <button class="uc-edit" data-uc-anno="edit" title="修改账号信息" onclick="ucOpenEditModal()"><i data-lucide="pencil" class="w-[13px] h-[13px]"></i></button>
+  </div>
+  <div class="uc-roles" id="ucRoles" data-uc-anno="roles"></div>
+  <nav class="uc-menu">
+    <div class="uc-menu-item" data-uc-anno="account" onclick="navigate('账号信息.html')">
+      <span class="uc-mi-ico"><i data-lucide="user" class="w-[15px] h-[15px]"></i></span>
+      <span class="uc-mi-label">账号信息</span>
+      <span class="uc-mi-arrow"><i data-lucide="chevron-right" class="w-[14px] h-[14px]"></i></span>
+    </div>
+    <div class="uc-menu-item" data-uc-anno="log" onclick="navigate('操作日志.html')">
+      <span class="uc-mi-ico"><i data-lucide="file-clock" class="w-[15px] h-[15px]"></i></span>
+      <span class="uc-mi-label">操作日志</span>
+      <span class="uc-mi-arrow"><i data-lucide="chevron-right" class="w-[14px] h-[14px]"></i></span>
+    </div>
+    <div class="uc-divider"></div>
+    <div class="uc-menu-item" data-uc-anno="logout" onclick="navigate('登录.html')">
+      <span class="uc-mi-ico"><i data-lucide="log-out" class="w-[15px] h-[15px]"></i></span>
+      <span class="uc-mi-label">退出登录</span>
+      <span class="uc-mi-arrow"><i data-lucide="chevron-right" class="w-[14px] h-[14px]"></i></span>
+    </div>
+  </nav>
+</div>
+
+<!-- 修改账号信息弹窗（全局，与 账号信息.html 弹窗一致） -->
+<div class="uc-modal-overlay hidden" id="ucEditModal" onclick="ucCloseEditModal()">
+  <div class="uc-modal-box" id="ucEditModalBox" onclick="event.stopPropagation()">
+    <div class="uc-modal-header">
+      <h3 data-uc-anno="modal" class="inline-block">修改账号信息</h3>
+      <button class="uc-modal-close" onclick="ucCloseEditModal()" aria-label="关闭"><i data-lucide="x" class="w-[18px] h-[18px]"></i></button>
+    </div>
+    <div class="uc-modal-body">
+      <form id="ucEditForm" onsubmit="ucSubmitEdit(event)" novalidate>
+        <div class="uc-form-field">
+          <label class="uc-form-label required">成员名称</label>
+          <div class="uc-form-wrap">
+            <input class="uc-form-input" type="text" id="ucEditName" placeholder="请输入成员名称" maxlength="30">
+            <div class="uc-form-error" id="ucErrName">请输入成员名称（2-30个字符）</div>
+          </div>
+        </div>
+        <div class="uc-form-field">
+          <label class="uc-form-label">所属角色</label>
+          <div class="uc-form-wrap">
+            <select class="uc-form-select" id="ucEditRole"></select>
+            <div class="uc-form-error" id="ucErrRole">请选择所属角色</div>
+          </div>
+        </div>
+        <div class="uc-form-field" style="margin-bottom:8px;">
+          <label class="uc-form-label">绑定手机号</label>
+          <div class="uc-form-wrap">
+            <input class="uc-form-input font-mono" type="text" id="ucEditPhone" placeholder="请输入手机号" maxlength="11">
+            <div class="uc-form-error" id="ucErrPhone">请输入正确的11位手机号</div>
+          </div>
+        </div>
+        <p class="text-[12px] text-ink-muted" style="margin:0 0 4px 122px;">修改手机号后需重新验证，原手机号将自动解绑。</p>
+      </form>
+    </div>
+    <div class="uc-modal-footer">
+      <button class="uc-btn uc-btn-default" onclick="ucCloseEditModal()">取消</button>
+      <button class="uc-btn uc-btn-primary" onclick="document.getElementById('ucEditForm').requestSubmit()">保存</button>
+    </div>
+  </div>
+</div>
+<div id="ucToast"></div>
+
+<script>
+/* ================================================================
+   顶栏用户气泡卡片 — 全站共享组件（IIFE 隔离）
+   ================================================================ */
+(function(){
+  'use strict';
+  /* ===== MOCK DATA（与 账号信息.html accountData 对齐） ===== */
+  var ucUser = { name:'张伟', roles:['超级管理员','运营主管','财务专员','客服专员','设备管理员'], phoneRaw:'13900000001' };
+  var ucAllRoles = ['超级管理员','运营主管','财务专员','普通成员','客服专员','设备管理员'];
+
+  function $(id){ return document.getElementById(id); }
+  function ucEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  /* ===== RENDER：头像 / 名称 / 角色标签（前 3 个 + 「+n」） ===== */
+  function ucRender(){
+    var initial = ucUser.name.charAt(0);
+    $('ucAvatar').textContent = initial;
+    $('ucCardAvatar').textContent = initial;
+    $('ucName').textContent = ucUser.name;
+    var tags = ucUser.roles.slice(0, 3).map(function(r){ return '<span class="uc-role-tag">' + ucEsc(r) + '</span>'; });
+    if (ucUser.roles.length > 3)
+      tags.push('<span class="uc-role-tag" title="' + ucEsc(ucUser.roles.slice(3).join('、')) + '">+' + (ucUser.roles.length - 3) + '</span>');
+    $('ucRoles').innerHTML = tags.join('');
+  }
+
+  /* ===== 气泡卡片：hover 显示，移出 150ms 缓冲后隐藏 ===== */
+  var ucHideTimer = null;
+  window.ucShowCard = function(){
+    if (ucHideTimer) { clearTimeout(ucHideTimer); ucHideTimer = null; }
+    var card = $('ucCard');
+    if (card.style.display === 'block') return;
+    // 右对齐头像：按头像实时位置计算 fixed right
+    var rect = $('ucAvatar').getBoundingClientRect();
+    card.style.right = Math.max(8, window.innerWidth - rect.right - 6) + 'px';
+    card.style.display = 'block';
+    if (window.lucide) lucide.createIcons();
+    ucRefreshAnnos();
+  };
+  window.ucScheduleHide = function(){
+    if (ucHideTimer) clearTimeout(ucHideTimer);
+    ucHideTimer = setTimeout(ucHideCard, 150);
+  };
+  window.ucCancelHide = function(){
+    if (ucHideTimer) { clearTimeout(ucHideTimer); ucHideTimer = null; }
+  };
+  function ucHideCard(){
+    $('ucCard').style.display = 'none';
+    ucRefreshAnnos();
+  }
+
+  /* ===== 修改账号信息弹窗（校验规则与 账号信息.html 一致） ===== */
+  window.ucOpenEditModal = function(){
+    ucHideCard();
+    $('ucEditName').value = ucUser.name;
+    $('ucEditRole').innerHTML = ucAllRoles.map(function(r){
+      return '<option value="' + ucEsc(r) + '"' + (ucUser.roles.indexOf(r) > -1 ? ' selected' : '') + '>' + ucEsc(r) + '</option>';
+    }).join('');
+    $('ucEditPhone').value = ucUser.phoneRaw;
+    ucClearErrors();
+    $('ucEditModal').classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+    // 标注作用域（claude.md §7.9）：弹窗打开后标注范围限定在弹窗容器内
+    if (typeof window.pushAnnoScope === 'function') pushAnnoScope($('ucEditModalBox'));
+  };
+  window.ucCloseEditModal = function(){
+    $('ucEditModal').classList.add('hidden');
+    if (typeof window.popAnnoScope === 'function') popAnnoScope($('ucEditModalBox'));
+  };
+
+  function ucSetErr(inputId, errId, bad){
+    $(inputId).classList.toggle('error', bad);
+    $(errId).classList.toggle('show', bad);
+    return !bad;
+  }
+  function ucClearErrors(){
+    ['ucEditName','ucEditRole','ucEditPhone'].forEach(function(id){ $(id).classList.remove('error'); });
+    ['ucErrName','ucErrRole','ucErrPhone'].forEach(function(id){ $(id).classList.remove('show'); });
+  }
+
+  window.ucSubmitEdit = function(e){
+    e.preventDefault();
+    var name = $('ucEditName').value.trim();
+    var role = $('ucEditRole').value;
+    var phone = $('ucEditPhone').value.trim();
+    var ok = true;
+    ok = ucSetErr('ucEditName', 'ucErrName', name.length < 2 || name.length > 30) && ok;
+    ok = ucSetErr('ucEditRole', 'ucErrRole', !role) && ok;
+    ok = ucSetErr('ucEditPhone', 'ucErrPhone', !/^1[3-9]\d{9}$/.test(phone)) && ok;
+    if (!ok) return;
+    ucUser.name = name; ucUser.roles = [role]; ucUser.phoneRaw = phone;
+    ucRender();
+    // 可选页面钩子：账号信息.html 通过 ucAfterSave 同步页面数据
+    if (typeof window.ucAfterSave === 'function') window.ucAfterSave({ name: name, roles: ucUser.roles.slice(), phoneRaw: phone });
+    ucCloseEditModal();
+    ucToast('账号信息修改成功');
+  };
+
+  /* 页面 → 气泡的同步入口（账号信息.html 页内弹窗保存后调用） */
+  window.ucSyncUser = function(u){
+    if (!u) return;
+    if (u.name) ucUser.name = u.name;
+    if (u.roles) ucUser.roles = u.roles.slice();
+    if (u.phoneRaw) ucUser.phoneRaw = u.phoneRaw;
+    ucRender();
+  };
+
+  /* ===== TOAST ===== */
+  var ucToastTimer = null;
+  function ucToast(msg){
+    var el = $('ucToast');
+    el.textContent = msg; el.style.opacity = '1';
+    if (ucToastTimer) clearTimeout(ucToastTimer);
+    ucToastTimer = setTimeout(function(){ el.style.opacity = '0'; }, 2200);
+  }
+
+  /* ===== 交互标注接入：沿用页面 Portal 标注系统，编号接在现有最大号之后 ===== */
+  var ucAnnoDefs = [
+    {key:'trigger', title:'用户头像（气泡卡片触发）', desc:['触发：鼠标移入顶栏头像显示气泡卡片，移出头像/卡片 150ms 后隐藏','头像：28px 圆形，主色底 + 成员名称首字符；点击无动作','卡片：60px 头像居中、成员名称 + 编辑入口、角色标签、操作入口']},
+    {key:'edit',    title:'编辑账号信息',            desc:['触发：点击编辑图标打开「修改账号信息」弹窗（与账号信息页弹窗一致）','响应：打开弹窗时气泡卡片自动收起','保存成功后气泡内名称/角色实时同步']},
+    {key:'roles',   title:'所属角色标签',            desc:['样式：蓝色文字 + 浅蓝背景标签（primary / primary-bg），居中排列','规则：最多显示前 3 个角色，超过 3 个显示「+n」','「+n」hover 通过 title 提示展示剩余角色名称']},
+    {key:'account', title:'账号信息入口',            desc:['结构：图标 + 入口名称（居左）+ >（居右），hover 行高亮','触发：点击跳转 账号信息.html']},
+    {key:'log',     title:'操作日志入口',            desc:['结构：图标 + 入口名称（居左）+ >（居右），hover 行高亮','触发：点击跳转 操作日志.html（暂未开发，当前为建设中占位页）']},
+    {key:'logout',  title:'退出登录',                desc:['结构：图标 + 入口名称（居左）+ >（居右），上方分割线与常规操作区隔','触发：点击跳转 登录.html（原型内直接跳转，不做二次确认）']},
+    {key:'modal',   title:'修改账号信息弹窗',        desc:['字段：成员名称（必填 2-30 字）、所属角色（下拉单选）、绑定手机号（11 位校验）','规则：与 账号信息.html 修改弹窗完全一致；手机号修改后原号自动解绑','保存成功 Toast 提示，气泡卡片与账号信息页数据双向同步','标注作用域：弹窗打开时仅显示弹窗内标注（claude.md §7.9）']}
+  ];
+  function ucInitAnnos(){
+    if (typeof window.annotations !== 'object' || window.annotations === null) return;
+    var base = Math.max.apply(null, [0].concat(Object.keys(window.annotations).map(Number).filter(function(n){ return !isNaN(n); })));
+    ucAnnoDefs.forEach(function(d, i){
+      var n = base + 1 + i;
+      window.annotations[n] = { title: d.title, desc: d.desc };
+      var el = document.querySelector('[data-uc-anno="' + d.key + '"]');
+      if (el) el.setAttribute('data-anno', n);
+    });
+  }
+  function ucRefreshAnnos(){
+    if (typeof window.renderAnnoBadges === 'function') setTimeout(window.renderAnnoBadges, 50);
+  }
+
+  /* ===== INIT ===== */
+  document.addEventListener('DOMContentLoaded', function(){
+    ucRender();
+    ucInitAnnos();
+    if (window.lucide) lucide.createIcons();
   });
 })();
 </script>

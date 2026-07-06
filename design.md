@@ -255,7 +255,7 @@
 
 ### 5.9 表单
 
-- label（标签文字末尾带中文冒号 `：`）+ 控件；必填标 `*`（danger 色）；
+- label（标签文字末尾带中文冒号 `：`）+ 控件；必填标识 `*`（danger 色）位于标签文字**左侧**（即 `* 字段名：`）；
 - 控件默认宽度 400px、高度 30px（输入框/下拉框）；圆角 4px；边框 1px solid line；
 - 校验错误：控件描边转 danger + 下方 danger 字提示。
 
@@ -270,6 +270,12 @@
 - 单行输入框：计数器 `position:absolute` 定位在输入框内右侧，输入框 `padding-right` 预留 48px 空间，避免输入文字与计数器重叠；
 - 多行文本域：计数器独立一行，`text-align:right`，宽度与文本域一致；
 - 计数逻辑：以 `input.value.length` 为准，maxlength 由 `input` 属性直接提供或隐式声明。
+
+**Toggle 开关**：
+
+- 尺寸 40×22px，圆角 11px；圆钮 18px 白色；过渡 `.2s`；
+- 关闭态：底色 `#C7CAD1`，圆钮居左（`left:2px`）；
+- **开启态：底色 primary `#0066FF`**（非 success 绿），圆钮居右（`translateX(18px)`）。
 
 ### 5.10 卡片
 
