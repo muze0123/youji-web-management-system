@@ -215,13 +215,12 @@
           <p class="text-[14px] text-ink-sub mb-1">请先同步小铁数据</p>
           <p class="text-[12px] text-ink-muted">选择日期范围后点击"同步小铁数据"拉取对账信息</p>
         </div>
-      </div>
-
-      <!-- ===== 区块E: 分页 ===== -->
-      <div class="flex items-center justify-between flex-wrap gap-4 bg-white rounded-lg border border-line px-5 py-3" id="pagination">
-        <div class="flex items-center gap-1" id="pgNav"></div>
-        <div class="flex items-center gap-3">
-          <span class="text-[12px] text-ink-muted" id="pgStats"></span>
+        <!-- ===== 分页（design.md §5.5） ===== -->
+        <div class="flex items-center justify-end flex-wrap gap-4 pt-5" id="pagination">
+          <div class="pg-nav" id="pgNav"></div>
+          <span class="pg-select-wrap"><select class="pg-select" id="pageSize" onchange="changePageSize()"><option value="10" selected>10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
+          <span class="flex items-center gap-1 text-[12px] text-ink-body">跳至 <input class="pg-jump" id="pgJump" onkeydown="if(event.key==='Enter')jumpPage()"> 页</span>
+          <span class="pg-stats" id="pgStats"></span>
         </div>
       </div>
 
@@ -349,6 +348,7 @@ var detailData = {
    ================================================================ */
 var synced = false;
 var currentDiffTarget = null; // { type:'day'|'order', date, orderNo, diffAmt }
+var currentPage = 1, pageSize = 10;
 
 /* ================================================================
    RENDER — Summary Table
@@ -382,9 +382,11 @@ function renderSummary() {
   // Update KPIs
   updateKPIs(filtered);
 
+  var start = (currentPage-1)*pageSize, end = Math.min(start+pageSize, filtered.length);
+  var pageData = filtered.slice(start, end);
   var html = '';
-  for (var i = 0; i < filtered.length; i++) {
-    var r = filtered[i];
+  for (var i = 0; i < pageData.length; i++) {
+    var r = pageData[i];
     var diffCls = r.diffAmt !== 0 ? 'row-warning' : '';
     var diffColor = r.diffAmt > 0 ? 'text-danger' : (r.diffAmt < 0 ? 'text-warning' : 'text-ink-body');
     var diffDisplay = r.diffAmt !== 0 ? '<span class="font-mono font-semibold '+diffColor+'">'+(r.diffAmt>0?'+':'')+r.diffAmt.toFixed(2)+'</span>' : '<span class="font-mono text-ink-muted">0.00</span>';
@@ -407,9 +409,30 @@ function renderSummary() {
   }
   tbody.innerHTML = html;
   lucide.createIcons();
-  document.getElementById('pgStats').textContent = '共 '+filtered.length+' 条记录';
-  document.getElementById('pgNav').innerHTML = '';
+  renderSummaryPagination(filtered.length);
 }
+
+function renderSummaryPagination(total) {
+  var totalPages = Math.ceil(total/pageSize);
+  document.getElementById('pgStats').textContent = '共 '+total+' 条记录　第 '+currentPage+'/'+Math.max(1,totalPages)+' 页';
+  var nav = document.getElementById('pgNav'), html = '';
+  html += '<button class="pg-btn" ' + (currentPage<=1?'disabled':'') + ' onclick="goPage('+(currentPage-1)+')">‹</button>';
+  if (totalPages<=7) { for(var i=1;i<=totalPages;i++) html += '<button class="pg-btn'+(i===currentPage?' pg-current':'')+'" onclick="goPage('+i+')">'+i+'</button>'; }
+  else {
+    html += '<button class="pg-btn'+(1===currentPage?' pg-current':'')+'" onclick="goPage(1)">1</button>';
+    if(currentPage>3) html += '<span class="pg-ellipsis">…</span>';
+    var s=Math.max(2,currentPage-1),e=Math.min(totalPages-1,currentPage+1);
+    for(var i=s;i<=e;i++) html += '<button class="pg-btn'+(i===currentPage?' pg-current':'')+'" onclick="goPage('+i+')">'+i+'</button>';
+    if(currentPage<totalPages-2) html += '<span class="pg-ellipsis">…</span>';
+    html += '<button class="pg-btn'+(totalPages===currentPage?' pg-current':'')+'" onclick="goPage('+totalPages+')">'+totalPages+'</button>';
+  }
+  html += '<button class="pg-btn" ' + (currentPage>=totalPages?'disabled':'') + ' onclick="goPage('+(currentPage+1)+')">›</button>';
+  nav.innerHTML = html;
+}
+
+function goPage(p) { var t=Math.ceil((summaryData.filter(function(r){ var from=document.getElementById('dateFrom').value,to=document.getElementById('dateTo').value; return r.date>=from&&r.date<=to; })).length/pageSize); if(p<1||p>t)return; currentPage=p; renderSummary(); document.getElementById('mainContent').scrollTop=0; }
+function changePageSize() { pageSize = parseInt(document.getElementById('pageSize').value); currentPage=1; renderSummary(); }
+function jumpPage() { var p=parseInt(document.getElementById('pgJump').value); if(isNaN(p)||p<1){alert('请输入有效页码');return;} var t=Math.ceil((summaryData.filter(function(r){ var from=document.getElementById('dateFrom').value,to=document.getElementById('dateTo').value; return r.date>=from&&r.date<=to; })).length/pageSize); if(p>t){alert('请输入有效页码（最大'+t+'）');return;} currentPage=p; renderSummary(); document.getElementById('pgJump').value=''; }
 
 function resetKPIs() {
   ['kpiOrders','kpiLocal','kpiXt','kpiDiff','kpiDiffCnt'].forEach(function(id){
@@ -477,6 +500,7 @@ function syncData() {
     var now = new Date();
     var ts = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
     document.getElementById('syncLabel').textContent = '最近同步：'+ts;
+    currentPage = 1;
     renderSummary();
     lucide.createIcons();
     if (annoVisible) renderAnnoBadges();
@@ -484,6 +508,7 @@ function syncData() {
 }
 
 function onDateChange() {
+  currentPage = 1;
   if (synced) renderSummary();
 }
 
@@ -501,6 +526,7 @@ function openDetail(date) {
   document.getElementById('drawerTitle').textContent = date + ' · 当日明细（'+orders.length+' 笔）';
   document.getElementById('drawerOverlay').classList.add('show');
   document.getElementById('detailDrawer').classList.add('open');
+  pushAnnoScope(document.getElementById('detailDrawer'));
 
   var body = document.getElementById('drawerBody');
   var html = '';
@@ -580,6 +606,7 @@ function filterDetailDiff() { renderDetailRows(); }
 function closeDetailDrawer() {
   document.getElementById('drawerOverlay').classList.remove('show');
   document.getElementById('detailDrawer').classList.remove('open');
+  popAnnoScope(document.getElementById('detailDrawer'));
   if (annoVisible) { setTimeout(renderAnnoBadges, 50); }
 }
 
@@ -594,11 +621,13 @@ function openDiffMark(type, date, orderNo, diffAmt) {
   document.getElementById('diffReason').value = '';
   document.getElementById('diffRemark').value = '';
   document.getElementById('diffDialogOverlay').classList.add('show');
+  pushAnnoScope(document.getElementById('diffDialogOverlay'));
   if (annoVisible) { setTimeout(renderAnnoBadges, 100); }
 }
 
 function closeDiffDialog() {
   document.getElementById('diffDialogOverlay').classList.remove('show');
+  popAnnoScope(document.getElementById('diffDialogOverlay'));
   currentDiffTarget = null;
 }
 
@@ -657,9 +686,14 @@ var annotations = {
 };
 
 var annoVisible = true;
+var annoScopeStack = [];
+function pushAnnoScope(el){ var idx = annoScopeStack.indexOf(el); if (idx >= 0) annoScopeStack.splice(idx, 1); annoScopeStack.push(el); renderAnnoBadges(); }
+function popAnnoScope(el){ var idx = annoScopeStack.indexOf(el); if (idx >= 0) annoScopeStack.splice(idx, 1); renderAnnoBadges(); }
 function renderAnnoBadges(){
   var l=document.getElementById('annoLayer'); l.innerHTML=''; if(!annoVisible)return; var vw=window.innerWidth;
-  document.querySelectorAll('[data-anno]').forEach(function(el){
+  var scope = annoScopeStack.length > 0 ? annoScopeStack[annoScopeStack.length - 1] : null;
+  var container = scope || document;
+  container.querySelectorAll('[data-anno]').forEach(function(el){
     var id=el.getAttribute('data-anno'); if(el.offsetParent===null&&el.tagName!=='BODY')return;
     var t=resolveAnnoTarget(el,vw), r=t.getBoundingClientRect(); if(r.width===0&&r.height===0)return;
     var b=document.createElement('div'); b.className='anno-portal-badge'; b.textContent=id;
@@ -765,6 +799,19 @@ document.addEventListener('DOMContentLoaded',function(){
   .tk-pg-jump{font-size:12px;font-family:inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
   .tk-pg-jump:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
   .tk-pg-stats{color:#9DA2AC;white-space:nowrap;}
+  /* --- 内容区分页（design.md §5.5） --- */
+  .pg-nav{display:flex;gap:4px;}
+  .pg-btn{min-width:30px;height:30px;padding:0 8px;font-size:12px;font-weight:500;font-family:inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
+  .pg-btn:hover:not(.pg-current):not(:disabled){color:#0066FF;border-color:#0066FF;}
+  .pg-btn.pg-current{background:#0066FF;border-color:#0066FF;color:#fff;}
+  .pg-btn:disabled{color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;border-color:#DFE1E5;}
+  .pg-ellipsis{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;font-size:13px;}
+  .pg-select-wrap{position:relative;display:inline-flex;align-items:center;}
+  .pg-select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+  .pg-select{font-size:12px;font-family:inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;}
+  .pg-jump{font-size:12px;font-family:inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+  .pg-jump:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+  .pg-stats{color:#9DA2AC;white-space:nowrap;}
   /* --- Toast --- */
   #tkToast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1A1D24;color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:4px;z-index:1300;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
 </style>

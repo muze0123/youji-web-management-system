@@ -843,6 +843,7 @@ function openDrawer(ticketId) {
   document.body.style.overflow = 'hidden';
   lucide.createIcons();
   setTimeout(renderAnnoBadges, 100);
+  pushAnnoScope(document.getElementById('drawer'));
 }
 
 function closeDrawer() {
@@ -851,6 +852,7 @@ function closeDrawer() {
   document.body.style.overflow = '';
   currentTicket = null;
   renderAnnoBadges();
+  popAnnoScope(document.getElementById('drawer'));
 }
 
 function getNextStatuses(s) {
@@ -958,12 +960,14 @@ function openMarkModal() {
   document.body.style.overflow = 'hidden';
   lucide.createIcons();
   setTimeout(renderAnnoBadges, 100);
+  pushAnnoScope(document.getElementById('modalOverlay'));
 }
 
 function closeMarkModal() {
   document.getElementById('modalOverlay').classList.remove('show');
   document.body.style.overflow = '';
   renderAnnoBadges();
+  popAnnoScope(document.getElementById('modalOverlay'));
 }
 
 function submitMarkException() {
@@ -1015,11 +1019,13 @@ function showDialog(type, title, msg, cb, confirmText) {
   document.getElementById('dialogConfirmBtn').className = 'btn ' + (type === 'danger' ? 'btn-danger' : 'btn-primary');
   dialogCallback = cb;
   document.getElementById('dialogOverlay').classList.add('show');
+  pushAnnoScope(document.getElementById('dialogOverlay'));
 }
 
 function closeDialog() {
   document.getElementById('dialogOverlay').classList.remove('show');
   dialogCallback = null;
+  popAnnoScope(document.getElementById('dialogOverlay'));
 }
 
 function dialogConfirm() {
@@ -1271,12 +1277,27 @@ var annotations = {
 
 var annoVisible = true;
 
+var annoScopeStack = [];
+function pushAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  annoScopeStack.push(el);
+  renderAnnoBadges();
+}
+function popAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  renderAnnoBadges();
+}
+
 function renderAnnoBadges() {
   var layer = document.getElementById('annoLayer');
   layer.innerHTML = '';
   if (!annoVisible) return;
   var vw = window.innerWidth;
-  document.querySelectorAll('[data-anno]').forEach(function(el) {
+  var scope = annoScopeStack.length > 0 ? annoScopeStack[annoScopeStack.length - 1] : null;
+  var container = scope || document;
+  container.querySelectorAll('[data-anno]').forEach(function(el) {
     if (el.offsetParent === null && el.tagName !== 'BODY') return;
     var target = resolveAnnoTarget(el, vw);
     var rect = target.getBoundingClientRect();

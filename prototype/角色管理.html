@@ -386,7 +386,7 @@
     <!-- Footer (fixed) -->
     <div class="px-6 py-3 border-t border-line flex justify-end gap-3 flex-shrink-0">
       <button class="btn btn-default" onclick="closeRoleDrawer()">取消</button>
-      <button class="btn btn-primary" id="drawerSaveBtn" onclick="saveRole()">保存</button>
+      <button class="btn btn-primary" id="drawerSaveBtn" onclick="saveRole()" data-anno="19">保存</button>
     </div>
   </div>
 </div>
@@ -1190,11 +1190,15 @@ function openAddMemberModal() {
   renderDeptTree();
   renderSelectedMembers();
   updateAddMemberBtn();
+  // Scope annotations to modal (hide drawer/page-level badges)
+  pushAnnoScope(document.getElementById('addMemberModal'));
 }
 
 function closeAddMemberModal() {
   document.getElementById('addMemberModal').classList.add('hidden');
   addMemberSelected = {};
+  // Restore previous annotation scope
+  popAnnoScope(document.getElementById('addMemberModal'));
 }
 
 function renderDeptTree(filterKw) {
@@ -1554,12 +1558,14 @@ function openRoleDrawer(mode, roleId) {
   document.getElementById('permExpandAll').textContent = '▶ 全部展开';
   permExpandedAll = false;
 
-  // Re-render annotation badges
-  setTimeout(renderAnnoBadges, 100);
+  // Scope annotations to drawer panel (hide page-level badges)
+  pushAnnoScope(document.getElementById('roleDrawerPanel'));
 }
 
 function closeRoleDrawer() {
   document.getElementById('roleDrawerOverlay').classList.add('hidden');
+  // Restore page-level annotation scope
+  popAnnoScope(document.getElementById('roleDrawerPanel'));
 }
 
 function initPermState(node) {
@@ -2037,17 +2043,39 @@ var annotations = {
     '树节点：勾选部门可选中该部门下所有可选成员',
     '右侧：已选成员列表，点击×取消，支持清空',
     '确定按钮：未选择时置灰禁用'
+  ]},
+  19: { title: '保存按钮（抽屉弹窗）', desc: [
+    '点击触发前端表单校验：角色名称必填、数据权限必选',
+    '校验通过后保存角色信息，关闭抽屉弹窗',
+    '新增模式：创建角色并插入角色列表顶部（超级管理员下方），自动选中新角色',
+    '编辑模式：更新角色信息，刷新右侧详情区',
+    '校验失败：对应字段标红并显示错误提示，抽屉不关闭'
   ]}
 };
 
 var annoVisible = true;
+var annoScopeStack = []; // Stack of container elements; top = current annotation scope; empty = whole page
+
+function pushAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  annoScopeStack.push(el);
+  renderAnnoBadges();
+}
+function popAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  renderAnnoBadges();
+}
 
 function renderAnnoBadges() {
   var layer = document.getElementById('annoLayer');
   layer.innerHTML = '';
   if (!annoVisible) return;
   var vw = window.innerWidth;
-  document.querySelectorAll('[data-anno]').forEach(function(el) {
+  var scope = annoScopeStack.length > 0 ? annoScopeStack[annoScopeStack.length - 1] : null;
+  var container = scope || document;
+  container.querySelectorAll('[data-anno]').forEach(function(el) {
     var id = el.getAttribute('data-anno');
     if (el.offsetParent === null && el.tagName !== 'BODY') return;
     var target = resolveAnnoTarget(el, vw);

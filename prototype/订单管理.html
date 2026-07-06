@@ -189,17 +189,14 @@
           <p class="text-[14px] text-ink-sub">无符合条件的订单</p>
           <p class="text-[12px] text-ink-muted mt-1">请调整筛选条件或重置</p>
         </div>
-      </div>
-
-      <!-- ===== 区块E: 分页 ===== -->
-      <div class="flex items-center justify-between flex-wrap gap-4 bg-white rounded-lg border border-line px-5 py-3 mt-4" id="pagination" data-anno="5">
-        <div class="flex items-center gap-1" id="pgNav"></div>
-        <div class="flex items-center gap-3">
-          <span class="text-[12px] text-ink-muted" id="pgStats">共 0 条记录</span>
-          <div class="select-wrap"><select class="filter-ctrl-select" id="pageSize" onchange="changePageSize()" style="height:30px;font-size:13px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;"><option value="10">10 条/页</option><option value="20" selected>20 条/页</option><option value="50">50 条/页</option></select></div>
+        <!-- ===== 分页（design.md §5.5） ===== -->
+        <div class="flex items-center justify-end flex-wrap gap-4 pt-5" id="pagination" data-anno="5">
+          <div class="pg-nav" id="pgNav"></div>
+          <span class="pg-select-wrap"><select class="pg-select" id="pageSize" onchange="changePageSize()"><option value="10">10条/页</option><option value="20" selected>20条/页</option><option value="50">50条/页</option></select></span>
+          <span class="flex items-center gap-1 text-[12px] text-ink-body">跳至 <input class="pg-jump" id="pgJump" onkeydown="if(event.key==='Enter')jumpPage()"> 页</span>
+          <span class="pg-stats" id="pgStats">共 0 条记录</span>
         </div>
       </div>
-      <style>.select-wrap{position:relative;display:inline-flex;align-items:center;}.select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}</style>
     </div>
   </main>
 </div>
@@ -359,22 +356,23 @@ function renderPagination() {
   var total = Math.ceil(filteredOrders.length/pageSize);
   document.getElementById('pgStats').textContent = '共 '+filteredOrders.length+' 条记录　第 '+currentPage+'/'+Math.max(1,total)+' 页';
   var nav = document.getElementById('pgNav'), html = '';
-  html += '<button onclick="goPage('+(currentPage-1)+')" style="min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;'+(currentPage<=1?'color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;':'color:#3A3F4A;background:#fff;')+'border:1px solid #DFE1E5;border-radius:4px;">‹</button>';
-  if (total<=7) { for(var i=1;i<=total;i++) html += '<button onclick="goPage('+i+')" style="min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;'+(i===currentPage?'background:#0066FF;border-color:#0066FF;color:#fff;':'color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;')+'border-radius:4px;">'+i+'</button>'; }
+  html += '<button class="pg-btn" ' + (currentPage<=1?'disabled':'') + ' onclick="goPage('+(currentPage-1)+')">‹</button>';
+  if (total<=7) { for(var i=1;i<=total;i++) html += '<button class="pg-btn'+(i===currentPage?' pg-current':'')+'" onclick="goPage('+i+')">'+i+'</button>'; }
   else {
-    html += '<button onclick="goPage(1)" style="min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;'+(1===currentPage?'background:#0066FF;border-color:#0066FF;color:#fff;':'color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;')+'border-radius:4px;">1</button>';
-    if(currentPage>3) html += '<span style="min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;">…</span>';
+    html += '<button class="pg-btn'+(1===currentPage?' pg-current':'')+'" onclick="goPage(1)">1</button>';
+    if(currentPage>3) html += '<span class="pg-ellipsis">…</span>';
     var s=Math.max(2,currentPage-1),e=Math.min(total-1,currentPage+1);
-    for(var i=s;i<=e;i++) html += '<button onclick="goPage('+i+')" style="min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;'+(i===currentPage?'background:#0066FF;border-color:#0066FF;color:#fff;':'color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;')+'border-radius:4px;">'+i+'</button>';
-    if(currentPage<total-2) html += '<span style="min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;">…</span>';
-    html += '<button onclick="goPage('+total+')" style="min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;'+(total===currentPage?'background:#0066FF;border-color:#0066FF;color:#fff;':'color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;')+'border-radius:4px;">'+total+'</button>';
+    for(var i=s;i<=e;i++) html += '<button class="pg-btn'+(i===currentPage?' pg-current':'')+'" onclick="goPage('+i+')">'+i+'</button>';
+    if(currentPage<total-2) html += '<span class="pg-ellipsis">…</span>';
+    html += '<button class="pg-btn'+(total===currentPage?' pg-current':'')+'" onclick="goPage('+total+')">'+total+'</button>';
   }
-  html += '<button onclick="goPage('+(currentPage+1)+')" style="min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;'+(currentPage>=total?'color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;':'color:#3A3F4A;background:#fff;')+'border:1px solid #DFE1E5;border-radius:4px;">›</button>';
+  html += '<button class="pg-btn" ' + (currentPage>=total?'disabled':'') + ' onclick="goPage('+(currentPage+1)+')">›</button>';
   nav.innerHTML = html;
 }
 
 function goPage(p) { var t=Math.ceil(filteredOrders.length/pageSize); if(p<1||p>t)return; currentPage=p; renderTable(); renderPagination(); document.getElementById('mainContent').scrollTop=0; }
 function changePageSize() { pageSize = parseInt(document.getElementById('pageSize').value); currentPage=1; renderTable(); renderPagination(); }
+function jumpPage() { var p=parseInt(document.getElementById('pgJump').value); if(isNaN(p)||p<1){alert('请输入有效页码');return;} var t=Math.ceil(filteredOrders.length/pageSize); if(p>t){alert('请输入有效页码（最大'+t+'）');return;} currentPage=p; renderTable(); renderPagination(); document.getElementById('pgJump').value=''; }
 
 /* ================================================================
    EXPORT
@@ -444,12 +442,13 @@ function openDetail(orderNo) {
 
   body.innerHTML = html;
   lucide.createIcons();
-  if (annoVisible) setTimeout(renderAnnoBadges, 100);
+  pushAnnoScope(document.getElementById('detailDrawer'));
 }
 
 function closeDetail() {
   document.getElementById('detailOverlay').classList.remove('show');
   document.getElementById('detailDrawer').classList.remove('open');
+  popAnnoScope(document.getElementById('detailDrawer'));
   selectedOrder = null;
   if (annoVisible) setTimeout(renderAnnoBadges, 50);
 }
@@ -461,11 +460,13 @@ function openAnomalyDialog(orderNo) {
   anomalyTarget = orderNo;
   document.getElementById('anomalyOrderNo').textContent = orderNo;
   document.getElementById('anomalyDialogOverlay').classList.add('show');
+  pushAnnoScope(document.getElementById('anomalyDialogOverlay'));
 }
 
 function closeAnomalyDialog() {
   document.getElementById('anomalyDialogOverlay').classList.remove('show');
   anomalyTarget = null;
+  popAnnoScope(document.getElementById('anomalyDialogOverlay'));
 }
 
 function markAnomaly() {
@@ -512,9 +513,23 @@ var annotations = {
 };
 
 var annoVisible = true;
+var annoScopeStack = [];
+function pushAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  annoScopeStack.push(el);
+  renderAnnoBadges();
+}
+function popAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  renderAnnoBadges();
+}
 function renderAnnoBadges(){
   var l=document.getElementById('annoLayer');l.innerHTML='';if(!annoVisible)return;var vw=window.innerWidth;
-  document.querySelectorAll('[data-anno]').forEach(function(el){
+  var scope = annoScopeStack.length > 0 ? annoScopeStack[annoScopeStack.length - 1] : null;
+  var container = scope || document;
+  container.querySelectorAll('[data-anno]').forEach(function(el){
     var id=el.getAttribute('data-anno');if(el.offsetParent===null&&el.tagName!=='BODY')return;
     var t=resolveAnnoTarget(el,vw),r=t.getBoundingClientRect();if(r.width===0&&r.height===0)return;
     var b=document.createElement('div');b.className='anno-portal-badge';b.textContent=id;
@@ -621,6 +636,19 @@ document.addEventListener('DOMContentLoaded',function(){
   .tk-pg-jump{font-size:12px;font-family:inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
   .tk-pg-jump:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
   .tk-pg-stats{color:#9DA2AC;white-space:nowrap;}
+  /* --- 内容区分页（design.md §5.5） --- */
+  .pg-nav{display:flex;gap:4px;}
+  .pg-btn{min-width:30px;height:30px;padding:0 8px;font-size:12px;font-weight:500;font-family:inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
+  .pg-btn:hover:not(.pg-current):not(:disabled){color:#0066FF;border-color:#0066FF;}
+  .pg-btn.pg-current{background:#0066FF;border-color:#0066FF;color:#fff;}
+  .pg-btn:disabled{color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;border-color:#DFE1E5;}
+  .pg-ellipsis{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;font-size:13px;}
+  .pg-select-wrap{position:relative;display:inline-flex;align-items:center;}
+  .pg-select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+  .pg-select{font-size:12px;font-family:inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;}
+  .pg-jump{font-size:12px;font-family:inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+  .pg-jump:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+  .pg-stats{color:#9DA2AC;white-space:nowrap;}
   /* --- Toast --- */
   #tkToast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1A1D24;color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:4px;z-index:1300;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
 </style>

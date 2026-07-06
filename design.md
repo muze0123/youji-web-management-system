@@ -171,11 +171,15 @@
 
 **筛选字段顺序建议**：搜索框放第一位，日期范围合并为一个字段（`创建时间：[开始时间 - 结束时间]`），其余按业务优先级排列。一行 4 个字段，超出 4 个自动换行。
 
+**搜索框清空按钮**：搜索输入框在有内容时，右侧显示清空按钮 `✕`（位于搜索图标对面），点击后清空输入内容并保持焦点；无内容时按钮隐藏。清空按钮样式：`position:absolute;right:8px;top:50%;transform:translateY(-50%);width:16px;height:16px;font-size:12px;color:#9DA2AC;cursor:pointer`，hover 时颜色变深 `#6E7685`。
+
 ### 5.5 分页
 
 > 严格对齐设计系统.html 中的分页器组件。
 
-**容器**：`display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:16px;font-size:12px`，位于 `data-table` 下方（与表格同在一个滚动容器内），通过 `pt-5`（20px）与表格保持间距。
+**容器**：`display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:16px;font-size:12px`。
+
+**位置**：分页器放在数据表格所在区块卡片（`.bg-white.rounded-lg.border`）内部，位于表格（`.overflow-x-auto`）的右下方，通过 `pt-5`（20px）与上方表格区域保持间距。分页器**不是**独立的区块卡片，而应与表格同属一个卡片区块。
 
 **布局（三区，居右）**：
 
@@ -254,6 +258,18 @@
 - label（标签文字末尾带中文冒号 `：`）+ 控件；必填标 `*`（danger 色）；
 - 控件默认宽度 400px、高度 30px（输入框/下拉框）；圆角 4px；边框 1px solid line；
 - 校验错误：控件描边转 danger + 下方 danger 字提示。
+
+**字符计数器 `x/y`**（全局适用）：
+
+| 控件类型 | 计数器位置 | 说明 |
+|---------|-----------|------|
+| 单行文本输入框 `<input>` | 控件内**右侧** | `x` 为当前已输入字符数，`y` 为最大字符数（`maxlength`），输入时实时更新 |
+| 多行文本域 `<textarea>` | 控件外**右下侧** | 同上，位于文本域下方、右对齐 |
+
+- 计数器样式：字号 12px，颜色 `ink-muted`（`#9DA2AC`），格式 `x/y`（如 `0/20`、`15/200`）；
+- 单行输入框：计数器 `position:absolute` 定位在输入框内右侧，输入框 `padding-right` 预留 48px 空间，避免输入文字与计数器重叠；
+- 多行文本域：计数器独立一行，`text-align:right`，宽度与文本域一致；
+- 计数逻辑：以 `input.value.length` 为准，maxlength 由 `input` 属性直接提供或隐式声明。
 
 ### 5.10 卡片
 

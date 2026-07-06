@@ -99,6 +99,22 @@
     .form-error{display:block;color:#D9001B;font-size:12px;margin-top:4px;}
     .form-control-wrap{display:flex;flex-direction:column;width:400px;}
 
+    /* ===== Multi-Select (负责人) ===== */
+    .ms-container{display:flex;align-items:center;width:400px;min-height:30px;padding:2px 30px 2px 6px;border:1px solid #DFE1E5;border-radius:4px;background:#fff;cursor:pointer;position:relative;flex-wrap:wrap;gap:3px;box-sizing:border-box;transition:border-color .15s;}
+    .ms-container.focused{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .ms-chips{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:22px;}
+    .ms-placeholder{color:#9DA2AC;font-size:13px;user-select:none;}
+    .ms-chip{display:inline-flex;align-items:center;gap:3px;padding:0 6px;font-size:12px;background:#E6F0FF;color:#0066FF;border-radius:3px;line-height:22px;white-space:nowrap;user-select:none;}
+    .ms-chip-x{cursor:pointer;font-size:14px;line-height:1;opacity:.55;padding:0 1px;}
+    .ms-chip-x:hover{opacity:1;}
+    .ms-arrow{position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;transition:transform .2s;color:#9DA2AC;}
+    .ms-arrow.open{transform:translateY(-50%) rotate(180deg);}
+    .ms-dropdown{position:absolute;top:100%;left:0;margin-top:4px;width:400px;max-height:176px;overflow-y:auto;background:#fff;border:1px solid #DFE1E5;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:20;padding:4px 0;display:none;}
+    .ms-dropdown.open{display:block;}
+    .ms-item{display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:13px;color:#3A3F4A;cursor:pointer;transition:background .12s;}
+    .ms-item:hover{background:#F3F4F6;}
+    .ms-item input[type="checkbox"]{width:14px;height:14px;accent-color:#0066FF;cursor:pointer;}
+
     /* ===== Annotation ===== */
 .anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
 .anno-portal-badge:hover{transform:scale(1.2);}
@@ -272,8 +288,14 @@
       </div>
       <div class="form-group">
         <label>负责人：</label>
-        <div class="form-control-wrap">
-          <select id="deptLeader" class="form-select" multiple size="4"></select>
+        <div class="form-control-wrap" style="position:relative;">
+          <div id="deptLeaderWrap" class="ms-container" onclick="toggleLeaderDropdown(event)">
+            <div id="deptLeaderChips" class="ms-chips">
+              <span class="ms-placeholder" id="deptLeaderPlaceholder">请选择负责人</span>
+            </div>
+            <i data-lucide="chevron-down" id="msArrow" class="ms-arrow w-[14px] h-[14px]"></i>
+          </div>
+          <div id="deptLeaderDropdown" class="ms-dropdown"></div>
         </div>
       </div>
     </div>
@@ -423,6 +445,64 @@ const memberOptions = [
   { id:'m4', name:'赵敏' }, { id:'m5', name:'钱明' }, { id:'m6', name:'周磊' }, { id:'m7', name:'吴芳' }
 ];
 
+/* ===== Multi-Select State & Logic ===== */
+let selectedLeaders = [];
+function renderLeaderDropdown() {
+  var dd = document.getElementById('deptLeaderDropdown');
+  dd.innerHTML = memberOptions.map(function(m) {
+    var checked = selectedLeaders.indexOf(m.id) !== -1 ? ' checked' : '';
+    return '<label class="ms-item"><input type="checkbox" value="' + m.id + '"' + checked + ' onchange="onLeaderCheckbox(this)">' + m.name + '</label>';
+  }).join('');
+}
+function renderLeaderChips() {
+  var chips = document.getElementById('deptLeaderChips');
+  var ph = document.getElementById('deptLeaderPlaceholder');
+  if (selectedLeaders.length === 0) {
+    chips.innerHTML = ''; chips.appendChild(ph);
+    return;
+  }
+  if (ph.parentNode) ph.remove();
+  chips.innerHTML = selectedLeaders.map(function(id) {
+    var m = memberOptions.find(function(x) { return x.id === id; });
+    return '<span class="ms-chip">' + (m ? m.name : id) + '<span class="ms-chip-x" data-remove="' + id + '">&times;</span></span>';
+  }).join('');
+}
+function onLeaderCheckbox(cb) {
+  if (cb.checked) { selectedLeaders.push(cb.value); }
+  else { selectedLeaders = selectedLeaders.filter(function(id) { return id !== cb.value; }); }
+  renderLeaderChips();
+}
+function toggleLeaderDropdown(e) {
+  if (e && e.target.closest('.ms-chip-x')) return;
+  var dd = document.getElementById('deptLeaderDropdown');
+  var wrap = document.getElementById('deptLeaderWrap');
+  var arrow = document.getElementById('msArrow');
+  var isOpen = dd.classList.contains('open');
+  if (isOpen) { closeLeaderDropdown(); }
+  else { dd.classList.add('open'); wrap.classList.add('focused'); arrow.classList.add('open'); }
+}
+function closeLeaderDropdown() {
+  var dd = document.getElementById('deptLeaderDropdown');
+  var wrap = document.getElementById('deptLeaderWrap');
+  var arrow = document.getElementById('msArrow');
+  dd.classList.remove('open'); wrap.classList.remove('focused'); arrow.classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('deptLeaderWrap');
+  var dd = document.getElementById('deptLeaderDropdown');
+  if (!wrap || !dd) return;
+  if (!wrap.contains(e.target) && !dd.contains(e.target)) { closeLeaderDropdown(); }
+});
+document.getElementById('deptLeaderChips').addEventListener('click', function(e) {
+  var x = e.target.closest('.ms-chip-x');
+  if (!x) return;
+  e.stopPropagation();
+  var id = x.getAttribute('data-remove');
+  selectedLeaders = selectedLeaders.filter(function(v) { return v !== id; });
+  renderLeaderChips();
+  renderLeaderDropdown();
+});
+
 let searchKeyword = '';
 let currentDeptAction = null;
 let currentDeleteDeptId = null;
@@ -550,7 +630,7 @@ function renderTable() {
 function confirmDeleteDept(deptId) {
   if (deptId === 'd0') { showToast('根部门不能删除', 'warning'); return; }
   currentDeleteDeptId = deptId;
-  document.getElementById('deleteModalOverlay').classList.remove('hidden'); setTimeout(renderAnnoBadges, 200);
+  document.getElementById('deleteModalOverlay').classList.remove('hidden'); pushAnnoScope(document.getElementById('deleteModalOverlay')); setTimeout(renderAnnoBadges, 200);
 }
 
 /* ================================================================
@@ -562,7 +642,6 @@ function openDeptDialog(type, deptId) {
   var nameEl = document.getElementById('deptName');
   var errEl = document.getElementById('deptNameError');
   var parentSel = document.getElementById('deptParent');
-  var leaderSel = document.getElementById('deptLeader');
 
   titleEl.textContent = type === 'edit' ? '编辑部门' : (deptId ? '添加子部门' : '添加部门');
   errEl.classList.add('hidden');
@@ -578,31 +657,29 @@ function openDeptDialog(type, deptId) {
   }
   addOpts(deptTreeData, 0);
 
-  leaderSel.innerHTML = '';
-  memberOptions.forEach(function(m) { leaderSel.innerHTML += '<option value="' + m.id + '">' + m.name + '</option>'; });
-
+  closeLeaderDropdown();
   if (type === 'edit') {
     var dept = findDeptById(deptTreeData, deptId);
     if (dept) {
       nameEl.value = dept.name;
       parentSel.value = dept.parentId || 'd0';
-      var leaderIds = getLeaderIds(dept.leaders);
-      Array.from(leaderSel.options).forEach(function(o) { o.selected = leaderIds.indexOf(o.value) !== -1; });
+      selectedLeaders = getLeaderIds(dept.leaders);
     }
   } else {
     nameEl.value = '';
     parentSel.value = deptId || 'd0';
-    Array.from(leaderSel.options).forEach(function(o) { o.selected = false; });
+    selectedLeaders = [];
   }
-  document.getElementById('deptModalOverlay').classList.remove('hidden'); setTimeout(renderAnnoBadges, 100);
+  renderLeaderDropdown();
+  renderLeaderChips();
+  document.getElementById('deptModalOverlay').classList.remove('hidden'); pushAnnoScope(document.getElementById('deptModalOverlay')); setTimeout(renderAnnoBadges, 100);
 }
-function closeDeptModal() { document.getElementById("deptModalOverlay").classList.add("hidden"); renderAnnoBadges(); }
+function closeDeptModal() { document.getElementById("deptModalOverlay").classList.add("hidden"); popAnnoScope(document.getElementById("deptModalOverlay")); }
 
 function confirmDept() {
   var name = document.getElementById('deptName').value.trim();
   var parentId = document.getElementById('deptParent').value;
-  var leaderSel = document.getElementById('deptLeader');
-  var leaderIds = Array.from(leaderSel.selectedOptions).map(function(o) { return o.value; });
+  var leaderIds = selectedLeaders.slice();
   var errEl = document.getElementById('deptNameError');
   var nameInput = document.getElementById('deptName');
 
@@ -635,7 +712,7 @@ function confirmDept() {
 /* ================================================================
    DELETE MODAL
    ================================================================ */
-function closeDeleteModal() { document.getElementById("deleteModalOverlay").classList.add("hidden"); renderAnnoBadges(); }
+function closeDeleteModal() { document.getElementById("deleteModalOverlay").classList.add("hidden"); popAnnoScope(document.getElementById("deleteModalOverlay")); }
 function confirmDelete() {
   deleteDeptFromTree(deptTreeData, currentDeleteDeptId);
   showToast('删除成功', 'success');
@@ -710,12 +787,26 @@ const annotations = {
 };
 
 var annoVisible = true;
+var annoScopeStack = [];
+function pushAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  annoScopeStack.push(el);
+  renderAnnoBadges();
+}
+function popAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  renderAnnoBadges();
+}
 function renderAnnoBadges() {
   var layer = document.getElementById('annoLayer');
   layer.innerHTML = '';
   if (!annoVisible) return;
   var vw = window.innerWidth;
-  document.querySelectorAll('[data-anno]').forEach(function(el) {
+  var scope = annoScopeStack.length > 0 ? annoScopeStack[annoScopeStack.length - 1] : null;
+  var container = scope || document;
+  container.querySelectorAll('[data-anno]').forEach(function(el) {
     var id = el.getAttribute('data-anno');
     var target = resolveAnnoTarget(el, vw);
     var rect = target.getBoundingClientRect();

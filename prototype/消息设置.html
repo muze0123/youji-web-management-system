@@ -15,9 +15,7 @@
     .toggle-sw.on .toggle-slider{left:19px;}
     .data-table{width:100%;border-collapse:collapse;}
     .data-table th{text-align:left;font-weight:500;font-size:13px;color:#6E7685;padding:0 12px;height:48px;background:#F0F1F3;border-bottom:1px solid #DFE1E5;}
-    .data-table th:first-child{padding-left:0;}
     .data-table td{padding:0 12px;height:56px;font-size:14px;color:#1A1D24;border-bottom:1px solid #F5F5F5;}
-    .data-table td:first-child{padding-left:0;}
     .data-table tr:hover td{background:#FAFAFA;}
     .data-table tr:last-child td{border-bottom:none;}
     .tooltip-icon{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#BFBFBF;color:#fff;font-size:10px;cursor:help;font-family:monospace;margin-left:4px;}
@@ -282,20 +280,21 @@ function openEdit(id){
     {v:'公众号推送',d:false,l:'公众号推送'}
   ].map(m=>'<label class="flex items-center gap-1.5 text-[13px] text-ink-body cursor-pointer"><input type="checkbox" value="'+m.v+'" '+(editForm.methods.includes(m.v)?'checked':'')+' '+(m.d?'disabled':'')+' onchange="toggleMethod(\''+m.v+'\',this.checked)"> '+m.l+'</label>').join('');
   document.getElementById('editModalOverlay').classList.remove('hidden');
+  pushAnnoScope(document.getElementById('editModalOverlay'));
 }
 function toggleRole(v,checked){ if(checked) editForm.roles.push(v); else{ const i=editForm.roles.indexOf(v); if(i>-1)editForm.roles.splice(i,1); } }
 function toggleMethod(v,checked){
   if(v==='公众号推送'&&checked){ showToast('请先绑定公众号','warning'); showWechatModal(); return; }
   if(checked) editForm.methods.push(v); else{ const i=editForm.methods.indexOf(v); if(i>-1)editForm.methods.splice(i,1); }
 }
-function closeEditModal(){ document.getElementById('editModalOverlay').classList.add('hidden'); }
+function closeEditModal(){ document.getElementById('editModalOverlay').classList.add('hidden'); popAnnoScope(document.getElementById('editModalOverlay')); }
 function saveEdit(){
   if(editForm.roles.length===0){ showToast('配置角色不能为空','error'); return; }
   if(editingItem){ editingItem.roles = [...editForm.roles]; editingItem.methods = [...editForm.methods]; }
   closeEditModal(); renderTable(); showToast('保存成功','success');
 }
-function showWechatModal(){ document.getElementById('wechatModalOverlay').classList.remove('hidden'); }
-function closeWechatModal(){ document.getElementById('wechatModalOverlay').classList.add('hidden'); }
+function showWechatModal(){ document.getElementById('wechatModalOverlay').classList.remove('hidden'); pushAnnoScope(document.getElementById('wechatModalOverlay')); }
+function closeWechatModal(){ document.getElementById('wechatModalOverlay').classList.add('hidden'); popAnnoScope(document.getElementById('wechatModalOverlay')); }
 
 /* ===== TOAST ===== */
 let toastTimer=null;
@@ -313,12 +312,26 @@ const annotations={
   2:{title:'消息配置表格',desc:['消息标题/说明：14种游寄业务消息类型（订单/柜机/异常件/行李/授权）','气泡提醒开关：控制桌面端右上角气泡弹窗通知（5秒自动消失）','消息中心提醒开关：控制消息中心是否记录该类型通知','联动规则：开气泡→自动开消息中心；关消息中心→自动关气泡','通知方式：系统消息（默认必选）/ 公众号推送（需先绑定）','通知对象：所属运营 / 运营主管 / 系统管理员','编辑：可修改每个消息类型的推送角色和推送方式']},
 };
 var annoVisible = true;
+var annoScopeStack = [];
+function pushAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  annoScopeStack.push(el);
+  renderAnnoBadges();
+}
+function popAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  renderAnnoBadges();
+}
 function renderAnnoBadges() {
   var layer = document.getElementById('annoLayer');
   layer.innerHTML = '';
   if (!annoVisible) return;
   var vw = window.innerWidth;
-  document.querySelectorAll('[data-anno]').forEach(function(el) {
+  var scope = annoScopeStack.length > 0 ? annoScopeStack[annoScopeStack.length - 1] : null;
+  var container = scope || document;
+  container.querySelectorAll('[data-anno]').forEach(function(el) {
     var id = el.getAttribute('data-anno');
     if (el.offsetParent === null && el.tagName !== 'BODY') return;
     var target = resolveAnnoTarget(el, vw);

@@ -176,7 +176,6 @@
         <div class="flex items-center border-b border-line" data-anno="3">
           <div class="tab-item active" data-tab="price" onclick="switchTab('price')">价格配置</div>
           <div class="tab-item" data-tab="dest" onclick="switchTab('dest')">目的地配置</div>
-          <div class="tab-item" data-tab="perm" onclick="switchTab('perm')">权限管理</div>
         </div>
       </div>
 
@@ -293,27 +292,12 @@
               <tbody id="destTbody"></tbody>
             </table>
           </div>
-        </div>
-      </div>
-
-      <!-- ============ TAB 3: PERMISSION MANAGEMENT ============ -->
-      <div id="tabPerm" class="hidden">
-
-        <!-- Add button -->
-        <div class="bg-white rounded-lg border border-line p-4 mb-4" data-anno="11">
-          <div class="flex items-center gap-3">
-            <button class="btn btn-primary btn-sm" onclick="openAccountModal()"><i data-lucide="user-plus" class="w-[13px] h-[13px]"></i> 新增账号</button>
-            <span class="text-[12px] text-ink-muted" id="acctCount"></span>
-          </div>
-        </div>
-
-        <!-- Account table -->
-        <div class="bg-white rounded-lg border border-line p-5 md:p-6" data-anno="12">
-          <div class="overflow-x-auto">
-            <table class="data-table" id="acctTable">
-              <thead><tr><th>账号</th><th>姓名/备注</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
-              <tbody id="acctTbody"></tbody>
-            </table>
+          <!-- 目的地分页（design.md §5.5） -->
+          <div class="flex items-center justify-end flex-wrap gap-4 pt-5" id="destPagination">
+            <div class="pg-nav" id="destPgNav"></div>
+            <span class="pg-select-wrap"><select class="pg-select" id="destPageSize" onchange="destChangePageSize()"><option value="5">5条/页</option><option value="10" selected>10条/页</option><option value="20">20条/页</option></select></span>
+            <span class="flex items-center gap-1 text-[12px] text-ink-body">跳至 <input class="pg-jump" id="destPgJump" onkeydown="if(event.key==='Enter')destJumpPage()"> 页</span>
+            <span class="pg-stats" id="destPgStats"></span>
           </div>
         </div>
       </div>
@@ -324,7 +308,7 @@
 
 <!-- ===== DESTINATION MODAL ===== -->
 <div class="modal-overlay" id="destModalOverlay" onclick="closeDestModal()">
-  <div class="modal" onclick="event.stopPropagation()" data-anno="13">
+  <div class="modal" onclick="event.stopPropagation()" data-anno="11">
     <div class="modal-header"><h3 class="text-[16px] font-semibold text-ink-title" id="destModalTitle">新增目的地</h3><button onclick="closeDestModal()" style="font-size:20px;color:#9DA2AC;cursor:pointer;background:none;border:none;">×</button></div>
     <div class="modal-body">
       <div class="flex items-center mb-4"><span class="form-label" style="width:100px;">目的地名称</span><span class="field-req">*</span><input class="form-input" id="destName" style="width:350px;"></div>
@@ -335,21 +319,6 @@
       <div class="flex items-center"><span class="form-label" style="width:100px;">启用状态</span><label class="toggle-sw"><input type="checkbox" id="destEnabled" checked><span class="toggle-slider"></span></label></div>
     </div>
     <div class="modal-footer"><button class="btn btn-default" onclick="closeDestModal()">取消</button><button class="btn btn-primary" onclick="saveDest()">保存</button></div>
-  </div>
-</div>
-
-<!-- ===== ACCOUNT MODAL ===== -->
-<div class="modal-overlay" id="acctModalOverlay" onclick="closeAcctModal()">
-  <div class="modal" onclick="event.stopPropagation()" data-anno="14">
-    <div class="modal-header"><h3 class="text-[16px] font-semibold text-ink-title" id="acctModalTitle">新增账号</h3><button onclick="closeAcctModal()" style="font-size:20px;color:#9DA2AC;cursor:pointer;background:none;border:none;">×</button></div>
-    <div class="modal-body">
-      <div class="flex items-center mb-4"><span class="form-label" style="width:100px;">登录账号</span><span class="field-req">*</span><input class="form-input" id="acctName" placeholder="登录用户名" style="width:350px;"></div>
-      <div class="flex items-center mb-4"><span class="form-label" style="width:100px;">姓名/备注</span><span class="field-req">*</span><input class="form-input" id="acctLabel" placeholder="标识使用人" style="width:350px;"></div>
-      <div class="flex items-center mb-4"><span class="form-label" style="width:100px;">角色</span><span class="field-req">*</span><div class="select-wrap"><select class="form-select" id="acctRole" style="width:350px;"><option value="">请选择</option><option value="管理员">管理员</option><option value="运营员">运营员</option></select></div></div>
-      <div class="flex items-center mb-4" id="acctPwdRow"><span class="form-label" style="width:100px;">初始密码</span><span class="field-req">*</span><input class="form-input" id="acctPwd" placeholder="至少8位，含字母+数字" style="width:350px;"></div>
-      <div class="flex items-center"><span class="form-label" style="width:100px;">状态</span><label class="toggle-sw"><input type="checkbox" id="acctEnabled" checked><span class="toggle-slider"></span></label></div>
-    </div>
-    <div class="modal-footer"><button class="btn btn-default" onclick="closeAcctModal()">取消</button><button class="btn btn-primary" onclick="saveAcct()">保存</button></div>
   </div>
 </div>
 
@@ -411,7 +380,7 @@
 var currentTab = 'price';
 var isDirty = false;
 var editingDestId = null;
-var editingAcctId = null;
+var destCurrentPage = 1, destPageSize = 10;
 
 /* ================================================================
    MOCK DATA — Destinations
@@ -427,18 +396,6 @@ var destinations = [
   { id:'d8', name:'杭州站（城站）', addr:'杭州市上城区环城东路1号', type:'车站', fee:15, eta:'约3小时内送达', enabled:true },
   { id:'d9', name:'千岛湖度假酒店', addr:'杭州市淳安县千岛湖镇', type:'酒店', fee:50, eta:'约8小时内送达', enabled:true },
   { id:'d10', name:'宋城景区', addr:'杭州市西湖区之江路148号', type:'景区', fee:25, eta:'约4小时内送达', enabled:false },
-];
-
-/* ================================================================
-   MOCK DATA — Accounts
-   ================================================================ */
-var accounts = [
-  { id:'a1', username:'admin_zhang', label:'张管理', role:'管理员', enabled:true, createdAt:'2026-03-01 10:00:00' },
-  { id:'a2', username:'admin_li', label:'李主管', role:'管理员', enabled:true, createdAt:'2026-03-15 14:30:00' },
-  { id:'a3', username:'op_wang', label:'王运营', role:'运营员', enabled:true, createdAt:'2026-04-01 09:00:00' },
-  { id:'a4', username:'op_chen', label:'陈运营', role:'运营员', enabled:true, createdAt:'2026-04-10 11:00:00' },
-  { id:'a5', username:'op_zhao', label:'赵运营', role:'运营员', enabled:false, createdAt:'2026-05-20 16:00:00' },
-  { id:'a6', username:'op_liu', label:'刘运营', role:'运营员', enabled:true, createdAt:'2026-06-01 08:30:00' },
 ];
 
 /* ================================================================
@@ -469,9 +426,7 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-item').forEach(function(t){t.classList.toggle('active', t.dataset.tab===tab);});
   document.getElementById('tabPrice').classList.toggle('hidden', tab!=='price');
   document.getElementById('tabDest').classList.toggle('hidden', tab!=='dest');
-  document.getElementById('tabPerm').classList.toggle('hidden', tab!=='perm');
   if (tab==='dest') renderDestTable();
-  if (tab==='perm') renderAcctTable();
   if (annoVisible) setTimeout(renderAnnoBadges, 50);
 }
 
@@ -506,10 +461,12 @@ function savePrice() {
   }
 
   document.getElementById('confirmDialogOverlay').classList.add('show');
+  pushAnnoScope(document.getElementById('confirmDialogOverlay'));
 }
 
 function closeConfirmDialog() {
   document.getElementById('confirmDialogOverlay').classList.remove('show');
+  popAnnoScope(document.getElementById('confirmDialogOverlay'));
 }
 
 function confirmSavePrice() {
@@ -541,11 +498,13 @@ function showChangeLog() {
   document.getElementById('logDrawerOverlay').classList.add('show');
   document.getElementById('logDrawer').classList.add('open');
   lucide.createIcons();
+  pushAnnoScope(document.getElementById('logDrawerOverlay'));
 }
 
 function closeLogDrawer() {
   document.getElementById('logDrawerOverlay').classList.remove('show');
   document.getElementById('logDrawer').classList.remove('open');
+  popAnnoScope(document.getElementById('logDrawerOverlay'));
 }
 
 /* ================================================================
@@ -608,8 +567,11 @@ function renderDestTable() {
     return true;
   });
   document.getElementById('destCount').textContent = '共 '+filtered.length+' 条';
+  // Paginate
+  var start = (destCurrentPage-1)*destPageSize, end = Math.min(start+destPageSize, filtered.length);
+  var pageData = filtered.slice(start, end);
   var html = '';
-  filtered.forEach(function(d){
+  pageData.forEach(function(d){
     html += '<tr>';
     html += '<td class="font-medium text-ink-title">'+d.name+'</td>';
     html += '<td class="text-ink-sub text-[12px] max-w-[180px] truncate" title="'+d.addr+'">'+d.addr+'</td>';
@@ -625,12 +587,35 @@ function renderDestTable() {
   });
   document.getElementById('destTbody').innerHTML = html;
   lucide.createIcons();
+  destRenderPagination(filtered.length);
 }
+
+function destRenderPagination(total) {
+  var totalPages = Math.ceil(total/destPageSize);
+  document.getElementById('destPgStats').textContent = '共 '+total+' 条记录　第 '+destCurrentPage+'/'+Math.max(1,totalPages)+' 页';
+  var nav = document.getElementById('destPgNav'), html = '';
+  html += '<button class="pg-btn" ' + (destCurrentPage<=1?'disabled':'') + ' onclick="destGoPage('+(destCurrentPage-1)+')">‹</button>';
+  if (totalPages<=7) { for(var i=1;i<=totalPages;i++) html += '<button class="pg-btn'+(i===destCurrentPage?' pg-current':'')+'" onclick="destGoPage('+i+')">'+i+'</button>'; }
+  else {
+    html += '<button class="pg-btn'+(1===destCurrentPage?' pg-current':'')+'" onclick="destGoPage(1)">1</button>';
+    if(destCurrentPage>3) html += '<span class="pg-ellipsis">…</span>';
+    var s=Math.max(2,destCurrentPage-1),e=Math.min(totalPages-1,destCurrentPage+1);
+    for(var i=s;i<=e;i++) html += '<button class="pg-btn'+(i===destCurrentPage?' pg-current':'')+'" onclick="destGoPage('+i+')">'+i+'</button>';
+    if(destCurrentPage<totalPages-2) html += '<span class="pg-ellipsis">…</span>';
+    html += '<button class="pg-btn'+(totalPages===destCurrentPage?' pg-current':'')+'" onclick="destGoPage('+totalPages+')">'+totalPages+'</button>';
+  }
+  html += '<button class="pg-btn" ' + (destCurrentPage>=totalPages?'disabled':'') + ' onclick="destGoPage('+(destCurrentPage+1)+')">›</button>';
+  nav.innerHTML = html;
+}
+function destGoPage(p) { var typeF=document.getElementById('destTypeFilter').value,statusF=document.getElementById('destStatusFilter').value,search=document.getElementById('destSearch').value.toLowerCase(); var filtered=destinations.filter(function(d){if(typeF&&d.type!==typeF)return false;if(statusF==='enabled'&&!d.enabled)return false;if(statusF==='disabled'&&d.enabled)return false;if(search&&d.name.toLowerCase().indexOf(search)===-1)return false;return true;}); var t=Math.ceil(filtered.length/destPageSize); if(p<1||p>t)return; destCurrentPage=p; renderDestTable(); }
+function destChangePageSize() { destPageSize = parseInt(document.getElementById('destPageSize').value); destCurrentPage=1; renderDestTable(); }
+function destJumpPage() { var p=parseInt(document.getElementById('destPgJump').value); if(isNaN(p)||p<1){alert('请输入有效页码');return;} var typeF=document.getElementById('destTypeFilter').value,statusF=document.getElementById('destStatusFilter').value,search=document.getElementById('destSearch').value.toLowerCase(); var filtered=destinations.filter(function(d){if(typeF&&d.type!==typeF)return false;if(statusF==='enabled'&&!d.enabled)return false;if(statusF==='disabled'&&d.enabled)return false;if(search&&d.name.toLowerCase().indexOf(search)===-1)return false;return true;}); var t=Math.ceil(filtered.length/destPageSize); if(p>t){alert('请输入有效页码（最大'+t+'）');return;} destCurrentPage=p; renderDestTable(); document.getElementById('destPgJump').value=''; }
 
 function resetDestFilters() {
   document.getElementById('destTypeFilter').value = '';
   document.getElementById('destStatusFilter').value = '';
   document.getElementById('destSearch').value = '';
+  destCurrentPage = 1;
   renderDestTable();
 }
 
@@ -651,11 +636,13 @@ function openDestModal(id) {
     document.getElementById('destEnabled').checked = true;
   }
   document.getElementById('destModalOverlay').classList.add('show');
+  pushAnnoScope(document.getElementById('destModalOverlay'));
 }
 
 function closeDestModal() {
   document.getElementById('destModalOverlay').classList.remove('show');
   editingDestId = null;
+  popAnnoScope(document.getElementById('destModalOverlay'));
 }
 
 function saveDest() {
@@ -697,98 +684,6 @@ function deleteDest(id) {
 }
 
 /* ================================================================
-   TAB 3: PERMISSION MANAGEMENT
-   ================================================================ */
-function getRoleBadge(role) {
-  return role==='管理员' ? '<span class="badge badge-info">管理员</span>' : '<span class="badge badge-muted">运营员</span>';
-}
-
-function renderAcctTable() {
-  document.getElementById('acctCount').textContent = '共 '+accounts.length+' 个账号';
-  var html = '';
-  accounts.forEach(function(a){
-    html += '<tr>';
-    html += '<td class="font-mono text-ink-body">'+a.username+'</td>';
-    html += '<td class="text-ink-body">'+a.label+'</td>';
-    html += '<td>'+getRoleBadge(a.role)+'</td>';
-    html += '<td>'+getEnabledBadge(a.enabled)+'</td>';
-    html += '<td class="font-mono text-[12px] text-ink-muted">'+a.createdAt+'</td>';
-    html += '<td>';
-    html += '<button class="btn btn-sm btn-default" onclick="editAcct(\''+a.id+'\')" style="margin-right:4px;">编辑</button>';
-    html += '<button class="btn btn-sm btn-default" onclick="toggleAcct(\''+a.id+'\')" style="margin-right:4px;">'+(a.enabled?'停用':'启用')+'</button>';
-    html += '<button class="btn btn-sm btn-default" onclick="resetPwd(\''+a.id+'\')">重置密码</button>';
-    html += '</td></tr>';
-  });
-  document.getElementById('acctTbody').innerHTML = html;
-  lucide.createIcons();
-}
-
-function openAccountModal(id) {
-  editingAcctId = id || null;
-  document.getElementById('acctModalTitle').textContent = id ? '编辑账号' : '新增账号';
-  document.getElementById('acctPwdRow').style.display = id ? 'none' : 'flex';
-  if (id) {
-    var a = accounts.find(function(x){return x.id===id;});
-    document.getElementById('acctName').value = a.username;
-    document.getElementById('acctName').disabled = true;
-    document.getElementById('acctLabel').value = a.label;
-    document.getElementById('acctRole').value = a.role;
-    document.getElementById('acctEnabled').checked = a.enabled;
-  } else {
-    document.getElementById('acctName').disabled = false;
-    ['acctName','acctLabel','acctPwd'].forEach(function(f){document.getElementById(f).value='';});
-    document.getElementById('acctRole').value = '';
-    document.getElementById('acctEnabled').checked = true;
-  }
-  document.getElementById('acctModalOverlay').classList.add('show');
-}
-
-function closeAcctModal() {
-  document.getElementById('acctModalOverlay').classList.remove('show');
-  editingAcctId = null;
-}
-
-function saveAcct() {
-  var name = document.getElementById('acctName').value.trim();
-  var label = document.getElementById('acctLabel').value.trim();
-  var role = document.getElementById('acctRole').value;
-  var pwd = document.getElementById('acctPwd').value;
-  if (!name||!label||!role) { alert('请填写所有必填字段'); return; }
-  if (!editingAcctId) {
-    if (!pwd) { alert('请输入初始密码'); return; }
-    if (pwd.length < 8 || !/[a-zA-Z]/.test(pwd) || !/[0-9]/.test(pwd)) { alert('密码至少8位，含字母+数字'); return; }
-  }
-  var enabled = document.getElementById('acctEnabled').checked;
-
-  if (editingAcctId) {
-    var a = accounts.find(function(x){return x.id===editingAcctId;});
-    a.label=label;a.role=role;a.enabled=enabled;
-  } else {
-    accounts.push({ id:'a'+(accounts.length+1), username:name, label:label, role:role, enabled:enabled, createdAt:new Date().toISOString().slice(0,16).replace('T',' ') });
-  }
-  closeAcctModal();
-  renderAcctTable();
-}
-
-function editAcct(id) { openAccountModal(id); }
-
-function toggleAcct(id) {
-  var a = accounts.find(function(x){return x.id===id;});
-  if (a.enabled && a.role==='管理员') {
-    var admins = accounts.filter(function(x){return x.role==='管理员'&&x.enabled;});
-    if (admins.length <= 1) { alert('不可停用最后一个管理员，避免锁死系统。'); return; }
-  }
-  a.enabled = !a.enabled;
-  renderAcctTable();
-}
-
-function resetPwd(id) {
-  var a = accounts.find(function(x){return x.id===id;});
-  if (!confirm('确认重置"' + a.username + '"的密码？\n\n重置后将生成临时密码，用户首次登录需修改。')) return;
-  alert('密码已重置！\n\n临时密码：YK'+Math.random().toString(36).slice(-6).toUpperCase()+'\n账号：'+a.username+'\n\n请告知用户，首次登录须修改密码。');
-}
-
-/* ================================================================
    MENU SELECT
    ================================================================ */
 function menuSelect(el){if(el.classList.contains('l1'))handleL1(el);else if(el.classList.contains('l2'))handleL2(el);}
@@ -808,8 +703,8 @@ function toggleSidebar(){var s=document.getElementById('sidebar'),o=document.get
    ================================================================ */
 var annotations = {
   1: { title: '运营配置页面标题', desc: ['整模块仅管理员可见可操作','运营员侧边导航不展示"运营配置"','点击 logo 可返回 index.html']},
-  2: { title: '模块定位', desc: ['参数中枢：集中管理价格、目的地、权限','变更留痕：配置变更记录操作人/时间/前后值，不可删除，供审计','全局生效：价格保存即全局生效，影响用户端下单/退款/对账']},
-  3: { title: '子页Tab切换', desc: ['价格配置：短租/长租分档价、超时费率、退款规则参数（计费单一事实来源）','目的地配置：行李寄送固定目的地清单 CRUD','权限管理：后台账号与角色管理','仅管理员可操作所有子页']},
+  2: { title: '模块定位', desc: ['参数中枢：集中管理价格与目的地','变更留痕：配置变更记录操作人/时间/前后值，不可删除，供审计','全局生效：价格保存即全局生效，影响用户端下单/退款/对账']},
+  3: { title: '子页Tab切换', desc: ['价格配置：短租/长租分档价、超时费率、退款规则参数（计费单一事实来源）','目的地配置：行李寄送固定目的地清单 CRUD','仅管理员可操作所有子页']},
   4: { title: '短租价格配置', desc: ['按柜型三档：小格口/中格口/大格口','每档可编辑：单价（元/小时）+ 每24h封顶（元）','输入校验：正数、封顶 ≥ 单价','全局统一一套价（一期不按柜机差异化，V2）','修改影响用户端下单、收费规则弹窗、订单退款、对账']},
   5: { title: '长租价格配置', desc: ['按柜型三档月租（元/月）','每月按 31 天计','可编辑数字输入，带单位']},
   6: { title: '超时费率配置', desc: ['短租超时：计费单位（按小时）+ 进位规则（不足1小时按1小时/不足30分钟等）','长租超时：按短租单价 × 24h 封顶值计算','可配参数：计费上限开关及封顶值']},
@@ -817,16 +712,27 @@ var annotations = {
   8: { title: '保存与变更留痕', desc: ['保存触发二次确认弹窗：提示"立即全局生效"影响面','确认保存：记录变更留痕（操作人、时间、变更前后对比），不可删除','变更记录入口：查看完整变更历史','生效方式：立即生效 / 定时生效（指定未来时间点）']},
   9: { title: '目的地筛选/搜索', desc: ['按类型筛选：酒店/车站/景区/其他','按启用状态筛选','按名称搜索','重置清空所有筛选条件']},
   10: { title: '目的地列表表格', desc: ['列：名称/地址/类型/服务费/预计时效/启用状态/操作','启用/停用：停用后用户端寄送即时隐藏该目的地','编辑：弹窗回填修改','删除：二次确认后软删除（后台保留记录，历史订单关联不丢失）']},
-  11: { title: '权限管理操作', desc: ['新增账号：填写账号/姓名/角色/初始密码','角色：管理员（全部功能） / 运营员（不可见运营配置与权限管理、不可见收入）','仅管理员可操作权限管理']},
-  12: { title: '账号列表表格', desc: ['列：账号/姓名/角色/状态/创建时间/操作','编辑：修改姓名、角色','启用/停用：停用后该账号不可登录；不可停用自己或最后一个管理员','重置密码：二次确认后生成临时密码，首次登录须修改','密码策略：至少8位、含字母+数字、首次登录建议强制改密']},
-  13: { title: '目的地新增/编辑弹窗', desc: ['字段：名称（必填）/ 地址（必填）/ 类型（必填）/ 服务费（必填，元）/ 预计时效（必填）/ 启用状态（默认启用）','保存后即时生效']},
-  14: { title: '账号新增/编辑弹窗', desc: ['新增：账号/姓名/角色/初始密码（必填）','编辑：修改姓名/角色，不可改账号名','密码复杂度校验：至少8位、含字母+数字','重置密码：管理员触发，生成临时密码']}
+  11: { title: '目的地新增/编辑弹窗', desc: ['字段：名称（必填）/ 地址（必填）/ 类型（必填）/ 服务费（必填，元）/ 预计时效（必填）/ 启用状态（默认启用）','保存后即时生效']}
 };
 
 var annoVisible = true;
+var annoScopeStack = [];
+function pushAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  annoScopeStack.push(el);
+  renderAnnoBadges();
+}
+function popAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  renderAnnoBadges();
+}
 function renderAnnoBadges(){
   var l=document.getElementById('annoLayer');l.innerHTML='';if(!annoVisible)return;var vw=window.innerWidth;
-  document.querySelectorAll('[data-anno]').forEach(function(el){
+  var scope = annoScopeStack.length > 0 ? annoScopeStack[annoScopeStack.length - 1] : null;
+  var container = scope || document;
+  container.querySelectorAll('[data-anno]').forEach(function(el){
     var id=el.getAttribute('data-anno');if(el.offsetParent===null&&el.tagName!=='BODY')return;
     var t=resolveAnnoTarget(el,vw),r=t.getBoundingClientRect();if(r.width===0&&r.height===0)return;
     var b=document.createElement('div');b.className='anno-portal-badge';b.textContent=id;
@@ -852,7 +758,6 @@ document.addEventListener('DOMContentLoaded',function(){
   lucide.createIcons();
   renderRefundTiers();
   renderDestTable();
-  renderAcctTable();
   renderAnnoBadges();
   document.getElementById('mainContent').addEventListener('scroll',renderAnnoBadges);
   window.addEventListener('resize',renderAnnoBadges);
@@ -930,6 +835,19 @@ document.addEventListener('DOMContentLoaded',function(){
   .tk-pg-jump{font-size:12px;font-family:inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
   .tk-pg-jump:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
   .tk-pg-stats{color:#9DA2AC;white-space:nowrap;}
+  /* --- 内容区分页（design.md §5.5） --- */
+  .pg-nav{display:flex;gap:4px;}
+  .pg-btn{min-width:30px;height:30px;padding:0 8px;font-size:12px;font-weight:500;font-family:inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
+  .pg-btn:hover:not(.pg-current):not(:disabled){color:#0066FF;border-color:#0066FF;}
+  .pg-btn.pg-current{background:#0066FF;border-color:#0066FF;color:#fff;}
+  .pg-btn:disabled{color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;border-color:#DFE1E5;}
+  .pg-ellipsis{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;font-size:13px;}
+  .pg-select-wrap{position:relative;display:inline-flex;align-items:center;}
+  .pg-select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+  .pg-select{font-size:12px;font-family:inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;}
+  .pg-jump{font-size:12px;font-family:inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+  .pg-jump:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+  .pg-stats{color:#9DA2AC;white-space:nowrap;}
   /* --- Toast --- */
   #tkToast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1A1D24;color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:4px;z-index:1300;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
 </style>

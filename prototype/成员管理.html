@@ -125,6 +125,26 @@
     .anno-portal-badge:hover{transform:scale(1.2);}
     .anno-hidden .anno-portal-badge{display:none;}
 
+    /* Searchable combo — 控件即输入框，点击/聚焦展开下拉，输入即过滤 */
+    .ss-wrapper { position: relative; display: inline-block; }
+    .ss-trigger { display: flex; align-items: center; width: 140px; height: 32px; border: 1px solid #DFE1E5; border-radius: 4px; background: #fff; transition: border-color .15s, box-shadow .15s; cursor: text; }
+    .ss-trigger:hover { border-color: #0066FF; }
+    .ss-trigger.open { border-color: #0066FF; box-shadow: 0 0 0 2px rgba(0,102,255,.12); }
+    .ss-trigger input { flex: 1; border: none; outline: none; background: transparent; font-size: 13px; color: #3A3F4A; padding: 0 4px 0 8px; min-width: 0; height: 100%; }
+    .ss-trigger input::placeholder { color: #9DA2AC; }
+    .ss-trigger .ss-clear { display: none; width: 18px; height: 18px; flex-shrink: 0; cursor: pointer; color: #9DA2AC; border-radius: 2px; font-size: 12px; line-height: 18px; text-align: center; margin-right: 2px; }
+    .ss-trigger .ss-clear:hover { color: #6E7685; background: #F0F1F3; }
+    .ss-trigger.has-value .ss-clear { display: block; }
+    .ss-arrow { flex-shrink: 0; margin-right: 6px; color: #9DA2AC; }
+    .ss-dropdown { display: none; position: absolute; top: 34px; left: 0; min-width: 140px; z-index: 60; background: #fff; border: 1px solid #DFE1E5; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+    .ss-dropdown.show { display: block; }
+    .ss-options { max-height: 180px; overflow-y: auto; padding: 4px 0; }
+    .ss-option { padding: 7px 12px; font-size: 13px; color: #3A3F4A; cursor: pointer; transition: background .1s; white-space: nowrap; }
+    .ss-option:hover { background: #F3F4F6; }
+    .ss-option.selected { color: #0066FF; background: #E6F0FF; font-weight: 500; }
+    .ss-option.highlight { background: #F3F4F6; }
+    .ss-option.no-match { color: #9DA2AC; cursor: default; pointer-events: none; text-align: center; padding: 12px; }
+
     @media (max-width: 1024px) {
       .member-layout { flex-direction: column; }
       .dept-tree-section { width: 100% !important; max-height: 240px; }
@@ -267,12 +287,23 @@
           <div class="px-4 py-2 flex items-center justify-between gap-3 flex-wrap" id="filterBar">
             <div class="flex items-center gap-3 flex-wrap">
               <!-- 搜索成员 -->
-              <div class="relative">
+              <div class="relative" id="searchWrap">
                 <i data-lucide="search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-[14px] h-[14px] text-ink-muted pointer-events-none"></i>
-                <input type="text" id="searchInput" placeholder="搜索成员" class="form-input pl-8 w-[180px] h-[32px]" data-anno="3">
+                <input type="text" id="searchInput" placeholder="搜索成员" class="form-input pl-8 pr-7 w-[180px] h-[32px]" data-anno="3" oninput="toggleSearchClear()">
+                <span class="absolute right-2 top-1/2 -translate-y-1/2 w-[16px] h-[16px] flex items-center justify-center cursor-pointer text-ink-muted hover:text-ink-body rounded-sm hover:bg-line-lighter hidden" id="searchClear" onclick="clearSearch()" style="font-size:12px;line-height:1;">✕</span>
               </div>
-              <!-- 角色筛选 -->
-              <select id="filterRole" class="form-select w-[140px] h-[32px]" data-anno="9"><option value="">全部角色</option></select>
+              <!-- 角色筛选 - 控件即输入框 -->
+              <div class="ss-wrapper" data-anno="9">
+                <div class="ss-trigger" id="filterRoleWrap">
+                  <input type="text" id="filterRoleInput" placeholder="全部角色" autocomplete="off">
+                  <span class="ss-clear" id="filterRoleClear" onclick="clearFilterRole(event)">✕</span>
+                  <i data-lucide="chevron-down" class="ss-arrow w-[13px] h-[13px]"></i>
+                </div>
+                <div class="ss-dropdown" id="filterRoleDropdown">
+                  <div class="ss-options" id="filterRoleOptions"></div>
+                </div>
+              </div>
+              <input type="hidden" id="filterRole" value="">
               <!-- 状态筛选 -->
               <select id="filterStatus" class="form-select w-[130px] h-[32px]" data-anno="10">
                 <option value="">全部</option>
@@ -368,12 +399,12 @@
   <div class="modal" onclick="event.stopPropagation()" data-anno="6">
     <div class="modal-header"><span id="memberModalTitle">添加成员</span><button onclick="closeMemberModal()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button></div>
     <div class="modal-body">
-      <div class="form-group"><label><span class="required">*</span>成员名称：</label><div class="form-control-wrap"><input type="text" id="mbrName" class="form-input" placeholder="请输入成员名称" maxlength="50"><span id="mbrNameError" class="form-error hidden"></span></div></div>
-      <div class="form-group"><label>昵称：</label><div class="form-control-wrap"><input type="text" id="mbrNick" class="form-input" placeholder="请输入昵称" maxlength="50"></div></div>
+      <div class="form-group"><label><span class="required">*</span>成员名称：</label><div class="form-control-wrap"><div style="position:relative;width:400px;"><input type="text" id="mbrName" class="form-input" placeholder="请输入成员名称" maxlength="20" style="padding-right:48px;" oninput="updateNameCounter()"><span id="mbrNameCounter" style="position:absolute;right:10px;top:6px;font-size:12px;color:#9DA2AC;pointer-events:none;">0/20</span></div><span id="mbrNameError" class="form-error hidden"></span></div></div>
       <div class="form-group"><label><span class="required">*</span>手机号：</label><div class="form-control-wrap"><input type="tel" id="mbrPhone" class="form-input" placeholder="请输入手机号" maxlength="11"><span id="mbrPhoneError" class="form-error hidden"></span></div></div>
-      <div class="form-group"><label>国家：</label><div class="form-control-wrap"><select id="mbrCountry" class="form-select"><option>中国</option><option>美国</option><option>英国</option><option>日本</option></select></div></div>
       <div class="form-group"><label><span class="required">*</span>所属部门：</label><div class="form-control-wrap"><select id="mbrDept" class="form-select"></select><span id="mbrDeptError" class="form-error hidden"></span></div></div>
-      <div class="form-group"><label><span class="required">*</span>所属角色：</label><div class="form-control-wrap"><select id="mbrRole" class="form-select"><option value="">请选择所属角色</option><option value="r1">超级管理员</option><option value="r2">普通成员</option><option value="r3">部门管理员</option></select><span id="mbrRoleError" class="form-error hidden"></span></div></div>
+      <div class="form-group"><label><span class="required">*</span>所属角色：</label><div class="form-control-wrap"><select id="mbrRole" class="form-select" style="color:#9DA2AC;" onchange="this.style.color=this.value?'#3A3F4A':'#9DA2AC'"><option value="">请选择所属角色</option><option value="r1">超级管理员</option><option value="r2">普通成员</option><option value="r3">部门管理员</option></select><span id="mbrRoleError" class="form-error hidden"></span></div></div>
+      <div class="form-group"><label>入职时间：</label><div class="form-control-wrap"><input type="date" id="mbrEntryDate" class="form-input" style="width:400px;"></div></div>
+      <div class="form-group"><label><span class="required">*</span>登录密码：</label><div class="form-control-wrap"><div style="position:relative;width:400px;"><input type="password" id="mbrPassword" class="form-input" placeholder="请输入登录密码" maxlength="20" style="padding-right:48px;" oninput="updatePwdCounter()"><span id="mbrPwdCounter" style="position:absolute;right:10px;top:6px;font-size:12px;color:#9DA2AC;pointer-events:none;">0/20</span></div><span id="mbrPwdHint" style="display:block;color:#9DA2AC;font-size:12px;margin-top:4px;">密码示例:admin123456</span><span id="mbrPasswordError" class="form-error hidden"></span></div></div>
     </div>
     <div class="modal-footer"><button class="btn btn-default" onclick="closeMemberModal()">取消</button><button class="btn btn-primary" onclick="confirmMember()">确定</button></div>
   </div>
@@ -402,13 +433,13 @@
 <script>
 /* ===== DATA ===== */
 const deptTreeData = [
-  { id:'d0', name:'游寄科技', memberCount:12, children:[
-    { id:'d1', name:'运营部', memberCount:5, children:[
+  { id:'d0', name:'游寄科技', memberCount:15, children:[
+    { id:'d1', name:'运营部', memberCount:8, children:[
       { id:'d1-1', name:'运营一组', memberCount:2, children:[] },
       { id:'d1-2', name:'运营二组', memberCount:3, children:[] }
     ]},
     { id:'d2', name:'客服部', memberCount:3, children:[
-      { id:'d2-1', name:'投诉处理组', memberCount:3, children:[] }
+      { id:'d2-1', name:'投诉处理组', memberCount:2, children:[] }
     ]},
     { id:'d3', name:'技术部', memberCount:4, children:[] }
   ]}
@@ -425,6 +456,11 @@ const allMembers = [
   { id:'m8', name:'吴芳', nickname:'小吴', phone:'13289012345', roleId:'r2', roleName:'普通成员', country:'中国', deptId:'d3', deptName:'技术部', deptPath:'游寄科技 > 技术部', fixedAssets:8000.00, createDate:'2026-04-22', entryDate:'2026-04-22', lastUpdateTime:'2026-07-03 17:00:00', status:true },
   { id:'m9', name:'郑浩', nickname:'浩哥', phone:'13156789012', roleId:'r3', roleName:'部门管理员', country:'中国', deptId:'d1', deptName:'运营部', deptPath:'游寄科技 > 运营部', fixedAssets:2500.00, createDate:'2026-05-01', entryDate:'2026-05-01', lastUpdateTime:'2026-07-02 11:00:00', status:true },
   { id:'m10', name:'陈静', nickname:'静静', phone:'13067890123', roleId:'r2', roleName:'普通成员', country:'中国', deptId:'d3', deptName:'技术部', deptPath:'游寄科技 > 技术部', fixedAssets:0, createDate:'2026-05-10', entryDate:'2026-05-10', lastUpdateTime:'2026-07-01 15:30:00', status:true },
+  { id:'m11', name:'刘洋', nickname:'小刘', phone:'13987654321', roleId:'r2', roleName:'普通成员', country:'中国', deptId:'d1-1', deptName:'运营一组', deptPath:'游寄科技 > 运营部 > 运营一组', fixedAssets:0, createDate:'2026-05-15', entryDate:'2026-05-15', lastUpdateTime:'2026-07-02 10:00:00', status:true },
+  { id:'m12', name:'黄丽', nickname:'丽丽', phone:'13876543210', roleId:'r2', roleName:'普通成员', country:'中国', deptId:'d1-2', deptName:'运营二组', deptPath:'游寄科技 > 运营部 > 运营二组', fixedAssets:1500.00, createDate:'2026-05-18', entryDate:'2026-05-18', lastUpdateTime:'2026-07-02 14:30:00', status:true },
+  { id:'m13', name:'徐鹏', nickname:'大鹏', phone:'13765432109', roleId:'r3', roleName:'部门管理员', country:'中国', deptId:'d1-2', deptName:'运营二组', deptPath:'游寄科技 > 运营部 > 运营二组', fixedAssets:0, createDate:'2026-05-20', entryDate:'2026-05-20', lastUpdateTime:'2026-07-01 09:00:00', status:true },
+  { id:'m14', name:'林婷', nickname:'小婷', phone:'13654321098', roleId:'r2', roleName:'普通成员', country:'中国', deptId:'d2-1', deptName:'投诉处理组', deptPath:'游寄科技 > 客服部 > 投诉处理组', fixedAssets:2000.00, createDate:'2026-06-01', entryDate:'2026-06-01', lastUpdateTime:'2026-07-01 16:00:00', status:true },
+  { id:'m15', name:'何勇', nickname:'勇哥', phone:'13543210987', roleId:'r2', roleName:'普通成员', country:'中国', deptId:'d3', deptName:'技术部', deptPath:'游寄科技 > 技术部', fixedAssets:0, createDate:'2026-06-05', entryDate:'2026-06-05', lastUpdateTime:'2026-06-30 11:00:00', status:true },
 ];
 
 /* ===== STATE ===== */
@@ -457,7 +493,11 @@ function deleteDeptFromTree(depts, deptId) {
   return false;
 }
 function updateDeptCount(depts, deptId, delta) {
-  for (const d of depts) { if (d.id === deptId) { d.memberCount = Math.max(0, d.memberCount + delta); return; } if (d.children) updateDeptCount(d.children, deptId, delta); }
+  for (const d of depts) {
+    if (d.id === deptId) { d.memberCount = Math.max(0, d.memberCount + delta); return true; }
+    if (d.children && updateDeptCount(d.children, deptId, delta)) { d.memberCount = Math.max(0, d.memberCount + delta); return true; }
+  }
+  return false;
 }
 const avatarColors = ['#0066FF','#0FC060','#E7772D','#0091D5','#7C5CFC','#E91E63','#00BCD4','#FF9800','#4CAF50','#9C27B0'];
 function getAvatarColor(name) { let h = 0; for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h); return avatarColors[Math.abs(h) % avatarColors.length]; }
@@ -591,9 +631,17 @@ function renderTable() {
 function updateHeader() {
   const dept = findDeptById(deptTreeData, selectedDeptId);
   document.getElementById('currentDeptName').textContent = dept ? dept.name : '全部';
-  const ids = selectedDeptId === 'd0' ? [] : getDeptAndChildrenIds(selectedDeptId);
-  const deptCount = selectedDeptId === 'd0' ? allMembers.length : allMembers.filter(m => ids.includes(m.deptId)).length;
-  document.getElementById('memberCount').textContent = '部门人数：'+deptCount+' / '+allMembers.length;
+  // x: 当前选中部门的直属成员人数
+  const directCount = allMembers.filter(function(m){ return m.deptId === selectedDeptId; }).length;
+  // y: 当前选中部门 + 所有子部门的合计人数
+  var totalCount;
+  if (selectedDeptId === 'd0') {
+    totalCount = allMembers.length;
+  } else {
+    const ids = getDeptAndChildrenIds(selectedDeptId);
+    totalCount = allMembers.filter(function(m){ return ids.includes(m.deptId); }).length;
+  }
+  document.getElementById('memberCount').textContent = '部门人数：'+directCount+' / '+totalCount;
 }
 
 /* ===== DEPT MENU ===== */
@@ -604,7 +652,7 @@ function openDeptMenu(e, deptId) {
   const items = [
     { label:'编辑部门', action:()=>{ openDeptDialog('edit',deptId); closeMenu(); } },
     { label:'添加子部门', action:()=>{ openDeptDialog('add',deptId); closeMenu(); } },
-    { label:'删除部门', action:()=>{ if(deptId==='d0'){ showToast('根部门不能删除','warning'); closeMenu(); return; } currentDeleteDept = deptId; document.getElementById('deleteDeptModalOverlay').classList.remove('hidden'); closeMenu(); }, danger:true },
+    { label:'删除部门', action:()=>{ if(deptId==='d0'){ showToast('根部门不能删除','warning'); closeMenu(); return; } currentDeleteDept = deptId; document.getElementById('deleteDeptModalOverlay').classList.remove('hidden'); pushAnnoScope(document.getElementById('deleteDeptModalOverlay')); closeMenu(); }, danger:true },
   ];
   items.forEach(item => {
     const div = document.createElement('div');
@@ -632,8 +680,9 @@ function openDeptDialog(type, deptId) {
     buildDeptSelect(deptId);
   }
   document.getElementById('deptModalOverlay').classList.remove('hidden');
+  pushAnnoScope(document.getElementById('deptModalOverlay'));
 }
-function closeDeptModal() { document.getElementById('deptModalOverlay').classList.add('hidden'); }
+function closeDeptModal() { document.getElementById('deptModalOverlay').classList.add('hidden'); popAnnoScope(document.getElementById('deptModalOverlay')); }
 function buildDeptSelect(selectedId) {
   const sel = document.getElementById('deptParent');
   sel.innerHTML = '';
@@ -667,7 +716,7 @@ function confirmDept() {
   closeDeptModal();
   renderTree();
 }
-function closeDeleteDeptModal() { document.getElementById('deleteDeptModalOverlay').classList.add('hidden'); }
+function closeDeleteDeptModal() { document.getElementById('deleteDeptModalOverlay').classList.add('hidden'); popAnnoScope(document.getElementById('deleteDeptModalOverlay')); }
 function confirmDeleteDept() {
   const ids = getDeptAndChildrenIds(currentDeleteDept);
   for (let i = allMembers.length-1; i >= 0; i--) { if (ids.includes(allMembers[i].deptId)) allMembers.splice(i,1); }
@@ -677,11 +726,21 @@ function confirmDeleteDept() {
   renderTree(); renderTable(); updateHeader();
 }
 
+/* ===== COUNTERS ===== */
+function updateNameCounter() {
+  const el = document.getElementById('mbrName');
+  document.getElementById('mbrNameCounter').textContent = el.value.length + '/20';
+}
+function updatePwdCounter() {
+  const el = document.getElementById('mbrPassword');
+  document.getElementById('mbrPwdCounter').textContent = el.value.length + '/20';
+}
+
 /* ===== MEMBER DIALOG ===== */
 function openMemberDialog(type, memberId) {
   currentMemberAction = { type, memberId };
   document.getElementById('memberModalTitle').textContent = type === 'edit' ? '编辑成员' : '添加成员';
-  ['mbrNameError','mbrPhoneError','mbrDeptError','mbrRoleError'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  ['mbrNameError','mbrPhoneError','mbrDeptError','mbrRoleError','mbrPasswordError'].forEach(id => document.getElementById(id).classList.add('hidden'));
   // Build dept select
   const deptSel = document.getElementById('mbrDept');
   deptSel.innerHTML = '';
@@ -691,37 +750,45 @@ function openMemberDialog(type, memberId) {
     const m = allMembers.find(x => x.id === memberId);
     if (m) {
       document.getElementById('mbrName').value = m.name;
-      document.getElementById('mbrNick').value = m.nickname || '';
       document.getElementById('mbrPhone').value = m.phone;
-      document.getElementById('mbrCountry').value = m.country;
       deptSel.value = m.deptId;
       document.getElementById('mbrRole').value = m.roleId;
+      document.getElementById('mbrRole').style.color = m.roleId ? '#3A3F4A' : '#9DA2AC';
+      document.getElementById('mbrEntryDate').value = m.entryDate || '';
+      document.getElementById('mbrPassword').value = '';
     }
   } else {
     document.getElementById('mbrName').value = '';
-    document.getElementById('mbrNick').value = '';
     document.getElementById('mbrPhone').value = '';
-    document.getElementById('mbrCountry').value = '中国';
     deptSel.value = selectedDeptId === 'd0' ? '' : selectedDeptId;
     document.getElementById('mbrRole').value = '';
+    document.getElementById('mbrRole').style.color = '#9DA2AC';
+    document.getElementById('mbrEntryDate').value = '';
+    document.getElementById('mbrPassword').value = '';
   }
+  updateNameCounter();
+  updatePwdCounter();
   document.getElementById('memberModalOverlay').classList.remove('hidden');
+  pushAnnoScope(document.getElementById('memberModalOverlay'));
   setTimeout(renderAnnoBadges, 50);
 }
-function closeMemberModal() { document.getElementById('memberModalOverlay').classList.add('hidden'); renderAnnoBadges(); }
+function closeMemberModal() { document.getElementById('memberModalOverlay').classList.add('hidden'); popAnnoScope(document.getElementById('memberModalOverlay')); }
 function confirmMember() {
   const name = document.getElementById('mbrName').value.trim();
-  const nick = document.getElementById('mbrNick').value.trim();
   const phone = document.getElementById('mbrPhone').value.trim();
-  const country = document.getElementById('mbrCountry').value;
   const deptId = document.getElementById('mbrDept').value;
   const roleId = document.getElementById('mbrRole').value;
+  const entryDate = document.getElementById('mbrEntryDate').value;
+  const password = document.getElementById('mbrPassword').value;
   let hasErr = false;
   if (!name) { document.getElementById('mbrNameError').textContent='请输入成员名称'; document.getElementById('mbrNameError').classList.remove('hidden'); hasErr=true; }
   if (!phone) { document.getElementById('mbrPhoneError').textContent='请输入手机号'; document.getElementById('mbrPhoneError').classList.remove('hidden'); hasErr=true; }
   else if (!/^1[3-9]\d{9}$/.test(phone)) { document.getElementById('mbrPhoneError').textContent='手机号格式错误'; document.getElementById('mbrPhoneError').classList.remove('hidden'); hasErr=true; }
   if (!deptId) { document.getElementById('mbrDeptError').textContent='请选择所属部门'; document.getElementById('mbrDeptError').classList.remove('hidden'); hasErr=true; }
   if (!roleId) { document.getElementById('mbrRoleError').textContent='请选择所属角色'; document.getElementById('mbrRoleError').classList.remove('hidden'); hasErr=true; }
+  // Password validation
+  if (!password) { document.getElementById('mbrPasswordError').textContent='请输入登录密码'; document.getElementById('mbrPasswordError').classList.remove('hidden'); hasErr=true; }
+  else if (!/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,20}$/.test(password)) { document.getElementById('mbrPasswordError').textContent='密码由8~20位字母、数字组合而成'; document.getElementById('mbrPasswordError').classList.remove('hidden'); hasErr=true; }
   if (hasErr) return;
   const dept = findDeptById(deptTreeData, deptId);
   const roleMap = { r1:'超级管理员', r2:'普通成员', r3:'部门管理员' };
@@ -729,12 +796,12 @@ function confirmMember() {
     const idx = allMembers.findIndex(m => m.id === currentMemberAction.memberId);
     if (idx !== -1) {
       const oldDeptId = allMembers[idx].deptId;
-      allMembers[idx] = { ...allMembers[idx], name, nickname:nick, phone, country, deptId, deptName:dept?dept.name:'', deptPath:dept?dept.name:'', roleId, roleName:roleMap[roleId]||'', lastUpdateTime:formatDt(new Date()) };
+      allMembers[idx] = { ...allMembers[idx], name, phone, deptId, deptName:dept?dept.name:'', deptPath:dept?dept.name:'', roleId, roleName:roleMap[roleId]||'', entryDate:entryDate||allMembers[idx].entryDate, lastUpdateTime:formatDt(new Date()) };
       if (oldDeptId !== deptId) { updateDeptCount(deptTreeData, oldDeptId, -1); updateDeptCount(deptTreeData, deptId, 1); }
     }
     showToast('编辑成功', 'success');
   } else {
-    const nm = { id:'m'+Date.now(), name, nickname:nick, phone, country, deptId, deptName:dept?dept.name:'', deptPath:dept?dept.name:'', roleId, roleName:roleMap[roleId]||'', fixedAssets:0, createDate:new Date().toISOString().slice(0,10), entryDate:new Date().toISOString().slice(0,10), lastUpdateTime:formatDt(new Date()), status:true };
+    const nm = { id:'m'+Date.now(), name, phone, deptId, deptName:dept?dept.name:'', deptPath:dept?dept.name:'', roleId, roleName:roleMap[roleId]||'', fixedAssets:0, createDate:new Date().toISOString().slice(0,10), entryDate:entryDate||new Date().toISOString().slice(0,10), lastUpdateTime:formatDt(new Date()), status:true };
     allMembers.push(nm);
     updateDeptCount(deptTreeData, deptId, 1);
     showToast('添加成功', 'success');
@@ -742,8 +809,8 @@ function confirmMember() {
   closeMemberModal();
   renderTree(); renderTable(); updateHeader();
 }
-function openDeleteMember(memberId) { currentDeleteMember = memberId; document.getElementById('deleteMemberModalOverlay').classList.remove('hidden'); }
-function closeDeleteMemberModal() { document.getElementById('deleteMemberModalOverlay').classList.add('hidden'); }
+function openDeleteMember(memberId) { currentDeleteMember = memberId; document.getElementById('deleteMemberModalOverlay').classList.remove('hidden'); pushAnnoScope(document.getElementById('deleteMemberModalOverlay')); }
+function closeDeleteMemberModal() { document.getElementById('deleteMemberModalOverlay').classList.add('hidden'); popAnnoScope(document.getElementById('deleteMemberModalOverlay')); }
 function confirmDeleteMember() {
   const idx = allMembers.findIndex(m => m.id === currentDeleteMember);
   if (idx !== -1) { const deptId = allMembers[idx].deptId; allMembers.splice(idx,1); updateDeptCount(deptTreeData, deptId, -1); }
@@ -759,12 +826,134 @@ function toggleStatus(memberId, checked) {
 }
 
 /* ===== FILTER ===== */
+/* ===== SEARCHABLE COMBO ===== */
+var roleOptions = [];
+var _ssBlurTimer = null;
+
 function populateRoleFilter() {
-  const sel = document.getElementById('filterRole');
-  const seen = new Set();
-  allMembers.forEach(m => {
-    if (!seen.has(m.roleId)) { seen.add(m.roleId); sel.innerHTML += '<option value="'+m.roleId+'">'+m.roleName+'</option>'; }
+  var seen = new Set();
+  roleOptions = [];
+  allMembers.forEach(function(m) {
+    if (!seen.has(m.roleId)) { seen.add(m.roleId); roleOptions.push({ id: m.roleId, name: m.roleName }); }
   });
+  renderRoleDropdown(roleOptions);
+}
+
+function renderRoleDropdown(list) {
+  var container = document.getElementById('filterRoleOptions');
+  if (list.length === 0) {
+    container.innerHTML = '<div class="ss-option no-match">无匹配角色</div>';
+    return;
+  }
+  var selectedId = document.getElementById('filterRole').value;
+  var html = '';
+  list.forEach(function(role) {
+    html += '<div class="ss-option' + (role.id === selectedId ? ' selected' : '') + '" data-role-id="' + role.id + '" onmousedown="selectRoleOption(\'' + role.id + '\',\'' + role.name.replace(/'/g, "\\'") + '\')">' + role.name + '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function openRoleDropdown() {
+  document.getElementById('filterRoleDropdown').classList.add('show');
+  document.getElementById('filterRoleWrap').classList.add('open');
+  var input = document.getElementById('filterRoleInput');
+  // Keep the display text on reopen so user sees what's currently selected; select all for easy retyping
+  input.select();
+  renderRoleDropdown(roleOptions);
+}
+
+function closeRoleDropdown() {
+  document.getElementById('filterRoleDropdown').classList.remove('show');
+  document.getElementById('filterRoleWrap').classList.remove('open');
+}
+
+function selectRoleOption(id, name) {
+  document.getElementById('filterRole').value = id;
+  document.getElementById('filterRoleInput').value = name;
+  document.getElementById('filterRoleWrap').classList.add('has-value');
+  closeRoleDropdown();
+}
+
+function clearFilterRole(e) {
+  e.stopPropagation();
+  document.getElementById('filterRole').value = '';
+  document.getElementById('filterRoleInput').value = '';
+  document.getElementById('filterRoleWrap').classList.remove('has-value');
+  closeRoleDropdown();
+  // Refocus the input for continued typing
+  document.getElementById('filterRoleInput').focus();
+}
+
+// --- Event wiring ---
+(function initSsCombo() {
+  var wrap = document.getElementById('filterRoleWrap');
+  var input = document.getElementById('filterRoleInput');
+  var wrapEl = document.querySelector('.ss-wrapper');
+
+  if (!wrap || !input) return;
+
+  // Focus on the wrapper area → focus the real input & open
+  wrap.addEventListener('click', function(e) {
+    if (e.target === document.getElementById('filterRoleClear')) return;
+    input.focus();
+    if (!document.getElementById('filterRoleDropdown').classList.contains('show')) {
+      openRoleDropdown();
+    }
+  });
+
+  // Focus event on input → open dropdown
+  input.addEventListener('focus', function() {
+    if (!document.getElementById('filterRoleDropdown').classList.contains('show')) {
+      openRoleDropdown();
+    }
+  });
+
+  // Typing → filter
+  input.addEventListener('input', function() {
+    var kw = input.value.toLowerCase();
+    // When user types, clear hidden selection so filter treats it as a new search
+    document.getElementById('filterRole').value = '';
+    document.getElementById('filterRoleWrap').classList.remove('has-value');
+    var filtered = roleOptions.filter(function(r) { return r.name.toLowerCase().indexOf(kw) !== -1; });
+    renderRoleDropdown(filtered);
+    if (!document.getElementById('filterRoleDropdown').classList.contains('show')) {
+      openRoleDropdown();
+    }
+  });
+
+  // Blur → close after tiny delay (so mousedown on option fires first)
+  input.addEventListener('blur', function() {
+    _ssBlurTimer = setTimeout(function() {
+      closeRoleDropdown();
+      // If nothing selected, restore display
+      if (!document.getElementById('filterRole').value) {
+        input.value = '';
+      }
+    }, 150);
+  });
+
+  // Click outside → close
+  document.addEventListener('click', function(e) {
+    if (wrapEl && !wrapEl.contains(e.target)) {
+      closeRoleDropdown();
+      var inp = document.getElementById('filterRoleInput');
+      if (inp && !document.getElementById('filterRole').value) {
+        inp.value = '';
+      }
+    }
+  });
+})();
+
+function toggleSearchClear() {
+  var v = document.getElementById('searchInput').value;
+  var btn = document.getElementById('searchClear');
+  if (v.length > 0) { btn.classList.remove('hidden'); }
+  else { btn.classList.add('hidden'); }
+}
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').classList.add('hidden');
+  document.getElementById('searchInput').focus();
 }
 function applyFilter() {
   filterKeyword = document.getElementById('searchInput').value.trim();
@@ -776,7 +965,10 @@ function applyFilter() {
 }
 function resetFilter() {
   document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').classList.add('hidden');
   document.getElementById('filterRole').value = '';
+  document.getElementById('filterRoleInput').value = '';
+  document.getElementById('filterRoleWrap').classList.remove('has-value');
   document.getElementById('filterStatus').value = '';
   document.getElementById('filterScope').value = 'all';
   filterKeyword = '';
@@ -892,13 +1084,13 @@ const annotations = {
   ]},
   2: { title:'部门信息头', desc:[
   '触发：页面加载 / 点击组织树节点',
-  '响应：显示当前选中部门名称 + 部门人数/总人数统计',
-  '规则：根部门显示全部成员数'
+  '响应：显示当前选中部门名称 + 部门人数(x/y)统计',
+  '规则：x = 当前部门直属成员数，y = 当前部门 + 所有子部门合计人数；根部门 x=0'
   ]},
   3: { title:'筛选栏-搜索成员', desc:[
   '触发：在搜索框输入关键字后点击[查询]按钮',
   '响应：前端过滤成员列表（按名称/昵称/手机号匹配）',
-  '规则：与角色、状态、数据范围条件叠加过滤'
+  '规则：输入内容后显示清空按钮[✕]，点击清空输入并聚焦搜索框；与角色、状态、数据范围条件叠加过滤'
   ]},
   4: { title:'成员表格', desc:[
   '触发：页面加载 / 选择部门 / 筛选后渲染',
@@ -914,7 +1106,7 @@ const annotations = {
   6: { title:'成员弹窗（添加/编辑）', desc:[
   '触发：点击"添加成员"按钮或表格操作列"编辑"',
   '响应：弹出成员表单弹窗，760px宽',
-  '校验：成员名称必填、手机号必填且格式1开头11位、部门必选、角色必选',
+  '字段：成员名称(必填，限20字符，右侧0/20计数字)、手机号(必填，1开头11位)、所属部门(必选下拉)、所属角色(必选下拉，placeholder灰色)、入职时间(可选日期)、登录密码(必填，8~20位字母+数字组合，右侧0/20计数字，灰色密码示例提示)',
   '添加成功：成员加入列表，部门人数+1，toast提示；编辑成功：列表刷新，toast提示'
   ]},
   7: { title:'分页器', desc:[
@@ -930,9 +1122,9 @@ const annotations = {
   '成功后：成员加入列表，部门人数+1，toast 提示'
   ]},
   9: { title:'筛选栏-角色', desc:[
-  '触发：选择角色下拉选项后点击[查询]',
-  '响应：按所选角色过滤成员列表',
-  '规则：与搜索、状态、数据范围条件叠加过滤'
+  '触发：点击下拉展开角色列表，支持输入关键词模糊搜索角色',
+  '响应：选中角色后点击[查询]按角色过滤成员列表',
+  '规则：可清空选中回到"全部角色"；与搜索、状态、数据范围条件叠加过滤'
   ]},
   10: { title:'筛选栏-状态', desc:[
   '触发：选择状态下拉（全部/已启用/已禁用）后点击[查询]',
@@ -948,12 +1140,26 @@ const annotations = {
 
 /* ===== PORTAL ANNOTATION SYSTEM ===== */
 var annoVisible = true;
+var annoScopeStack = [];
+function pushAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  annoScopeStack.push(el);
+  renderAnnoBadges();
+}
+function popAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  renderAnnoBadges();
+}
 function renderAnnoBadges() {
   var layer = document.getElementById('annoLayer');
   layer.innerHTML = '';
   if (!annoVisible) return;
   var vw = window.innerWidth;
-  document.querySelectorAll('[data-anno]').forEach(function(el) {
+  var scope = annoScopeStack.length > 0 ? annoScopeStack[annoScopeStack.length - 1] : null;
+  var container = scope || document;
+  container.querySelectorAll('[data-anno]').forEach(function(el) {
     var id = el.getAttribute('data-anno');
     if (el.offsetParent === null && el.tagName !== 'BODY') return;
     var target = resolveAnnoTarget(el, vw);

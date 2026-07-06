@@ -157,12 +157,14 @@ var annotations = {
 ### 7.4 核心 JS（框架内置，无需修改）
 
 
-| 函数                   | 作用                                                                                           |
-| -------------------- | -------------------------------------------------------------------------------------------- |
-| `renderAnnoBadges()` | 遍历 `[data-anno]`，`getBoundingClientRect()` 计算元素右上角坐标，生成 `position:absolute` 徽标到 `#annoLayer` |
-| `showAnnoPopup(id)`  | 根据 `annotations[id]` 渲染说明弹窗，每次打开自动居中 |
-| `closeAnnoPopup()`   | 关闭弹窗 |
-| 浮动开关                 | 点击显/隐徽标（`annoVisible` 状态），拖拽时不触发切换 |
+| 函数 | 作用 |
+| --- | --- |
+| `renderAnnoBadges()` | 遍历 `[data-anno]`（栈非空时仅查询栈顶容器内元素），`getBoundingClientRect()` 计算元素右上角坐标，生成 `position:absolute` 徽标到 `#annoLayer` |
+| `showAnnoPopup(id)` | 根据 `annotations[id]` 渲染说明弹窗，每次打开自动居中 |
+| `closeAnnoPopup()` | 关闭弹窗 |
+| `pushAnnoScope(el)` | 将标注范围限定在 `el` 容器内（压栈 + 重渲染），打开抽屉/弹窗时调用 |
+| `popAnnoScope(el)` | 从栈中移除 `el`（出栈 + 重渲染），关闭抽屉/弹窗时调用 |
+| 浮动开关 | 点击显/隐徽标（`annoVisible` 状态），拖拽时不触发切换 |
 | **弹窗拖拽** | 标题栏 `grip-horizontal` 图标 + 标题区域可拖拽移动弹窗位置 |
 
 
@@ -187,7 +189,8 @@ var annotations = {
 > | **删除功能/区块** | 同步删除对应的 `data-anno` 属性、`annotations` 条目，剩余编号**重新连续排列**（不留空号） |
 > | **新增功能/区块** | 按当前最大编号 +1 追加，或插入后重新编号                                       |
 > | **调整功能顺序**  | 按页面阅读顺序（上→下、左→右）重新编号，保证视觉扫描连贯                                |
-> | **模态/弹窗标注** | `data-anno` 标在 modal/dialog 的内部容器上；模态打开后需 `setTimeout(renderAnnoBadges, 50)`（延迟等浏览器重绘）触发徽标渲染，`renderAnnoBadges()` 已内置跳过隐藏元素（`offsetParent === null`）的逻辑 |
+> | **模态/弹窗标注** | `data-anno` 标在 modal/dialog 的**内部容器**上；打开模态时调用 `pushAnnoScope(containerEl)` 将标注范围限定在弹窗内（页面级徽标自动隐藏），关闭时调用 `popAnnoScope(containerEl)` 恢复。详见 §7.9 |
+| **抽屉/侧滑面板标注** | 同模态：打开时 `pushAnnoScope(panelEl)`，关闭时 `popAnnoScope(panelEl)` |
 >
 
 ```js
@@ -235,6 +238,71 @@ annotations = { 1:{...}, 2:{...}, 3:{...}, 4:{...} }
 2. 在**具体功能元素**上添加 `data-anno="N"`，块级元素加 `inline-block`
 3. 在 `annotations` 对象中填入对应的标题和说明
 4. 徽标自动精确定位，不受 `overflow`/`z-index`/全宽容器影响
+
+### 7.9 抽屉/弹窗标注作用域（强制，红线）
+
+> **核心问题**：`#annoLayer` 的 `z-index: 9998` 高于所有抽屉/弹窗。若不做作用域隔离，打开抽屉/弹窗时页面级标注徽标会浮在抽屉上方，造成视觉混淆。
+
+**解决方案**：`annoScopeStack` 栈机制——打开抽屉/弹窗时将标注范围限定在其内部，关闭后恢复。
+
+```js
+// 框架内置的栈机制（每个页面 JS 中已包含）
+var annoScopeStack = [];
+
+function pushAnnoScope(el) {
+  // 去重后压入栈顶，renderAnnoBadges() 自动只用栈顶元素作为查询容器
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  annoScopeStack.push(el);
+  renderAnnoBadges();
+}
+
+function popAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  renderAnnoBadges(); // 恢复到上一级作用域（栈为空 = 全页面）
+}
+```
+
+
+| 规则 | 说明 |
+|------|------|
+| **打开抽屉/弹窗时** | 必须在 `classList.remove('hidden')` 之后调用 `pushAnnoScope(containerEl)`，将标注范围限定在该容器内 |
+| **关闭抽屉/弹窗时** | 必须在 `classList.add('hidden')` 之后调用 `popAnnoScope(containerEl)`，恢复上一级标注范围 |
+| **支持嵌套** | 抽屉内打开弹窗 → push 弹窗；弹窗关闭 → pop 回抽屉；抽屉关闭 → pop 回全页面 |
+| **标注元素位置** | 抽屉/弹窗内的 `data-anno` 必须标在弹窗**内部容器**上（如 `.drawer-panel`、`.modal-box`），不能标在遮罩层上 |
+| **容器引用** | 传入的 `el` 必须是稳定的 DOM 元素引用（如 `document.getElementById('roleDrawerPanel')`），确保 push 和 pop 使用同一引用 |
+
+**典型接入示例**：
+
+```js
+// 打开抽屉
+function openDrawer() {
+  document.getElementById('myDrawerOverlay').classList.remove('hidden');
+  // ... 填充表单数据 ...
+  pushAnnoScope(document.getElementById('myDrawerPanel'));
+}
+
+// 关闭抽屉
+function closeDrawer() {
+  document.getElementById('myDrawerOverlay').classList.add('hidden');
+  popAnnoScope(document.getElementById('myDrawerPanel'));
+}
+
+// 打开弹窗（可能从抽屉内触发，支持嵌套）
+function openModal() {
+  document.getElementById('myModal').classList.remove('hidden');
+  pushAnnoScope(document.getElementById('myModal'));
+}
+
+// 关闭弹窗
+function closeModal() {
+  document.getElementById('myModal').classList.add('hidden');
+  popAnnoScope(document.getElementById('myModal'));
+}
+```
+
+> **注意**：`renderAnnoBadges()` 已内置栈感知——栈非空时 `querySelectorAll('[data-anno]')` 仅查询栈顶容器内的元素，页面级徽标自动不渲染。无需额外过滤逻辑。
 
 ---
 

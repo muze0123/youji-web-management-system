@@ -556,6 +556,7 @@ function openModal(id) {
   document.getElementById(id).classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   setTimeout(function() { lucide.createIcons(); renderAnnoBadges(); }, 80);
+  pushAnnoScope(document.getElementById(id));
 }
 
 function closeModal(id) {
@@ -566,6 +567,7 @@ function closeModal(id) {
   document.getElementById(id).querySelectorAll('.form-error').forEach(function(e) { e.classList.remove('show'); });
   document.getElementById(id).querySelectorAll('.form-input.error').forEach(function(e) { e.classList.remove('error'); });
   setTimeout(function() { renderAnnoBadges(); }, 50);
+  popAnnoScope(document.getElementById(id));
 }
 
 /* ---- Edit Info Modal ---- */
@@ -577,6 +579,7 @@ function openEditModal() {
   }).join('');
   document.getElementById('editPhone').value = accountData.phoneRaw.replace(/\*/g, '');
   openModal('editModal');
+  pushAnnoScope(document.getElementById('editModal'));
 }
 
 function handleEditSubmit(e) {
@@ -633,6 +636,7 @@ function handleEditSubmit(e) {
 function openPasswordModal() {
   document.getElementById('passwordForm').reset();
   openModal('passwordModal');
+  pushAnnoScope(document.getElementById('passwordModal'));
 }
 
 function handlePasswordSubmit(e) {
@@ -679,6 +683,7 @@ function openPhoneModal() {
   document.getElementById('sendSmsBtn').textContent = '获取验证码';
   document.getElementById('sendSmsBtn').disabled = false;
   openModal('phoneModal');
+  pushAnnoScope(document.getElementById('phoneModal'));
 }
 
 function handlePhoneSubmit(e) {
@@ -991,12 +996,27 @@ var annotations = {
    ================================================================ */
 var annoVisible = true;
 
+var annoScopeStack = [];
+function pushAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  annoScopeStack.push(el);
+  renderAnnoBadges();
+}
+function popAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  renderAnnoBadges();
+}
+
 function renderAnnoBadges() {
   var layer = document.getElementById('annoLayer');
   layer.innerHTML = '';
   if (!annoVisible) return;
   var vw = window.innerWidth;
-  document.querySelectorAll('[data-anno]').forEach(function(el) {
+  var scope = annoScopeStack.length > 0 ? annoScopeStack[annoScopeStack.length - 1] : null;
+  var container = scope || document;
+  container.querySelectorAll('[data-anno]').forEach(function(el) {
     var id = el.getAttribute('data-anno');
     if (el.offsetParent === null && el.tagName !== 'BODY') return;
     var target = resolveAnnoTarget(el, vw);
