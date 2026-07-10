@@ -81,9 +81,10 @@
 
 | 值 | 用途 |
 |----|------|
-| **4px** | 默认（按钮、输入框、标签、小卡片） |
-| 6px | 次选（卡片、弹窗） |
-| 8px | 大容器 |
+| **4px** | 默认（按钮、输入框、标签、Badge 等小元素） |
+| 8px | 卡片、弹窗、模态、大容器 |
+
+> 注：6px 保留可用，用于内嵌小组件（如 KPI 统计小卡），不作为主要层级。
 
 ### 3.2 间距
 
@@ -108,6 +109,89 @@
 ## 五、组件外观标准
 
 同类组件全站外观必须一致。以下为视觉标准（行为交互见 `claude.md`）。
+
+### 5.0 页面标准布局
+
+> **核心原则**：所有后台列表/管理页面采用统一的两区块结构。**不设独立的页面主标题区块**（标题整合进数据区标题行）。
+
+**标准结构**：
+
+```
+┌─ 区块1：筛选区 ─────────────────────────────┐
+│  [状态Tab]（可选）                            │
+│  filter-grid（4 列栅格）                      │
+│  [查询] [重置]（右对齐）                       │
+└────────────────────────────────────────────┘
+┌─ 区块2：数据区 ─────────────────────────────┐
+│  工单列表（h2, 左）       [操作按钮]（右）      │
+│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐            │
+│  │ KPI │ │ KPI │ │ KPI │ │ KPI │ ← 有则显示  │
+│  └─────┘ └─────┘ └─────┘ └─────┘            │
+│  ┌─ 表格 ──────────────────────────┐         │
+│  │ ...data rows...                 │         │
+│  └─────────────────────────────────┘         │
+│  分页器（表格右下方）                           │
+└────────────────────────────────────────────┘
+```
+
+**布局规则**：
+
+| 区域 | 规则 |
+|------|------|
+| 区块1 筛选区 | `bg-white rounded-lg border border-line p-5 md:p-6 mb-4` |
+| 区块2 数据区 | `bg-white rounded-lg border border-line p-5 md:p-6` |
+| 数据区标题 | `h2`，`text-[16px]`（有指标卡）或 `text-[18px]`（无指标卡），`font-semibold`，左对齐 |
+| 操作按钮 | 与标题同行，右对齐，`flex items-center justify-between flex-wrap gap-3` |
+| 数据指标卡 | 有则放在标题行下方、表格上方（`mb-4`），无则不显示 |
+| 指标卡样式 | `grid grid-cols-2 lg:grid-cols-4 gap-3`，每卡 `p-3 rounded-md border border-line bg-bg-page` |
+| 筛选字段 | 使用 filter-grid 4 列栅格（见 §5.4） |
+| 查询/重置 | 在筛选区 filter-grid 下方独立一行，右对齐（`flex justify-end gap-3 mt-3`） |
+
+**页面标题处理**：
+- ❌ **禁止**设置独立的页面标题卡片（如单独的 `<h1>订单管理</h1>` 卡片区块）
+- ✅ 页面标题语义整合到数据区的 `h2` 标题中（如"工单列表"、"订单列表"）
+- ✅ 必要的页面级操作按钮（如"标记异常"、"新增"）放在数据区标题行右侧
+
+**区块1 筛选区 HTML 结构参考**：
+
+```html
+<div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+  <!-- 状态 Tab（按需） -->
+  <div class="flex items-center gap-2 mb-4 flex-wrap">
+    <span class="text-[13px] text-ink-sub mr-1">状态：</span>
+    <div class="flex items-center gap-1 flex-wrap" id="statusTabs">
+      <span class="filter-tab active">全部</span>...
+    </div>
+  </div>
+  <!-- filter-grid -->
+  <div class="filter-grid">
+    <div class="filter-item">...</div>
+    ...
+  </div>
+  <div class="flex justify-end gap-3 mt-3">
+    <button class="btn btn-primary btn-sm">查询</button>
+    <button class="btn btn-default btn-sm">重置</button>
+  </div>
+</div>
+```
+
+**区块2 数据区 HTML 结构参考**：
+
+```html
+<div class="bg-white rounded-lg border border-line p-5 md:p-6">
+  <!-- 标题行 -->
+  <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+    <h2 class="text-[18px] font-semibold text-ink-title inline-block">数据列表</h2>
+    <button class="btn btn-primary"><i ...></i> 操作</button>
+  </div>
+  <!-- 数据指标卡（有则放，无则跳过） -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">...</div>
+  <!-- 表格 -->
+  <div class="overflow-x-auto"><table class="data-table">...</table></div>
+  <!-- 分页 -->
+  <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]" id="pagination"></div>
+</div>
+```
 
 ### 5.1 按钮
 
@@ -279,7 +363,7 @@
 
 ### 5.10 卡片
 
-- `bg-card` + `line` 边框 + 圆角 6px + 内边距 16–20px。
+- `bg-card` + `line` 边框 + 圆角 8px + 内边距 16–20px。
 
 ### 5.11 图标
 

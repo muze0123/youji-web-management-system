@@ -115,8 +115,11 @@
     </div>
 
     <!-- 运营配置 -->
-    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置
+    <div class="menu-item l1" data-sub="sub-ops" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置<span class="menu-arrow">▼</span></div>
+    <div class="submenu collapsed" id="sub-ops" style="max-height:400px;">
+      <div class="menu-item l2" data-page="优惠券管理.html" onclick="menuSelect(this)">优惠券管理</div>
+      <div class="menu-item l2" data-page="价格配置.html" onclick="menuSelect(this)">价格配置</div>
+      <div class="menu-item l2" data-page="目的地配置.html" onclick="menuSelect(this)">目的地配置</div>
     </div>
 
     <div class="menu-item l1" data-page="用户管理.html" onclick="menuSelect(this)">
@@ -321,7 +324,7 @@ function navigateToPage(page) {
   var cur = window.location.pathname.split("/").pop();
   if (fname === cur) return;
   if (page.endsWith('.html')) {
-    window.location.href = page;
+    if(window.top===window){window.location.href=page}else{try{window.top.location.href=page}catch(e){window.location.href=page}}
   } else {
     // Placeholder — render inline
     document.getElementById('mainContent').innerHTML =
@@ -340,7 +343,7 @@ function navigate(url) {
   var fname = url.split("/").pop();
   var cur = window.location.pathname.split("/").pop();
   if (fname === cur) return;
-  window.location.href = url;
+  if(window.top===window){window.location.href=url}else{try{window.top.location.href=url}catch(e){window.location.href=url}}
 }
 
 /* ===== MOBILE SIDEBAR TOGGLE ===== */

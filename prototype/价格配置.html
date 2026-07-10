@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>运营配置 - 游寄后台管理系统</title>
+  <title>价格配置 - 游寄后台管理系统</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -111,9 +111,9 @@
     .price-section{background:#fff;border:1px solid #E8EAED;border-radius:6px;padding:20px;margin-bottom:16px;}
     .price-section h4{font-size:14px;font-weight:600;color:#1A1D24;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #F0F1F3;display:flex;align-items:center;gap:8px;}
     .price-grid{display:grid;grid-template-columns:120px repeat(3,1fr);gap:8px 16px;align-items:center;}
-    .price-grid .header-cell{font-size:12px;color:#6E7685;font-weight:600;text-align:center;padding:6px 0;}
+    .price-grid .header-cell{font-size:12px;color:#6E7685;font-weight:600;text-align:left;padding:6px 0;}
     .price-grid .label-cell{font-size:13px;color:#3A3F4A;font-weight:500;display:flex;align-items:center;gap:4px;}
-    .price-grid .value-cell{display:flex;align-items:center;justify-content:center;gap:4px;}
+    .price-grid .value-cell{display:flex;align-items:center;justify-content:flex-start;gap:4px;}
     /* Scope badge */
     .scope-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;background:#E6F0FF;color:#0066FF;font-weight:500;}
     /* Unsaved indicator */
@@ -170,11 +170,14 @@
     <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单</div>
     <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控</div>
     <div class="menu-item l1" data-page="对账中心.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心</div>
-    <div class="menu-item l1 active-l1" data-page="运营配置.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置</div>
-    <div class="menu-item l1" data-page="用户管理.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="users" class="w-[15px] h-[15px]"></i></div>用户管理
+    <!-- 运营配置 -->
+    <div class="menu-item l1 active-l1" data-sub="sub-ops" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置<span class="menu-arrow open">▼</span></div>
+    <div class="submenu" id="sub-ops" style="max-height:400px;">
+      <div class="menu-item l2" data-page="优惠券管理.html" onclick="menuSelect(this)">优惠券管理</div>
+      <div class="menu-item l2 active-l2" data-page="价格配置.html" onclick="menuSelect(this)">价格配置</div>
+      <div class="menu-item l2" data-page="目的地配置.html" onclick="menuSelect(this)">目的地配置</div>
     </div>
-
+    <div class="menu-item l1" data-page="用户管理.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="users" class="w-[15px] h-[15px]"></i></div>用户管理</div>
     <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置<span class="menu-arrow">▼</span></div>
     <div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
       <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
@@ -190,19 +193,11 @@
   <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
     <div class="p-4">
 
-      <!-- Tabs -->
-      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-        <div class="flex items-center border-b border-line" data-anno="3">
-          <div class="tab-item active" data-tab="price" onclick="switchTab('price')">价格配置</div>
-          <div class="tab-item" data-tab="dest" onclick="switchTab('dest')">目的地配置</div>
-        </div>
-      </div>
-
       <!-- ============ TAB 1: PRICE CONFIG ============ -->
       <div id="tabPrice">
 
         <!-- B: Short-term price -->
-        <div class="price-section" data-anno="4">
+        <div class="price-section" data-anno="1">
           <h4><i data-lucide="clock" class="w-[16px] h-[16px] text-primary"></i>短租价格（元/小时）<span class="text-[11px] text-ink-muted font-normal ml-2">全局统一 · 计费单一事实来源</span></h4>
           <div class="price-grid">
             <div class="header-cell"></div><div class="header-cell">小格口</div><div class="header-cell">中格口</div><div class="header-cell">大格口</div>
@@ -219,7 +214,7 @@
         </div>
 
         <!-- C: Long-term price -->
-        <div class="price-section" data-anno="5">
+        <div class="price-section" data-anno="2">
           <h4><i data-lucide="calendar-days" class="w-[16px] h-[16px] text-primary"></i>长租价格（元/月）<span class="text-[11px] text-ink-muted font-normal ml-2">每月按 31 天计</span></h4>
           <div class="price-grid">
             <div class="header-cell"></div><div class="header-cell">小格口</div><div class="header-cell">中格口</div><div class="header-cell">大格口</div>
@@ -231,7 +226,7 @@
         </div>
 
         <!-- D: Overtime rate -->
-        <div class="price-section" data-anno="6">
+        <div class="price-section" data-anno="3">
           <h4><i data-lucide="alert-circle" class="w-[16px] h-[16px] text-primary"></i>超时费率</h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[13px]">
             <div class="bg-bg-page rounded p-4">
@@ -249,7 +244,7 @@
         </div>
 
         <!-- E: Refund rules -->
-        <div class="price-section" data-anno="7">
+        <div class="price-section" data-anno="4">
           <h4><i data-lucide="rotate-ccw" class="w-[16px] h-[16px] text-primary"></i>退款规则参数</h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[13px] mb-4">
             <div class="bg-bg-page rounded p-4">
@@ -275,7 +270,7 @@
         </div>
 
         <!-- F: Save + Change log -->
-        <div class="bg-white rounded-lg border border-line p-5" data-anno="8">
+        <div class="bg-white rounded-lg border border-line p-5" data-anno="5">
           <div class="flex items-center gap-3 flex-wrap">
             <button class="btn btn-primary" onclick="savePrice()" id="btnSavePrice">
               <i data-lucide="save" class="w-[14px] h-[14px]"></i> 保存价格配置
@@ -288,78 +283,8 @@
         </div>
       </div>
 
-      <!-- ============ TAB 2: DESTINATION CONFIG ============ -->
-      <div id="tabDest" class="hidden">
-
-        <!-- Filter + Add -->
-        <div class="bg-white rounded-lg border border-line p-4 mb-4" data-anno="9">
-          <div class="flex flex-wrap items-center gap-3">
-            <div class="select-wrap"><select class="filter-select" id="destTypeFilter" onchange="renderDestTable()"><option value="">全部类型</option><option value="酒店">酒店</option><option value="车站">车站</option><option value="景区">景区</option><option value="其他">其他</option></select></div>
-            <div class="select-wrap"><select class="filter-select" id="destStatusFilter" onchange="renderDestTable()"><option value="">全部状态</option><option value="enabled">启用</option><option value="disabled">停用</option></select></div>
-            <input type="text" class="filter-input" id="destSearch" placeholder="搜索目的地名称" oninput="renderDestTable()" style="width:180px;">
-            <button class="btn btn-default btn-sm" onclick="resetDestFilters()"><i data-lucide="rotate-ccw" class="w-[13px] h-[13px]"></i> 重置</button>
-            <button class="btn btn-primary btn-sm ml-auto" onclick="openDestModal()"><i data-lucide="plus" class="w-[13px] h-[13px]"></i> 新增目的地</button>
-            <span class="text-[12px] text-ink-muted" id="destCount"></span>
-          </div>
-        </div>
-
-        <!-- Destination table -->
-        <div class="bg-white rounded-lg border border-line p-5 md:p-6" data-anno="10">
-          <div class="overflow-x-auto">
-            <table class="data-table" id="destTable">
-              <thead><tr><th>目的地名称</th><th>地址</th><th>类型</th><th>服务费（元）</th><th>预计时效</th><th>启用状态</th><th>操作</th></tr></thead>
-              <tbody id="destTbody"></tbody>
-            </table>
-          </div>
-          <!-- 目的地分页（design.md §5.5） -->
-          <div class="flex items-center justify-end flex-wrap gap-4 pt-5" id="destPagination">
-            <div class="pg-nav" id="destPgNav"></div>
-            <span class="pg-select-wrap"><select class="pg-select" id="destPageSize" onchange="destChangePageSize()"><option value="5">5条/页</option><option value="10" selected>10条/页</option><option value="20">20条/页</option></select></span>
-            <span class="flex items-center gap-1 text-[12px] text-ink-body">跳至 <input class="pg-jump" id="destPgJump" onkeydown="if(event.key==='Enter')destJumpPage()"> 页</span>
-            <span class="pg-stats" id="destPgStats"></span>
-          </div>
-        </div>
       </div>
-
-    </div>
   </main>
-</div>
-
-<!-- ===== DESTINATION MODAL ===== -->
-<div class="modal-overlay" id="destModalOverlay" onclick="closeDestModal()">
-  <div class="modal" onclick="event.stopPropagation()" data-anno="11">
-    <div class="modal-header">
-      <h3 class="text-[16px] font-semibold text-ink-title" id="destModalTitle">新增目的地</h3>
-      <button class="modal-close-btn" onclick="closeDestModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-form">
-        <div class="modal-field">
-          <span class="form-label"><span class="field-req">*</span>目的地名称</span><input class="form-input" id="destName">
-        </div>
-        <div class="modal-field">
-          <span class="form-label"><span class="field-req">*</span>地址</span><input class="form-input" id="destAddr">
-        </div>
-        <div class="modal-field">
-          <span class="form-label"><span class="field-req">*</span>类型</span>
-          <div class="select-wrap"><select class="form-select" id="destType" required><option value="">请选择</option><option value="酒店">酒店</option><option value="车站">车站</option><option value="景区">景区</option><option value="其他">其他</option></select></div>
-        </div>
-        <div class="modal-field">
-          <span class="form-label"><span class="field-req">*</span>服务费</span><input class="form-input font-mono" id="destFee" placeholder="一口价（元）">
-        </div>
-        <div class="modal-field">
-          <span class="form-label"><span class="field-req">*</span>预计时效</span><input class="form-input" id="destEta" placeholder="如：约4小时内送达">
-        </div>
-        <div class="modal-field">
-          <span class="form-label">启用状态</span><label class="toggle-sw"><input type="checkbox" id="destEnabled" checked><span class="toggle-slider"></span></label>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-default" onclick="closeDestModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveDest()">保存</button>
-    </div>
-  </div>
 </div>
 
 <!-- ===== CONFIRM DIALOG (save price) ===== -->
@@ -417,26 +342,8 @@
 /* ================================================================
    STATE
    ================================================================ */
-var currentTab = 'price';
 var isDirty = false;
-var editingDestId = null;
-var destCurrentPage = 1, destPageSize = 10;
 
-/* ================================================================
-   MOCK DATA — Destinations
-   ================================================================ */
-var destinations = [
-  { id:'d1', name:'杭州东站', addr:'杭州市江干区东站到达层B2', type:'车站', fee:15, eta:'约3小时内送达', enabled:true },
-  { id:'d2', name:'杭州萧山机场', addr:'杭州市萧山区萧山机场T3航站楼', type:'车站', fee:35, eta:'约5小时内送达', enabled:true },
-  { id:'d3', name:'西湖国宾馆', addr:'杭州市西湖区杨公堤18号', type:'酒店', fee:20, eta:'约2小时内送达', enabled:true },
-  { id:'d4', name:'杭州大厦酒店', addr:'杭州市下城区武林广场21号', type:'酒店', fee:20, eta:'约2小时内送达', enabled:true },
-  { id:'d5', name:'灵隐景区', addr:'杭州市西湖区灵隐路法云弄1号', type:'景区', fee:25, eta:'约4小时内送达', enabled:true },
-  { id:'d6', name:'西溪湿地', addr:'杭州市西湖区天目山路518号', type:'景区', fee:25, eta:'约4小时内送达', enabled:false },
-  { id:'d7', name:'湖滨银泰', addr:'杭州市上城区湖滨路1号', type:'其他', fee:10, eta:'约1小时内送达', enabled:true },
-  { id:'d8', name:'杭州站（城站）', addr:'杭州市上城区环城东路1号', type:'车站', fee:15, eta:'约3小时内送达', enabled:true },
-  { id:'d9', name:'千岛湖度假酒店', addr:'杭州市淳安县千岛湖镇', type:'酒店', fee:50, eta:'约8小时内送达', enabled:true },
-  { id:'d10', name:'宋城景区', addr:'杭州市西湖区之江路148号', type:'景区', fee:25, eta:'约4小时内送达', enabled:false },
-];
 
 /* ================================================================
    MOCK DATA — Change Log
@@ -458,17 +365,7 @@ var refundTiers = [
 ];
 var tierIdCounter = 4;
 
-/* ================================================================
-   TAB SWITCHING
-   ================================================================ */
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab-item').forEach(function(t){t.classList.toggle('active', t.dataset.tab===tab);});
-  document.getElementById('tabPrice').classList.toggle('hidden', tab!=='price');
-  document.getElementById('tabDest').classList.toggle('hidden', tab!=='dest');
-  if (tab==='dest') renderDestTable();
-  if (annoVisible) setTimeout(renderAnnoBadges, 50);
-}
+
 
 /* ================================================================
    TAB 1: PRICE CONFIG
@@ -589,141 +486,6 @@ function removeTier(i) {
 }
 
 /* ================================================================
-   TAB 2: DESTINATION CONFIG
-   ================================================================ */
-function getEnabledBadge(enabled) {
-  return enabled ? '<span class="badge badge-success">启用</span>' : '<span class="badge badge-muted">停用</span>';
-}
-
-function renderDestTable() {
-  var typeF = document.getElementById('destTypeFilter').value;
-  var statusF = document.getElementById('destStatusFilter').value;
-  var search = document.getElementById('destSearch').value.toLowerCase();
-  var filtered = destinations.filter(function(d){
-    if (typeF && d.type!==typeF) return false;
-    if (statusF==='enabled' && !d.enabled) return false;
-    if (statusF==='disabled' && d.enabled) return false;
-    if (search && d.name.toLowerCase().indexOf(search)===-1) return false;
-    return true;
-  });
-  document.getElementById('destCount').textContent = '共 '+filtered.length+' 条';
-  // Paginate
-  var start = (destCurrentPage-1)*destPageSize, end = Math.min(start+destPageSize, filtered.length);
-  var pageData = filtered.slice(start, end);
-  var html = '';
-  pageData.forEach(function(d){
-    html += '<tr>';
-    html += '<td class="font-medium text-ink-title">'+d.name+'</td>';
-    html += '<td class="text-ink-sub text-[12px] max-w-[180px] truncate" title="'+d.addr+'">'+d.addr+'</td>';
-    html += '<td>'+d.type+'</td>';
-    html += '<td class="font-mono">¥'+d.fee+'.00</td>';
-    html += '<td class="text-[12px]">'+d.eta+'</td>';
-    html += '<td>'+getEnabledBadge(d.enabled)+'</td>';
-    html += '<td>';
-    html += '<a class="action-link" onclick="editDest(\''+d.id+'\')">编辑</a>';
-    html += '<a class="action-link" onclick="toggleDest(\''+d.id+'\')">'+(d.enabled?'停用':'启用')+'</a>';
-    html += '<a class="action-link danger" onclick="deleteDest(\''+d.id+'\')">删除</a>';
-    html += '</td></tr>';
-  });
-  document.getElementById('destTbody').innerHTML = html;
-  lucide.createIcons();
-  destRenderPagination(filtered.length);
-}
-
-function destRenderPagination(total) {
-  var totalPages = Math.ceil(total/destPageSize);
-  document.getElementById('destPgStats').textContent = '共 '+total+' 条记录　第 '+destCurrentPage+'/'+Math.max(1,totalPages)+' 页';
-  var nav = document.getElementById('destPgNav'), html = '';
-  html += '<button class="pg-btn" ' + (destCurrentPage<=1?'disabled':'') + ' onclick="destGoPage('+(destCurrentPage-1)+')">‹</button>';
-  if (totalPages<=7) { for(var i=1;i<=totalPages;i++) html += '<button class="pg-btn'+(i===destCurrentPage?' pg-current':'')+'" onclick="destGoPage('+i+')">'+i+'</button>'; }
-  else {
-    html += '<button class="pg-btn'+(1===destCurrentPage?' pg-current':'')+'" onclick="destGoPage(1)">1</button>';
-    if(destCurrentPage>3) html += '<span class="pg-ellipsis">…</span>';
-    var s=Math.max(2,destCurrentPage-1),e=Math.min(totalPages-1,destCurrentPage+1);
-    for(var i=s;i<=e;i++) html += '<button class="pg-btn'+(i===destCurrentPage?' pg-current':'')+'" onclick="destGoPage('+i+')">'+i+'</button>';
-    if(destCurrentPage<totalPages-2) html += '<span class="pg-ellipsis">…</span>';
-    html += '<button class="pg-btn'+(totalPages===destCurrentPage?' pg-current':'')+'" onclick="destGoPage('+totalPages+')">'+totalPages+'</button>';
-  }
-  html += '<button class="pg-btn" ' + (destCurrentPage>=totalPages?'disabled':'') + ' onclick="destGoPage('+(destCurrentPage+1)+')">›</button>';
-  nav.innerHTML = html;
-}
-function destGoPage(p) { var typeF=document.getElementById('destTypeFilter').value,statusF=document.getElementById('destStatusFilter').value,search=document.getElementById('destSearch').value.toLowerCase(); var filtered=destinations.filter(function(d){if(typeF&&d.type!==typeF)return false;if(statusF==='enabled'&&!d.enabled)return false;if(statusF==='disabled'&&d.enabled)return false;if(search&&d.name.toLowerCase().indexOf(search)===-1)return false;return true;}); var t=Math.ceil(filtered.length/destPageSize); if(p<1||p>t)return; destCurrentPage=p; renderDestTable(); }
-function destChangePageSize() { destPageSize = parseInt(document.getElementById('destPageSize').value); destCurrentPage=1; renderDestTable(); }
-function destJumpPage() { var p=parseInt(document.getElementById('destPgJump').value); if(isNaN(p)||p<1){alert('请输入有效页码');return;} var typeF=document.getElementById('destTypeFilter').value,statusF=document.getElementById('destStatusFilter').value,search=document.getElementById('destSearch').value.toLowerCase(); var filtered=destinations.filter(function(d){if(typeF&&d.type!==typeF)return false;if(statusF==='enabled'&&!d.enabled)return false;if(statusF==='disabled'&&d.enabled)return false;if(search&&d.name.toLowerCase().indexOf(search)===-1)return false;return true;}); var t=Math.ceil(filtered.length/destPageSize); if(p>t){alert('请输入有效页码（最大'+t+'）');return;} destCurrentPage=p; renderDestTable(); document.getElementById('destPgJump').value=''; }
-
-function resetDestFilters() {
-  document.getElementById('destTypeFilter').value = '';
-  document.getElementById('destStatusFilter').value = '';
-  document.getElementById('destSearch').value = '';
-  destCurrentPage = 1;
-  renderDestTable();
-}
-
-function openDestModal(id) {
-  editingDestId = id || null;
-  document.getElementById('destModalTitle').textContent = id ? '编辑目的地' : '新增目的地';
-  if (id) {
-    var d = destinations.find(function(x){return x.id===id;});
-    document.getElementById('destName').value = d.name;
-    document.getElementById('destAddr').value = d.addr;
-    document.getElementById('destType').value = d.type;
-    document.getElementById('destFee').value = d.fee;
-    document.getElementById('destEta').value = d.eta;
-    document.getElementById('destEnabled').checked = d.enabled;
-  } else {
-    ['destName','destAddr','destFee','destEta'].forEach(function(f){document.getElementById(f).value='';});
-    document.getElementById('destType').value = '';
-    document.getElementById('destEnabled').checked = true;
-  }
-  document.getElementById('destModalOverlay').classList.add('show');
-  pushAnnoScope(document.getElementById('destModalOverlay'));
-}
-
-function closeDestModal() {
-  document.getElementById('destModalOverlay').classList.remove('show');
-  editingDestId = null;
-  popAnnoScope(document.getElementById('destModalOverlay'));
-}
-
-function saveDest() {
-  var name = document.getElementById('destName').value.trim();
-  var addr = document.getElementById('destAddr').value.trim();
-  var type = document.getElementById('destType').value;
-  var fee = document.getElementById('destFee').value.trim();
-  var eta = document.getElementById('destEta').value.trim();
-  if (!name||!addr||!type||!fee||!eta) { alert('请填写所有必填字段'); return; }
-  var enabled = document.getElementById('destEnabled').checked;
-
-  if (editingDestId) {
-    var d = destinations.find(function(x){return x.id===editingDestId;});
-    d.name=name;d.addr=addr;d.type=type;d.fee=parseFloat(fee);d.eta=eta;d.enabled=enabled;
-  } else {
-    destinations.push({ id:'d'+(destinations.length+1), name:name, addr:addr, type:type, fee:parseFloat(fee), eta:eta, enabled:enabled });
-  }
-  closeDestModal();
-  renderDestTable();
-}
-
-function editDest(id) { openDestModal(id); }
-
-function toggleDest(id) {
-  var d = destinations.find(function(x){return x.id===id;});
-  if (d.enabled) {
-    if (!confirm('停用后用户端寄送将不展示"' + d.name + '"，确认停用？')) return;
-  }
-  d.enabled = !d.enabled;
-  renderDestTable();
-}
-
-function deleteDest(id) {
-  var d = destinations.find(function(x){return x.id===id;});
-  if (!confirm('确认删除"' + d.name + '"？\n\n将采用软删除：从用户端与可选清单移除，后台保留记录，历史订单关联不丢失。')) return;
-  d.enabled = false;
-  d._deleted = true;
-  renderDestTable();
-}
-
-/* ================================================================
    MENU SELECT
    ================================================================ */
 function menuSelect(el){if(el.classList.contains('l1'))handleL1(el);else if(el.classList.contains('l2'))handleL2(el);}
@@ -734,25 +496,19 @@ function handleL2(el){var ps=el.closest('.submenu'),pid=ps?ps.id:null;collapseAl
 function collapseAllExcept(k){document.querySelectorAll('.submenu').forEach(function(s){if(s.id===k)return;if(s.classList.contains('collapsed'))return;s.classList.add('collapsed');var l=findParentL1BySubId(s.id);if(l){var a=l.querySelector('.menu-arrow');if(a)a.classList.remove('open');if(!s.querySelector('.menu-item.active-l2'))l.classList.remove('active-l1');}});}
 function clearAllActive(){document.querySelectorAll('.menu-item').forEach(function(i){i.classList.remove('active-l1','active-l2');});}
 function findParentL1BySubId(id){return id?document.querySelector('.menu-item.l1[data-sub="'+id+'"]'):null;}
-function navigateToPage(p){if(!p)return;var f=p.split("/").pop(),c=window.location.pathname.split("/").pop();if(f===c)return;if(p.endsWith('.html'))window.location.href=p;else{document.getElementById('mainContent').innerHTML='<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6"><h2 class="text-[16px] font-semibold text-ink-title mb-2">'+p+'</h2><p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p></div></div>';}}
-function navigate(url){if(url==='#')return;var f=url.split("/").pop(),c=window.location.pathname.split("/").pop();if(f===c)return;window.location.href=url;}
+function navigateToPage(p){if(!p)return;if(p.endsWith('.html')){if(window.top===window){window.location.href=p}else{try{window.top.location.href=p}catch(e){window.location.href=p}}}else{document.getElementById('mainContent').innerHTML='<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6"><h2 class="text-[16px] font-semibold text-ink-title mb-2">'+p+'</h2><p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p></div></div>';}}
+function navigate(url){if(url==='#')return;var f=url.split("/").pop(),c=window.location.pathname.split("/").pop();if(f===c)return;if(window.top===window){window.location.href=url}else{try{window.top.location.href=url}catch(e){window.location.href=url}}}
 function toggleSidebar(){var s=document.getElementById('sidebar'),o=document.getElementById('sidebarOverlay');s.classList.toggle('open');o.classList.toggle('show');}
 
 /* ================================================================
    PORTAL ANNOTATION SYSTEM
    ================================================================ */
 var annotations = {
-  1: { title: '运营配置页面标题', desc: ['整模块仅管理员可见可操作','运营员侧边导航不展示"运营配置"','点击 logo 可返回 index.html']},
-  2: { title: '模块定位', desc: ['参数中枢：集中管理价格与目的地','变更留痕：配置变更记录操作人/时间/前后值，不可删除，供审计','全局生效：价格保存即全局生效，影响用户端下单/退款/对账']},
-  3: { title: '子页Tab切换', desc: ['价格配置：短租/长租分档价、超时费率、退款规则参数（计费单一事实来源）','目的地配置：行李寄送固定目的地清单 CRUD','仅管理员可操作所有子页']},
-  4: { title: '短租价格配置', desc: ['按柜型三档：小格口/中格口/大格口','每档可编辑：单价（元/小时）+ 每24h封顶（元）','输入校验：正数、封顶 ≥ 单价','全局统一一套价（一期不按柜机差异化，V2）','修改影响用户端下单、收费规则弹窗、订单退款、对账']},
-  5: { title: '长租价格配置', desc: ['按柜型三档月租（元/月）','每月按 31 天计','可编辑数字输入，带单位']},
-  6: { title: '超时费率配置', desc: ['短租超时：计费单位（按小时）+ 进位规则（不足1小时按1小时/不足30分钟等）','长租超时：按短租单价 × 24h 封顶值计算','可配参数：计费上限开关及封顶值']},
-  7: { title: '退款规则参数', desc: ['短租退款：全额退时限（分钟）+ 退款算法（实付−使用时长费用）','长租退款：全额退时限 + 整月退费开关','长租不足整月比例阶梯：可增删行的表格，每行含天数阈值和退款比例%','阶梯示例：≤1天50% / 1-2天30% / 2-3天10% / 3-31天不退','各时段区间与比例均可配，不写死档位']},
-  8: { title: '保存与变更留痕', desc: ['保存触发二次确认弹窗：提示"立即全局生效"影响面','确认保存：记录变更留痕（操作人、时间、变更前后对比），不可删除','变更记录入口：查看完整变更历史','生效方式：立即生效 / 定时生效（指定未来时间点）']},
-  9: { title: '目的地筛选/搜索', desc: ['按类型筛选：酒店/车站/景区/其他','按启用状态筛选','按名称搜索','重置清空所有筛选条件']},
-  10: { title: '目的地列表表格', desc: ['列：名称/地址/类型/服务费/预计时效/启用状态/操作','启用/停用：停用后用户端寄送即时隐藏该目的地','编辑：弹窗回填修改','删除：二次确认后软删除（后台保留记录，历史订单关联不丢失）']},
-  11: { title: '目的地新增/编辑弹窗', desc: ['字段：名称（必填）/ 地址（必填）/ 类型（必填）/ 服务费（必填，元）/ 预计时效（必填）/ 启用状态（默认启用）','保存后即时生效']}
+  1: { title: '短租价格配置', desc: ['按柜型三档：小格口/中格口/大格口','每档可编辑：单价（元/小时）+ 每24h封顶（元）','输入校验：正数、封顶 ≥ 单价','全局统一一套价（一期不按柜机差异化，V2）','修改影响用户端下单、收费规则弹窗、订单退款、对账']},
+  2: { title: '长租价格配置', desc: ['按柜型三档月租（元/月）','每月按 31 天计','可编辑数字输入，带单位']},
+  3: { title: '超时费率配置', desc: ['短租超时：计费单位（按小时）+ 进位规则（不足1小时按1小时/不足30分钟等）','长租超时：按短租单价 × 24h 封顶值计算','可配参数：计费上限开关及封顶值']},
+  4: { title: '退款规则参数', desc: ['短租退款：全额退时限（分钟）+ 退款算法（实付−使用时长费用）','长租退款：全额退时限 + 整月退费开关','长租不足整月比例阶梯：可增删行的表格，每行含天数阈值和退款比例%','阶梯示例：≤1天50% / 1-2天30% / 2-3天10% / 3-31天不退','各时段区间与比例均可配，不写死档位']},
+  5: { title: '保存与变更留痕', desc: ['保存触发二次确认弹窗：提示"立即全局生效"影响面','确认保存：记录变更留痕（操作人、时间、变更前后对比），不可删除','变更记录入口：查看完整变更历史','生效方式：立即生效 / 定时生效（指定未来时间点）']}
 };
 
 var annoVisible = true;
@@ -797,7 +553,6 @@ function stopDragToggle(){document.removeEventListener('mousemove',onDragToggle)
 document.addEventListener('DOMContentLoaded',function(){
   lucide.createIcons();
   renderRefundTiers();
-  renderDestTable();
   renderAnnoBadges();
   document.getElementById('mainContent').addEventListener('scroll',renderAnnoBadges);
   window.addEventListener('resize',renderAnnoBadges);

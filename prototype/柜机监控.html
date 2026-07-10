@@ -31,7 +31,7 @@
     .btn-default:hover{border-color:#0066FF;color:#0066FF;}
     .btn-sm{height:28px;padding:0 10px;font-size:12px;}
     /* KPI card */
-    .kpi-card{border-radius:6px;border:1px solid #E8EAED;background:#fff;padding:14px 18px;transition:box-shadow .15s;cursor:pointer;}
+    .kpi-card{border-radius:6px;border:1px solid #DFE1E5;background:#F7F8FA;padding:12px;transition:box-shadow .15s;cursor:pointer;}
     .kpi-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06);}
     .kpi-card.danger-highlight{border-color:#D9001B;background:#FFFAFA;}
     /* Data table */
@@ -59,12 +59,31 @@
     .action-link+.action-link{margin-left:12px;}
     .action-link.danger{color:#D9001B;}
     /* Filter */
-    .filter-select{font-family:inherit;font-size:13px;height:32px;padding:0 28px 0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;}
-    .filter-input{font-family:inherit;font-size:13px;height:32px;padding:0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;width:200px;}
-    .filter-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
-    .filter-input::placeholder{color:#9DA2AC;}
+    /* Filter grid (design.md §5.4) */
+    .filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 16px;align-items:start;}
+    @media(max-width:1100px){.filter-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:640px){.filter-grid{grid-template-columns:1fr;}}
+    .filter-item{display:flex;align-items:center;gap:0;}
+    .filter-label{width:78px;flex-shrink:0;text-align:right;font-size:14px;color:#1A1D24;line-height:32px;white-space:nowrap;}
+    .filter-label::after{content:'：';}
+    .filter-ctrl{flex:1;min-width:0;}
+    .filter-ctrl input,.filter-ctrl select{width:100%;height:32px;font-size:14px;padding:0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;font-family:inherit;background:#fff;}
+    .filter-ctrl input::placeholder{color:#9DA2AC;font-size:14px;}
+    .filter-ctrl input:focus,.filter-ctrl select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .filter-ctrl select{appearance:none;-webkit-appearance:none;padding-right:24px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239DA2AC'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+    .filter-ctrl .date-range{display:flex;align-items:center;gap:4px;}
+    .filter-ctrl .date-range .date-sep{font-size:14px;color:#9DA2AC;flex-shrink:0;margin:0 2px;}
+    .filter-ctrl .date-range input{flex:1;min-width:0;color:#3A3F4A;}
+    .filter-ctrl .date-range input::placeholder{color:#9DA2AC;}
+    /* Search clear */
+    .search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:16px;height:16px;font-size:12px;color:#9DA2AC;cursor:pointer;display:none;line-height:16px;text-align:center;}
+    .search-clear:hover{color:#6E7685;}
+    .search-wrap{position:relative;}
+    /* Inline select (drawer/modal areas, non-grid contexts) */
     .select-wrap{position:relative;display:inline-flex;align-items:center;}
-    .select-wrap::after{content:'▼';position:absolute;right:10px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+    .select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+    .inline-select{height:32px;padding:0 28px 0 10px;font-size:13px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;}
+    .inline-select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
     /* Topbar */
     .topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
     .topbar-btn:hover{background:#E6F0FF;}
@@ -183,8 +202,11 @@
     </div>
 
     <!-- 运营配置 -->
-    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置
+    <div class="menu-item l1" data-sub="sub-ops" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置<span class="menu-arrow">▼</span></div>
+    <div class="submenu collapsed" id="sub-ops" style="max-height:400px;">
+      <div class="menu-item l2" data-page="优惠券管理.html" onclick="menuSelect(this)">优惠券管理</div>
+      <div class="menu-item l2" data-page="价格配置.html" onclick="menuSelect(this)">价格配置</div>
+      <div class="menu-item l2" data-page="目的地配置.html" onclick="menuSelect(this)">目的地配置</div>
     </div>
 
     <div class="menu-item l1" data-page="用户管理.html" onclick="menuSelect(this)">
@@ -209,11 +231,11 @@
   <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
     <div class="p-4">
 
-      <!-- ===== 区块A: 视图切换 + 同步/刷新（单行） ===== -->
+      <!-- ===== 区块1: 筛选区 ===== -->
       <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-        <div class="flex items-center justify-between flex-wrap gap-3">
-          <!-- 视图切换 -->
-          <div class="flex items-center gap-2" data-anno="3">
+        <!-- 视图切换 + 同步/刷新 -->
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <div class="flex items-center gap-2" data-anno="1">
             <button class="view-tab active" id="tabList" onclick="switchView('list')">
               <i data-lucide="list" class="w-[14px] h-[14px]"></i> 列表视图
             </button>
@@ -231,46 +253,20 @@
             </button>
           </div>
         </div>
-      </div>
-
-      <!-- ===== LIST VIEW ===== -->
-      <div id="listView">
-
-        <!-- ===== 区块B: 状态概览条 ===== -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4" data-anno="4">
-          <div class="kpi-card" id="kpiTotal">
-            <div class="text-[12px] text-ink-sub mb-1">柜机总数</div>
-            <div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiTotalVal">--</div>
-          </div>
-          <div class="kpi-card" id="kpiOnline">
-            <div class="text-[12px] text-success mb-1">在线</div>
-            <div class="text-[24px] font-semibold text-success font-mono" id="kpiOnlineVal">--</div>
-          </div>
-          <div class="kpi-card" id="kpiOffline">
-            <div class="text-[12px] text-danger mb-1">离线</div>
-            <div class="text-[24px] font-semibold text-danger font-mono" id="kpiOfflineVal">--</div>
-          </div>
-          <div class="kpi-card" id="kpiFull">
-            <div class="text-[12px] text-warning mb-1">满柜</div>
-            <div class="text-[24px] font-semibold text-warning font-mono" id="kpiFullVal">--</div>
-          </div>
-          <div class="kpi-card" id="kpiUsage">
-            <div class="text-[12px] text-ink-sub mb-1">格口使用率</div>
-            <div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiUsageVal">--</div>
-            <div class="usage-bar mt-2"><div class="usage-bar-fill bg-primary" id="usageBarFill" style="width:0%"></div></div>
-          </div>
-        </div>
-
-        <!-- ===== 区块C: 筛选/搜索 ===== -->
-        <div class="bg-white rounded-lg border border-line p-4 mb-4" data-anno="5">
-          <div class="flex flex-wrap items-center gap-3">
-            <div class="select-wrap">
-              <select class="filter-select" id="filterLocation" onchange="applyFilters()">
+        <!-- filter-grid -->
+        <div class="filter-grid" data-anno="3">
+          <div class="filter-item">
+            <span class="filter-label">网点</span>
+            <div class="filter-ctrl">
+              <select id="filterLocation" onchange="applyFilters()">
                 <option value="">全部网点</option>
               </select>
             </div>
-            <div class="select-wrap">
-              <select class="filter-select" id="filterStatus" onchange="applyFilters()">
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">状态</span>
+            <div class="filter-ctrl">
+              <select id="filterStatus" onchange="applyFilters()">
                 <option value="">全部状态</option>
                 <option value="online">在线</option>
                 <option value="offline">离线</option>
@@ -278,17 +274,59 @@
                 <option value="full">满柜</option>
               </select>
             </div>
-            <input type="text" class="filter-input" id="filterSearch" placeholder="柜机名称 / 机柜编码" oninput="applyFilters()">
-            <button class="btn btn-default btn-sm" onclick="resetFilters()">
-              <i data-lucide="rotate-ccw" class="w-[13px] h-[13px]"></i> 重置
-            </button>
-            <span class="text-[12px] text-ink-muted ml-auto" id="filterCount">共 0 条</span>
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">搜索</span>
+            <div class="filter-ctrl search-wrap">
+              <input type="text" id="filterSearch" placeholder="柜机名称 / 机柜编码" oninput="applyFilters();toggleSearchClear()">
+              <span class="search-clear" id="searchClear" onclick="clearSearch()">✕</span>
+            </div>
+          </div>
+          <div class="filter-item" style="display:flex;align-items:center;gap:8px;">
+            <span class="filter-label" style="visibility:hidden;">操作</span>
+            <button class="btn btn-primary btn-sm" onclick="applyFilters()" style="height:32px;"><i data-lucide="search" class="w-[14px] h-[14px]"></i> 查询</button>
+            <button class="btn btn-default btn-sm" onclick="resetFilters()" style="height:32px;"><i data-lucide="rotate-ccw" class="w-[14px] h-[14px]"></i> 重置</button>
           </div>
         </div>
+      </div>
 
-        <!-- ===== 区块D: 柜机列表表格 ===== -->
-        <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4" data-anno="6">
-          <div class="overflow-x-auto">
+      <!-- ===== LIST VIEW ===== -->
+      <div id="listView">
+
+        <!-- ===== 区块2: 数据区 ===== -->
+        <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+          <!-- 标题行 -->
+          <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <h2 class="text-[16px] font-semibold text-ink-title inline-block">柜机列表</h2>
+          </div>
+
+          <!-- KPI 状态概览 -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4" data-anno="4">
+            <div class="kpi-card" id="kpiTotal">
+              <div class="text-[12px] text-ink-sub mb-1">柜机总数</div>
+              <div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiTotalVal">--</div>
+            </div>
+            <div class="kpi-card" id="kpiOnline">
+              <div class="text-[12px] text-success mb-1">在线</div>
+              <div class="text-[24px] font-semibold text-success font-mono" id="kpiOnlineVal">--</div>
+            </div>
+            <div class="kpi-card" id="kpiOffline">
+              <div class="text-[12px] text-danger mb-1">离线</div>
+              <div class="text-[24px] font-semibold text-danger font-mono" id="kpiOfflineVal">--</div>
+            </div>
+            <div class="kpi-card" id="kpiFull">
+              <div class="text-[12px] text-warning mb-1">满柜</div>
+              <div class="text-[24px] font-semibold text-warning font-mono" id="kpiFullVal">--</div>
+            </div>
+            <div class="kpi-card" id="kpiUsage">
+              <div class="text-[12px] text-ink-sub mb-1">格口使用率</div>
+              <div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiUsageVal">--</div>
+              <div class="usage-bar mt-2"><div class="usage-bar-fill bg-primary" id="usageBarFill" style="width:0%"></div></div>
+            </div>
+          </div>
+
+          <!-- 表格 -->
+          <div class="overflow-x-auto" data-anno="5">
             <table class="data-table" id="cabinetTable">
               <thead>
                 <tr>
@@ -320,8 +358,8 @@
             <div class="skeleton h-10 rounded w-full"></div>
             <div class="skeleton h-10 rounded w-full"></div>
           </div>
-          <!-- ===== 分页（design.md §5.5） ===== -->
-          <div class="flex items-center justify-end flex-wrap gap-4 pt-5" id="pagination" data-anno="7">
+          <!-- 分页 -->
+          <div class="flex items-center justify-end flex-wrap gap-4 pt-5" id="pagination" data-anno="6">
             <div class="pg-nav" id="pgNav"></div>
             <span class="pg-select-wrap"><select class="pg-select" id="pageSize" onchange="changePageSize()"><option value="10">10条/页</option><option value="15" selected>15条/页</option><option value="20">20条/页</option></select></span>
             <span class="flex items-center gap-1 text-[12px] text-ink-body">跳至 <input class="pg-jump" id="pgJump" onkeydown="if(event.key==='Enter')jumpPage()"> 页</span>
@@ -330,9 +368,9 @@
         </div>
       </div>
 
-      <!-- ===== MAP VIEW (placeholder) ===== -->
+      <!-- ===== MAP VIEW ===== -->
       <div id="mapView" class="hidden">
-        <div class="bg-white rounded-lg border border-line p-5 md:p-6" data-anno="8">
+        <div class="bg-white rounded-lg border border-line p-5 md:p-6" data-anno="7">
           <div class="flex flex-col items-center justify-center py-20 text-center">
             <i data-lucide="map-pin" class="w-[64px] h-[64px] text-ink-muted mb-4" style="opacity:.3;"></i>
             <h3 class="text-[16px] font-semibold text-ink-title mb-2">地图视图</h3>
@@ -536,13 +574,11 @@ function renderTable() {
     tbody.innerHTML = '';
     empty.classList.remove('hidden');
     document.getElementById('pagination').style.display = 'none';
-    document.getElementById('filterCount').textContent = '共 0 条';
     return;
   }
 
   empty.classList.add('hidden');
   document.getElementById('pagination').style.display = 'flex';
-  document.getElementById('filterCount').textContent = '共 ' + filteredCabinets.length + ' 条';
 
   var html = '';
   for (var i = 0; i < pageData.length; i++) {
@@ -623,6 +659,18 @@ function jumpPage() { var p=parseInt(document.getElementById('pgJump').value); i
 /* ================================================================
    FILTERS
    ================================================================ */
+function toggleSearchClear() {
+  var input = document.getElementById('filterSearch');
+  var clear = document.getElementById('searchClear');
+  clear.style.display = input.value.trim() ? 'block' : 'none';
+}
+
+function clearSearch() {
+  document.getElementById('filterSearch').value = '';
+  document.getElementById('searchClear').style.display = 'none';
+  applyFilters();
+}
+
 function applyFilters() {
   activeFilters.location = document.getElementById('filterLocation').value;
   activeFilters.status = document.getElementById('filterStatus').value;
@@ -656,6 +704,7 @@ function resetFilters() {
   document.getElementById('filterLocation').value = '';
   document.getElementById('filterStatus').value = '';
   document.getElementById('filterSearch').value = '';
+  document.getElementById('searchClear').style.display = 'none';
   applyFilters();
 }
 
@@ -703,7 +752,7 @@ function openDetail(code) {
   var body = document.getElementById('drawerBody');
 
   // Block A: Cabinet basic info
-  var infoHtml = '<div data-anno="9" class="mb-6">';
+  var infoHtml = '<div data-anno="8" class="mb-6">';
   infoHtml += '<h3 class="text-[14px] font-semibold text-ink-title mb-3 flex items-center gap-2"><i data-lucide="info" class="w-[16px] h-[16px] text-primary"></i>柜机基本信息</h3>';
   infoHtml += '<div class="bg-bg-page rounded-md p-4">';
   infoHtml += '<div class="info-row"><span class="info-label">机柜编码</span><span class="info-value font-mono">'+cab.code+'</span></div>';
@@ -719,7 +768,7 @@ function openDetail(code) {
 
   // Block B: Locker occupancy overview
   var freeLockers = cab.totalLockers - cab.occupiedLockers;
-  infoHtml += '<div data-anno="10" class="mb-6">';
+  infoHtml += '<div data-anno="9" class="mb-6">';
   infoHtml += '<h3 class="text-[14px] font-semibold text-ink-title mb-3 flex items-center gap-2"><i data-lucide="grid-3x3" class="w-[16px] h-[16px] text-primary"></i>格口占用概览</h3>';
   infoHtml += '<div class="grid grid-cols-4 gap-3 mb-4">';
   infoHtml += '<div class="text-center p-3 bg-bg-page rounded"><div class="text-[20px] font-semibold text-ink-title font-mono">'+cab.totalLockers+'</div><div class="text-[11px] text-ink-sub">总数</div></div>';
@@ -733,7 +782,7 @@ function openDetail(code) {
   infoHtml += '</div>';
 
   // Block C: Locker grid visualization
-  infoHtml += '<div data-anno="11" class="mb-6">';
+  infoHtml += '<div data-anno="10" class="mb-6">';
   infoHtml += '<h3 class="text-[14px] font-semibold text-ink-title mb-3 flex items-center gap-2"><i data-lucide="layout-grid" class="w-[16px] h-[16px] text-primary"></i>格口分布可视化 <span class="text-[11px] text-ink-muted font-normal">（只读，不可操作）</span></h3>';
 
   // Legend
@@ -757,7 +806,7 @@ function openDetail(code) {
 
   // Block D: Related orders
   var occupiedLockers = cab.lockers.filter(function(l){return l.status==='occupied' && l.orderNo;});
-  infoHtml += '<div data-anno="12" class="mb-6">';
+  infoHtml += '<div data-anno="11" class="mb-6">';
   infoHtml += '<h3 class="text-[14px] font-semibold text-ink-title mb-3 flex items-center gap-2"><i data-lucide="package" class="w-[16px] h-[16px] text-primary"></i>关联订单</h3>';
   if (occupiedLockers.length === 0) {
     infoHtml += '<div class="text-center py-8 text-[13px] text-ink-muted">当前无占用格口关联的订单</div>';
@@ -919,7 +968,7 @@ function navigateToPage(page) {
   var fname = page.split("/").pop();
   var cur = window.location.pathname.split("/").pop();
   if (fname === cur) return;
-  if (page.endsWith('.html')) { window.location.href = page; }
+  if (page.endsWith('.html')) { if(window.top===window){window.location.href=page}else{try{window.top.location.href=page}catch(e){window.location.href=page}} }
   else {
     document.getElementById('mainContent').innerHTML =
       '<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6">'+
@@ -934,7 +983,7 @@ function navigate(url) {
   var fname = url.split("/").pop();
   var cur = window.location.pathname.split("/").pop();
   if (fname === cur) return;
-  window.location.href = url;
+  if(window.top===window){window.location.href=url}else{try{window.top.location.href=url}catch(e){window.location.href=url}}
 }
 
 /* ===== MOBILE SIDEBAR TOGGLE ===== */
@@ -949,10 +998,11 @@ function toggleSidebar() {
    PORTAL ANNOTATION SYSTEM
    ================================================================ */
 var annotations = {
-  1: { title: '柜机监控页面标题', desc: [
-    '触发：页面加载时渲染',
-    '展示模块名称"柜机监控"，左侧导航"柜机监控"高亮',
-    '点击"游寄后台管理系统"logo 可返回 index.html 导航页'
+  1: { title: '视图切换', desc: [
+    '触发：点击"列表视图" / "地图视图"标签',
+    '响应：切换主内容区视图',
+    '列表视图：柜机概览表格（一期主要视图）',
+    '地图视图：柜机在地图上按状态着色标记（依赖经纬度数据，一期为 placeholder）'
   ]},
   2: { title: '数据同步状态与刷新', desc: [
     '触发：页面加载/点击刷新按钮',
@@ -961,11 +1011,14 @@ var annotations = {
     '刷新时按钮 loading 动画 + 数据重新模拟同步',
     '一期只读，刷新仅重新拉取最新同步数据，不下发控制指令'
   ]},
-  3: { title: '视图切换', desc: [
-    '触发：点击"列表视图" / "地图视图"标签',
-    '响应：切换主内容区视图',
-    '列表视图：柜机概览表格（一期主要视图）',
-    '地图视图：柜机在地图上按状态着色标记（依赖经纬度数据，一期为 placeholder）'
+  3: { title: '筛选条件', desc: [
+    '触发：选择网点/状态、输入搜索关键词、点击查询',
+    '响应：前端过滤柜机列表，KPI 同步更新',
+    '网点：按所属网点筛选（全部/指定网点）',
+    '状态：全部/在线/离线/停用/满柜',
+    '搜索：按机柜编码或名称模糊匹配，输入时显示清除按钮',
+    '点击"重置"清空所有筛选条件',
+    '与工作台告警联动：通过 URL 参数 ?status=offline 可预筛选离线柜机'
   ]},
   4: { title: '状态概览条（KPI）', desc: [
     '触发：页面加载/筛选/刷新时更新',
@@ -975,16 +1028,7 @@ var annotations = {
     '格口使用率 = 已占用格口 / 总格口 × 100%，配进度条',
     '数字使用 mono 字体'
   ]},
-  5: { title: '筛选/搜索', desc: [
-    '触发：选择网点/状态、输入搜索关键词',
-    '响应：前端过滤柜机列表，KPI 同步更新',
-    '网点：按所属网点筛选（全部/指定网点）',
-    '状态：全部/在线/离线/停用/满柜',
-    '搜索：按机柜编码或名称模糊匹配',
-    '点击"重置"清空所有筛选条件',
-    '与工作台告警联动：通过 URL 参数 ?status=offline 可预筛选离线柜机'
-  ]},
-  6: { title: '柜机列表表格', desc: [
+  5: { title: '柜机列表表格', desc: [
     '触发：页面加载/筛选/翻页时渲染',
     '响应：展示机柜编码、名称、网点、位置、状态、格口占用、柜型可用、时间、操作',
     '规则：离线行 danger 红底强调（row-danger），满柜行 warning 黄底强调（row-warning），停用行 muted 灰底灰字（row-disabled）',
@@ -994,33 +1038,33 @@ var annotations = {
     '表格所有列左对齐',
     '点击行或"查看详情"→ 打开柜机详情抽屉'
   ]},
-  7: { title: '分页器', desc: [
+  6: { title: '分页器', desc: [
     '触发：数据超过每页条数时出现',
     '响应：切换页码、改变每页条数、展示总记录数和当前页',
     '规则：≤7 页全显示；>7 页首尾 + 当前页 ±1 + 省略号',
     '每页可选 10/15/20 条'
   ]},
-  8: { title: '地图视图（一期占位）', desc: [
+  7: { title: '地图视图（一期占位）', desc: [
     '触发：点击"地图视图"标签切换',
     '响应：展示地图视图说明页',
     '规则：依赖柜机经纬度数据（小铁接口待提供），一期暂以列表视图为主',
     '后续可在地图上按状态着色标记柜机（在线绿/离线红/满柜橙/停用灰）',
     '点击标记弹出柜机简况卡 + "查看详情"入口'
   ]},
-  9: { title: '柜机基本信息（详情抽屉）', desc: [
+  8: { title: '柜机基本信息（详情抽屉）', desc: [
     '触发：点击柜机列表行或"查看详情"按钮',
     '响应：右侧滑出抽屉，展示柜机基本信息',
     '包含：机柜编码（mono）、名称、网点、位置、在线状态 Badge、最近上线/离线时间',
     '离线柜机：最近离线时间用 danger 色强调',
     '遮罩点击或右上角 × 关闭抽屉'
   ]},
-  10: { title: '格口占用概览（详情抽屉）', desc: [
+  9: { title: '格口占用概览（详情抽屉）', desc: [
     '触发：抽屉打开时渲染',
     '响应：展示总数、空闲、占用、使用率四个指标卡片 + 进度条',
     '规则：数字用 mono，使用率 ≥90% 红色条、≥70% 橙色条',
     '指标卡片用对应语义色浅底（success-bg / primary-bg）'
   ]},
-  11: { title: '格口分布可视化（详情抽屉）', desc: [
+  10: { title: '格口分布可视化（详情抽屉）', desc: [
     '触发：抽屉打开时渲染',
     '响应：以网格还原柜体格口布局，每格按状态着色',
     '四态着色：空闲-绿色(success)、占用-蓝色(primary)、维护-橙色(warning)、停用-灰色(ink-muted)',
@@ -1029,7 +1073,7 @@ var annotations = {
     '一期只读，不可进行任何柜机控制操作',
     '格口布局为 mock 示意（实际行列结构依赖小铁提供数据）'
   ]},
-  12: { title: '关联订单（详情抽屉）', desc: [
+  11: { title: '关联订单（详情抽屉）', desc: [
     '触发：抽屉打开时渲染',
     '响应：列出当前占用格口对应的进行中订单',
     '包含：格口编号、订单号（mono）、柜型',

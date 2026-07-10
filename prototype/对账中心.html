@@ -150,7 +150,13 @@
     <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控</div>
     <!-- 对账中心（当前页） -->
     <div class="menu-item l1 active-l1" data-page="对账中心.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心</div>
-    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置</div>
+    <!-- 运营配置 -->
+    <div class="menu-item l1" data-sub="sub-ops" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置<span class="menu-arrow">▼</span></div>
+    <div class="submenu collapsed" id="sub-ops" style="max-height:400px;">
+      <div class="menu-item l2" data-page="优惠券管理.html" onclick="menuSelect(this)">优惠券管理</div>
+      <div class="menu-item l2" data-page="价格配置.html" onclick="menuSelect(this)">价格配置</div>
+      <div class="menu-item l2" data-page="目的地配置.html" onclick="menuSelect(this)">目的地配置</div>
+    </div>
     <div class="menu-item l1" data-page="用户管理.html" onclick="menuSelect(this)">
       <div class="menu-ico"><i data-lucide="users" class="w-[15px] h-[15px]"></i></div>用户管理
     </div>
@@ -674,8 +680,8 @@ function handleL2(el){ var ps=el.closest('.submenu'), pid=ps?ps.id:null; collaps
 function collapseAllExcept(k){ document.querySelectorAll('.submenu').forEach(function(s){ if(s.id===k)return; if(s.classList.contains('collapsed'))return; s.classList.add('collapsed'); var l=findParentL1BySubId(s.id); if(l){var a=l.querySelector('.menu-arrow');if(a)a.classList.remove('open');if(!s.querySelector('.menu-item.active-l2'))l.classList.remove('active-l1');} }); }
 function clearAllActive(){ document.querySelectorAll('.menu-item').forEach(function(i){i.classList.remove('active-l1','active-l2');}); }
 function findParentL1BySubId(id){ return id?document.querySelector('.menu-item.l1[data-sub="'+id+'"]'):null; }
-function navigateToPage(p){ if(!p)return; var f=p.split("/").pop(),c=window.location.pathname.split("/").pop(); if(f===c)return; if(p.endsWith('.html'))window.location.href=p; else{document.getElementById('mainContent').innerHTML='<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6"><h2 class="text-[16px] font-semibold text-ink-title mb-2">'+p+'</h2><p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p></div></div>';} }
-function navigate(url){ if(url==='#')return; var f=url.split("/").pop(),c=window.location.pathname.split("/").pop(); if(f===c)return; window.location.href=url; }
+function navigateToPage(p){ if(!p)return; var f=p.split("/").pop(),c=window.location.pathname.split("/").pop(); if(f===c)return; if(p.endsWith('.html'))if(window.top===window){window.location.href=p}else{try{window.top.location.href=p}catch(e){window.location.href=p}} else{document.getElementById('mainContent').innerHTML='<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6"><h2 class="text-[16px] font-semibold text-ink-title mb-2">'+p+'</h2><p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p></div></div>';} }
+function navigate(url){ if(url==='#')return; var f=url.split("/").pop(),c=window.location.pathname.split("/").pop(); if(f===c)return; if(window.top===window){window.location.href=url}else{try{window.top.location.href=url}catch(e){window.location.href=url}} }
 function toggleSidebar(){ var s=document.getElementById('sidebar'),o=document.getElementById('sidebarOverlay'); s.classList.toggle('open'); o.classList.toggle('show'); }
 
 /* ================================================================

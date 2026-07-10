@@ -45,6 +45,58 @@
       .sidebar-overlay{display:none;}
       .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;}
     }
+    /* Filter grid (design.md §5.4) */
+    .filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 16px;align-items:start;}
+    @media(max-width:1100px){.filter-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:640px){.filter-grid{grid-template-columns:1fr;}}
+    .filter-item{display:flex;align-items:center;gap:0;}
+    .filter-label{width:78px;flex-shrink:0;text-align:right;font-size:14px;color:#1A1D24;line-height:32px;white-space:nowrap;}
+    .filter-label::after{content:'：';}
+    .filter-ctrl{flex:1;min-width:0;}
+    .filter-ctrl input,.filter-ctrl select{width:100%;height:32px;font-size:14px;padding:0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;font-family:inherit;background:#fff;}
+    .filter-ctrl input::placeholder{color:#9DA2AC;font-size:14px;}
+    .filter-ctrl input:focus,.filter-ctrl select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .filter-ctrl select{appearance:none;-webkit-appearance:none;padding-right:24px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239DA2AC'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+    .filter-ctrl .date-range{display:flex;align-items:center;gap:4px;}
+    .filter-ctrl .date-range .date-sep{font-size:14px;color:#9DA2AC;flex-shrink:0;margin:0 2px;}
+    .filter-ctrl .date-range input{flex:1;min-width:0;color:#3A3F4A;}
+    .filter-ctrl .date-range input::placeholder{color:#9DA2AC;}
+    /* Filter tabs */
+    .filter-tab{padding:6px 16px;font-size:13px;color:#6E7685;cursor:pointer;border-radius:4px;transition:all .15s;white-space:nowrap;border:1px solid transparent;}
+    .filter-tab:hover{color:#0066FF;background:#E6F0FF;}
+    .filter-tab.active{background:#0066FF;color:#fff;font-weight:500;}
+    /* Search clear button */
+    .search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:16px;height:16px;font-size:12px;color:#9DA2AC;cursor:pointer;display:none;line-height:16px;text-align:center;}
+    .search-clear:hover{color:#6E7685;}
+    .search-wrap{position:relative;}
+    /* Inline select (drawer/modal areas) */
+    .select-wrap{position:relative;display:inline-flex;align-items:center;}
+    .select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+    .inline-select{height:32px;padding:0 28px 0 10px;font-size:13px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;}
+    .inline-select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    /* Data table */
+    .data-table{width:100%;border-collapse:collapse;font-size:13px;}
+    .data-table thead th{background:#F0F1F3;color:#6E7685;font-weight:600;font-size:12px;padding:9px 12px;text-align:left;border-bottom:1px solid #DFE1E5;white-space:nowrap;}
+    .data-table tbody td{padding:9px 12px;color:#3A3F4A;border-bottom:1px solid #E8EAED;}
+    .data-table tbody tr{transition:background .12s;}
+    .data-table tbody tr:hover{background:#F3F4F6;}
+    /* Pagination */
+    .pg-btn{min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
+    .pg-btn:hover:not(.pg-current):not(:disabled){color:#0066FF;border-color:#0066FF;}
+    .pg-current{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .pg-btn:disabled{color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;border-color:#DFE1E5;}
+    .pg-ellipsis{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;font-size:13px;}
+    .pg-select{font:12px inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;}
+    .pg-select-wrap{position:relative;display:inline-flex;align-items:center;}
+    .pg-select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+    .pg-jump-input{font:12px inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+    .pg-jump-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .pg-stats{color:#9DA2AC;white-space:nowrap;}
+    /* Badge */
+    .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:500;white-space:nowrap;}
+    .badge-success{color:#0FC060;background:#E7F9F0;}
+    .badge-warning{color:#E7772D;background:#FDF2E9;}
+    .badge-info{color:#0091D5;background:#E4F4FB;}
   </style>
 </head>
 <body class="font-sans flex flex-col h-screen">
@@ -115,8 +167,11 @@
     </div>
 
     <!-- 运营配置 -->
-    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置
+    <div class="menu-item l1" data-sub="sub-ops" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置<span class="menu-arrow">▼</span></div>
+    <div class="submenu collapsed" id="sub-ops" style="max-height:400px;">
+      <div class="menu-item l2" data-page="优惠券管理.html" onclick="menuSelect(this)">优惠券管理</div>
+      <div class="menu-item l2" data-page="价格配置.html" onclick="menuSelect(this)">价格配置</div>
+      <div class="menu-item l2" data-page="目的地配置.html" onclick="menuSelect(this)">目的地配置</div>
     </div>
 
     <div class="menu-item l1" data-page="用户管理.html" onclick="menuSelect(this)">
@@ -156,86 +211,106 @@
     </div>
     ===== 单区块模式结束 =====
     -->
-    <!-- 多区块模式（当前演示） -->
+    <!-- 标准布局：筛选区 + 数据区 → 复制此容器替换内容开发新页面 -->
     <div class="p-4">
 
-      <!-- 卡片一：框架说明 -->
+      <!-- ===== 区块1：筛选区 ===== -->
       <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-        <h2 class="text-[16px] font-semibold text-ink-title mb-3" data-anno="1">系统框架模板</h2>
-        <p class="text-[14px] text-ink-body leading-relaxed">
-          这是游寄后台管理系统的<b>标准系统框架</b>，包含完整的顶部导航栏、左侧菜单栏和主内容区域。
-          新页面开发时复制本框架，替换内容区（<code class="font-mono text-[12px] bg-bg-page px-1.5 py-0.5 rounded">.p-4</code> 容器内）即可快速开发。
-        </p>
-      </div>
-
-      <!-- 卡片二：数据概览（KPI 卡片行示例） -->
-      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-        <h2 class="text-[16px] font-semibold text-ink-title mb-4" data-anno="2">数据概览</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="p-4 rounded-md border border-line bg-bg-page">
-            <div class="text-[12px] text-ink-sub mb-1">今日订单</div>
-            <div class="text-[24px] font-semibold text-ink-title font-mono">1,286</div>
-            <div class="text-[12px] text-success mt-1">↑ 12.5%</div>
+        <!-- 状态 Tab（按需保留或删除） -->
+        <div class="flex items-center gap-2 mb-4 flex-wrap">
+          <span class="text-[13px] text-ink-sub mr-1">状态：</span>
+          <div class="flex items-center gap-1 flex-wrap" id="statusTabs">
+            <span class="filter-tab active" data-status="all">全部</span>
+            <span class="filter-tab" data-status="active">进行中</span>
+            <span class="filter-tab" data-status="done">已完成</span>
           </div>
-          <div class="p-4 rounded-md border border-line bg-bg-page">
-            <div class="text-[12px] text-ink-sub mb-1">活跃用户</div>
-            <div class="text-[24px] font-semibold text-ink-title font-mono">3,421</div>
-            <div class="text-[12px] text-success mt-1">↑ 8.3%</div>
+        </div>
+        <!-- filter-grid 4列栅格 -->
+        <div class="filter-grid">
+          <div class="filter-item">
+            <span class="filter-label">关键词搜索</span>
+            <div class="filter-ctrl search-wrap">
+              <input type="text" id="fKeyword" placeholder="订单号 / 手机号">
+              <span class="search-clear" id="searchClear">✕</span>
+            </div>
           </div>
-          <div class="p-4 rounded-md border border-line bg-bg-page">
-            <div class="text-[12px] text-ink-sub mb-1">异常工单</div>
-            <div class="text-[24px] font-semibold text-ink-title font-mono">23</div>
-            <div class="text-[12px] text-danger mt-1">↑ 5 单</div>
+          <div class="filter-item">
+            <span class="filter-label">业务类型</span>
+            <div class="filter-ctrl">
+              <select id="fBizType"><option value="">全部</option><option>寄存</option><option>寄送</option></select>
+            </div>
           </div>
-          <div class="p-4 rounded-md border border-line bg-bg-page">
-            <div class="text-[12px] text-ink-sub mb-1">柜机在线率</div>
-            <div class="text-[24px] font-semibold text-ink-title font-mono">98.5<span class="text-[16px]">%</span></div>
-            <div class="text-[12px] text-ink-sub mt-1">正常</div>
+          <div class="filter-item">
+            <span class="filter-label">来源</span>
+            <div class="filter-ctrl">
+              <select id="fSource"><option value="">全部</option><option>自有</option><option>小铁</option></select>
+            </div>
           </div>
+          <div class="filter-item">
+            <span class="filter-label">创建时间</span>
+            <div class="filter-ctrl">
+              <div class="date-range">
+                <input type="text" placeholder="开始时间" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
+                <span class="date-sep">-</span>
+                <input type="text" placeholder="结束时间" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-3">
+          <button class="btn btn-primary btn-sm" style="height:32px;"><i data-lucide="search" class="w-[13px] h-[13px]"></i> 查询</button>
+          <button class="btn btn-default btn-sm" style="height:32px;"><i data-lucide="rotate-ccw" class="w-[13px] h-[13px]"></i> 重置</button>
         </div>
       </div>
 
-      <!-- 卡片三：表格区域示例 -->
+      <!-- ===== 区块2：数据区 ===== -->
       <div class="bg-white rounded-lg border border-line p-5 md:p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-[16px] font-semibold text-ink-title" data-anno="3">最近订单</h2>
-          <button class="btn btn-default text-[13px]" onclick="navigate('订单管理.html')">查看全部</button>
+        <!-- 标题行 -->
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <h2 class="text-[18px] font-semibold text-ink-title inline-block">数据列表</h2>
+          <button class="btn btn-primary"><i data-lucide="plus" class="w-[14px] h-[14px]"></i> 新增</button>
         </div>
+        <!-- 数据指标卡（有数据指标则保留，无则删除此段） -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+          <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-primary-bg flex items-center justify-center flex-shrink-0"><i data-lucide="package" class="w-[18px] h-[18px] text-primary"></i></div>
+            <div><div class="text-[12px] text-ink-sub">全部订单</div><div class="text-[20px] font-semibold text-ink-title font-mono">1,286</div></div>
+          </div>
+          <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-success-bg flex items-center justify-center flex-shrink-0"><i data-lucide="check-circle" class="w-[18px] h-[18px] text-success"></i></div>
+            <div><div class="text-[12px] text-ink-sub">已完成</div><div class="text-[20px] font-semibold text-ink-title font-mono">892</div></div>
+          </div>
+          <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-warning-bg flex items-center justify-center flex-shrink-0"><i data-lucide="clock" class="w-[18px] h-[18px] text-warning"></i></div>
+            <div><div class="text-[12px] text-ink-sub">进行中</div><div class="text-[20px] font-semibold text-ink-title font-mono">156</div></div>
+          </div>
+          <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-danger-bg flex items-center justify-center flex-shrink-0"><i data-lucide="alert-circle" class="w-[18px] h-[18px] text-danger"></i></div>
+            <div><div class="text-[12px] text-ink-sub">异常</div><div class="text-[20px] font-semibold text-ink-title font-mono">23</div></div>
+          </div>
+        </div>
+        <!-- 数据表格（.data-table） -->
         <div class="overflow-x-auto">
-          <table class="w-full text-[13px]">
-            <thead>
-              <tr class="bg-line-lighter text-left text-ink-sub">
-                <th class="py-3 px-3 font-medium">订单号</th>
-                <th class="py-3 px-3 font-medium">用户</th>
-                <th class="py-3 px-3 font-medium">金额</th>
-                <th class="py-3 px-3 font-medium">状态</th>
-                <th class="py-3 px-3 font-medium">时间</th>
-              </tr>
-            </thead>
+          <table class="data-table">
+            <thead><tr><th>编号</th><th>名称</th><th>类型</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
             <tbody>
-              <tr class="border-b border-line-lighter hover:bg-bg-hover transition-colors">
-                <td class="py-2.5 px-3 font-mono text-ink-body">YK20260704001</td>
-                <td class="py-2.5 px-3 text-ink-body">138****8888</td>
-                <td class="py-2.5 px-3 font-mono text-ink-body">¥28.00</td>
-                <td class="py-2.5 px-3"><span class="inline-flex px-2 py-0.5 rounded text-[12px] bg-success-bg text-success font-medium">已完成</span></td>
-                <td class="py-2.5 px-3 text-ink-muted font-mono">07-04 14:30</td>
-              </tr>
-              <tr class="border-b border-line-lighter hover:bg-bg-hover transition-colors">
-                <td class="py-2.5 px-3 font-mono text-ink-body">YK20260704002</td>
-                <td class="py-2.5 px-3 text-ink-body">139****5678</td>
-                <td class="py-2.5 px-3 font-mono text-ink-body">¥45.00</td>
-                <td class="py-2.5 px-3"><span class="inline-flex px-2 py-0.5 rounded text-[12px] bg-warning-bg text-warning font-medium">进行中</span></td>
-                <td class="py-2.5 px-3 text-ink-muted font-mono">07-04 13:15</td>
-              </tr>
-              <tr class="hover:bg-bg-hover transition-colors">
-                <td class="py-2.5 px-3 font-mono text-ink-body">YK20260704003</td>
-                <td class="py-2.5 px-3 text-ink-body">150****2345</td>
-                <td class="py-2.5 px-3 font-mono text-ink-body">¥12.50</td>
-                <td class="py-2.5 px-3"><span class="inline-flex px-2 py-0.5 rounded text-[12px] bg-success-bg text-success font-medium">已完成</span></td>
-                <td class="py-2.5 px-3 text-ink-muted font-mono">07-04 11:42</td>
-              </tr>
+              <tr><td class="font-mono">YK20260704001</td><td>示例数据 1</td><td>寄存</td><td><span class="badge badge-success">已完成</span></td><td class="font-mono text-ink-muted text-[12px]">07-04 14:30</td><td><span class="op-link">查看</span><span class="op-link">编辑</span></td></tr>
+              <tr><td class="font-mono">YK20260704002</td><td>示例数据 2</td><td>寄送</td><td><span class="badge badge-warning">进行中</span></td><td class="font-mono text-ink-muted text-[12px]">07-04 13:15</td><td><span class="op-link">查看</span><span class="op-link">编辑</span></td></tr>
+              <tr><td class="font-mono">YK20260704003</td><td>示例数据 3</td><td>寄存</td><td><span class="badge badge-info">待支付</span></td><td class="font-mono text-ink-muted text-[12px]">07-04 11:42</td><td><span class="op-link">查看</span><span class="op-link">编辑</span></td></tr>
             </tbody>
           </table>
+        </div>
+        <!-- 分页器 -->
+        <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]" id="pagination">
+          <div style="display:flex;align-items:center;gap:4px;">
+            <button class="pg-btn" disabled>‹</button>
+            <button class="pg-btn pg-current">1</button>
+            <button class="pg-btn">2</button>
+            <button class="pg-btn">3</button>
+            <button class="pg-btn">›</button>
+          </div>
+          <div class="pg-select-wrap"><select class="pg-select"><option>10 条/页</option></select></div>
+          <span class="pg-stats">跳至 <input class="pg-jump-input" value="1"> 页　共 <b style="color:#3A3F4A;">3</b> 条记录</span>
         </div>
       </div>
 
@@ -396,12 +471,8 @@ function findParentL1BySubId(subId) {
 /** Navigate: .html → page jump; otherwise → show placeholder in content area */
 function navigateToPage(page) {
   if (!page) return;
-  // Guard: skip if already on this page (prevents file:// self-navigation error)
-  var fname = page.split("/").pop();
-  var cur = window.location.pathname.split("/").pop();
-  if (fname === cur) return;
   if (page.endsWith('.html')) {
-    window.location.href = page;
+    if(window.top===window){window.location.href=page}else{try{window.top.location.href=page}catch(e){window.location.href=page}}
   } else {
     // Placeholder — render inline
     document.getElementById('mainContent').innerHTML =
@@ -416,11 +487,10 @@ function navigateToPage(page) {
 /* ===== TOPBAR NAVIGATION ===== */
 function navigate(url) {
   if (url === '#') return;
-  // Guard: skip if already on this page (prevents file:// self-navigation error)
   var fname = url.split("/").pop();
   var cur = window.location.pathname.split("/").pop();
   if (fname === cur) return;
-  window.location.href = url;
+  if(window.top===window){window.location.href=url}else{try{window.top.location.href=url}catch(e){window.location.href=url}}
 }
 
 /* ===== MOBILE SIDEBAR TOGGLE ===== */
@@ -438,21 +508,7 @@ function toggleSidebar() {
    - Recalculates on resize/scroll
    ================================================================ */
 var annotations = {
-  1: { title: '系统框架模板', desc: [
-    '本卡片说明框架模板的用途和结构',
-    '新页面复制本框架后替换内容区即可开发'
-  ]},
-  2: { title: '数据概览', desc: [
-    'KPI 统计卡片行示例，展示数据概览区域',
-    '网格布局：1列(手机) / 2列(平板) / 4列(桌面)',
-    '数字用 mono 字体，趋势用语义色标注'
-  ]},
-  3: { title: '最近订单', desc: [
-    '表格区域示例，展示标准数据表格规范',
-    '表头：line-lighter 灰底 + ink-sub 字',
-    '数据行：hover 高亮，border-line-lighter 分隔',
-    '所有列左对齐，数字列 mono 字体'
-  ]}
+  // 每个页面使用时替换为此页面的实际标注
 };
 
 var annoVisible = true;

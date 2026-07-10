@@ -49,17 +49,31 @@
     .filter-tab{padding:6px 16px;font-size:13px;color:#6E7685;cursor:pointer;border-radius:4px;transition:all .15s;white-space:nowrap;border:1px solid transparent;}
     .filter-tab:hover{color:#0066FF;background:#E6F0FF;}
     .filter-tab.active{background:#0066FF;color:#fff;font-weight:500;}
-    /* Filter controls */
-    .filter-select{height:32px;padding:0 28px 0 10px;font-size:13px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;}
-    .filter-input{height:32px;padding:0 10px;font-size:13px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;width:180px;}
-    .filter-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
-    .filter-input::placeholder{color:#9DA2AC;}
+    /* Filter grid (design.md §5.4) */
+    .filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 16px;align-items:start;}
+    @media(max-width:1100px){.filter-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:640px){.filter-grid{grid-template-columns:1fr;}}
+    .filter-item{display:flex;align-items:center;gap:0;}
+    .filter-label{width:78px;flex-shrink:0;text-align:right;font-size:14px;color:#1A1D24;line-height:32px;white-space:nowrap;}
+    .filter-label::after{content:'：';}
+    .filter-ctrl{flex:1;min-width:0;}
+    .filter-ctrl input,.filter-ctrl select{width:100%;height:32px;font-size:14px;padding:0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;font-family:inherit;background:#fff;}
+    .filter-ctrl input::placeholder{color:#9DA2AC;font-size:14px;}
+    .filter-ctrl input:focus,.filter-ctrl select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .filter-ctrl select{appearance:none;-webkit-appearance:none;padding-right:24px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239DA2AC'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+    .filter-ctrl .date-range{display:flex;align-items:center;gap:4px;}
+    .filter-ctrl .date-range .date-sep{font-size:14px;color:#9DA2AC;flex-shrink:0;margin:0 2px;}
+    .filter-ctrl .date-range input{flex:1;min-width:0;color:#3A3F4A;}
+    .filter-ctrl .date-range input::placeholder{color:#9DA2AC;}
+    /* Search clear button */
+    .search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:16px;height:16px;font-size:12px;color:#9DA2AC;cursor:pointer;display:none;line-height:16px;text-align:center;}
+    .search-clear:hover{color:#6E7685;}
+    .search-wrap{position:relative;}
+    /* Inline select (drawer/modal non-grid areas) */
     .select-wrap{position:relative;display:inline-flex;align-items:center;}
     .select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
-    /* Date range */
-    .date-range{display:inline-flex;align-items:center;gap:6px;}
-    .date-range input[type="date"]{height:32px;padding:0 8px;font-size:13px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;font-family:inherit;}
-    .date-range input[type="date"]:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .inline-select{height:32px;padding:0 28px 0 10px;font-size:13px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;}
+    .inline-select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
     /* P0 marker */
     .p0-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#D9001B;margin-right:4px;flex-shrink:0;}
     /* Drawer */
@@ -210,8 +224,11 @@
     </div>
 
     <!-- 运营配置 -->
-    <div class="menu-item l1" data-page="运营配置.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置
+    <div class="menu-item l1" data-sub="sub-ops" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置<span class="menu-arrow">▼</span></div>
+    <div class="submenu collapsed" id="sub-ops" style="max-height:400px;">
+      <div class="menu-item l2" data-page="优惠券管理.html" onclick="menuSelect(this)">优惠券管理</div>
+      <div class="menu-item l2" data-page="价格配置.html" onclick="menuSelect(this)">价格配置</div>
+      <div class="menu-item l2" data-page="目的地配置.html" onclick="menuSelect(this)">目的地配置</div>
     </div>
 
     <div class="menu-item l1" data-page="用户管理.html" onclick="menuSelect(this)">
@@ -238,16 +255,83 @@
   <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
     <div class="p-4">
 
-      <!-- ===== 区块A：页面头 + 统计概览 ===== -->
+      <!-- ===== 区块1：筛选区 ===== -->
       <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-        <div class="flex items-center justify-between flex-wrap gap-3">
-          <h1 class="text-[20px] font-bold text-ink-title inline-block" data-anno="1">异常工单</h1>
+        <!-- 状态 Tab -->
+        <div class="flex items-center gap-2 mb-4 flex-wrap" data-anno="1">
+          <span class="text-[13px] text-ink-sub mr-1">工单状态：</span>
+          <div class="flex items-center gap-1 flex-wrap" id="statusTabs">
+            <span class="filter-tab active" data-status="all" onclick="filterByStatus(this)">全部</span>
+            <span class="filter-tab" data-status="pending" onclick="filterByStatus(this)">待处理</span>
+            <span class="filter-tab" data-status="processing" onclick="filterByStatus(this)">处理中</span>
+            <span class="filter-tab" data-status="resolved" onclick="filterByStatus(this)">已处理</span>
+            <span class="filter-tab" data-status="closed" onclick="filterByStatus(this)">已关闭</span>
+          </div>
+        </div>
+        <!-- 筛选字段（design.md §5.4 4列栅格） -->
+        <div class="filter-grid">
+          <div class="filter-item" data-anno="2">
+            <span class="filter-label">关键词搜索</span>
+            <div class="filter-ctrl search-wrap">
+              <input type="text" id="filterKeyword" placeholder="工单号 / 关联订单号" oninput="toggleSearchClear()" onkeydown="if(event.key==='Enter')applyFilters()">
+              <span class="search-clear" id="searchClear" onclick="clearSearch()">✕</span>
+            </div>
+          </div>
+          <div class="filter-item" data-anno="3">
+            <span class="filter-label">异常类型</span>
+            <div class="filter-ctrl">
+              <select id="filterType" onchange="applyFilters()">
+                <option value="all">全部</option>
+                <option value="延误">延误</option>
+                <option value="损坏">损坏</option>
+                <option value="遗失">遗失</option>
+                <option value="取件码/存储码错误">取件码/存储码错误</option>
+                <option value="支付异常">支付异常</option>
+                <option value="锁柜失败">锁柜失败</option>
+                <option value="开柜异常">开柜异常</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+          </div>
+          <div class="filter-item" data-anno="4">
+            <span class="filter-label">来源</span>
+            <div class="filter-ctrl">
+              <select id="filterSource" onchange="applyFilters()">
+                <option value="all">全部</option>
+                <option value="运营标记">运营标记</option>
+                <option value="用户售后">用户售后</option>
+                <option value="系统生成">系统生成</option>
+              </select>
+            </div>
+          </div>
+          <div class="filter-item" data-anno="5">
+            <span class="filter-label">创建时间</span>
+            <div class="filter-ctrl">
+              <div class="date-range">
+                <input type="text" id="filterDateFrom" placeholder="开始时间" onfocus="this.type='date'" onchange="applyFilters()" onblur="if(!this.value)this.type='text'">
+                <span class="date-sep">-</span>
+                <input type="text" id="filterDateTo" placeholder="结束时间" onfocus="this.type='date'" onchange="applyFilters()" onblur="if(!this.value)this.type='text'">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-3">
+          <button class="btn btn-primary btn-sm" onclick="applyFilters()" style="height:32px;"><i data-lucide="search" class="w-[13px] h-[13px]"></i> 查询</button>
+          <button class="btn btn-default btn-sm" onclick="resetFilters()" style="height:32px;"><i data-lucide="rotate-ccw" class="w-[13px] h-[13px]"></i> 重置</button>
+        </div>
+      </div>
+
+      <!-- ===== 区块2：工单列表 ===== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+        <!-- 标题行 -->
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <h2 class="text-[18px] font-semibold text-ink-title inline-block" data-anno="6">工单列表</h2>
           <button class="btn btn-primary" onclick="openMarkModal()" data-anno="7">
             <i data-lucide="alert-triangle" class="w-[14px] h-[14px]"></i> 标记异常
           </button>
         </div>
         <!-- 统计卡片 -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4" data-anno="2">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4" data-anno="8">
           <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-primary-bg flex items-center justify-center flex-shrink-0">
               <i data-lucide="ticket" class="w-[18px] h-[18px] text-primary"></i>
@@ -275,7 +359,7 @@
               <div class="text-[20px] font-semibold text-ink-title font-mono" id="statProcessing">4</div>
             </div>
           </div>
-          <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3" data-anno="13">
+          <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-danger-bg flex items-center justify-center flex-shrink-0">
               <i data-lucide="alert-circle" class="w-[18px] h-[18px] text-danger"></i>
             </div>
@@ -285,68 +369,9 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- ===== 区块B：筛选区 ===== -->
-      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-        <!-- 状态 Tab -->
-        <div class="flex items-center gap-2 mb-4 flex-wrap" data-anno="3">
-          <span class="text-[13px] text-ink-sub mr-1">工单状态：</span>
-          <div class="flex items-center gap-1 flex-wrap" id="statusTabs">
-            <span class="filter-tab active" data-status="all" onclick="filterByStatus(this)">全部</span>
-            <span class="filter-tab" data-status="pending" onclick="filterByStatus(this)">待处理</span>
-            <span class="filter-tab" data-status="processing" onclick="filterByStatus(this)">处理中</span>
-            <span class="filter-tab" data-status="resolved" onclick="filterByStatus(this)">已处理</span>
-            <span class="filter-tab" data-status="closed" onclick="filterByStatus(this)">已关闭</span>
-          </div>
-        </div>
-        <!-- 筛选行 -->
-        <div class="flex items-center gap-3 flex-wrap">
-          <div class="flex items-center gap-2" data-anno="4">
-            <span class="text-[13px] text-ink-sub">异常类型：</span>
-            <div class="select-wrap">
-              <select class="filter-select" id="filterType" onchange="applyFilters()">
-                <option value="all">全部</option>
-                <option value="延误">延误</option>
-                <option value="损坏">损坏</option>
-                <option value="遗失">遗失</option>
-                <option value="取件码/存储码错误">取件码/存储码错误</option>
-                <option value="支付异常">支付异常</option>
-                <option value="锁柜失败">锁柜失败</option>
-                <option value="开柜异常">开柜异常</option>
-                <option value="其他">其他</option>
-              </select>
-            </div>
-          </div>
-          <div class="flex items-center gap-2" data-anno="5">
-            <span class="text-[13px] text-ink-sub">来源：</span>
-            <div class="select-wrap">
-              <select class="filter-select" id="filterSource" onchange="applyFilters()">
-                <option value="all">全部</option>
-                <option value="运营标记">运营标记</option>
-                <option value="用户售后">用户售后</option>
-                <option value="系统生成">系统生成</option>
-              </select>
-            </div>
-          </div>
-          <div class="flex items-center gap-2" data-anno="6">
-            <span class="text-[13px] text-ink-sub">日期：</span>
-            <div class="date-range">
-              <input type="date" id="filterDateFrom" onchange="applyFilters()">
-              <span class="text-ink-muted text-[13px]">至</span>
-              <input type="date" id="filterDateTo" onchange="applyFilters()">
-            </div>
-          </div>
-          <input type="text" class="filter-input" id="filterKeyword" placeholder="工单号 / 关联订单号" onkeydown="if(event.key==='Enter')applyFilters()">
-          <button class="btn btn-primary btn-sm" onclick="applyFilters()"><i data-lucide="search" class="w-[13px] h-[13px]"></i> 查询</button>
-          <button class="btn btn-default btn-sm" onclick="resetFilters()"><i data-lucide="rotate-ccw" class="w-[13px] h-[13px]"></i> 重置</button>
-        </div>
-      </div>
-
-      <!-- ===== 区块C + D：工单表格 + 分页 ===== -->
-      <div class="bg-white rounded-lg border border-line p-5 md:p-6">
+        <!-- 工单表格 -->
         <div class="overflow-x-auto">
-          <table class="data-table" data-anno="8">
+          <table class="data-table" data-anno="9">
             <thead>
               <tr>
                 <th>工单号</th>
@@ -368,7 +393,8 @@
             <p class="text-[12px] text-ink-muted mt-1">请调整筛选条件后重试</p>
           </div>
         </div>
-        <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]" id="pagination" data-anno="17"></div>
+        <!-- 分页 -->
+        <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]" id="pagination" data-anno="10"></div>
       </div>
     </div>
   </main>
@@ -388,40 +414,40 @@
   <div class="drawer-body">
     <!-- 工单信息 -->
     <div class="mb-6">
-      <div class="section-title" data-anno="9"><i data-lucide="info" class="w-[14px] h-[14px]"></i> 工单信息</div>
+      <div class="section-title" data-anno="11"><i data-lucide="info" class="w-[14px] h-[14px]"></i> 工单信息</div>
       <div class="info-grid" id="drawerTicketInfo"></div>
     </div>
     <!-- 关联订单摘要 -->
     <div class="mb-6">
-      <div class="section-title" data-anno="10"><i data-lucide="package" class="w-[14px] h-[14px]"></i> 关联订单摘要</div>
+      <div class="section-title" data-anno="12"><i data-lucide="package" class="w-[14px] h-[14px]"></i> 关联订单摘要</div>
       <div class="info-grid" id="drawerOrderInfo"></div>
     </div>
     <!-- 用户诉求 -->
     <div class="mb-6 hidden" id="drawerUserAppeal">
-      <div class="section-title" data-anno="11"><i data-lucide="message-square" class="w-[14px] h-[14px]"></i> 用户诉求</div>
+      <div class="section-title" data-anno="13"><i data-lucide="message-square" class="w-[14px] h-[14px]"></i> 用户诉求</div>
       <div id="drawerAppealContent" class="text-[13px] text-ink-body leading-relaxed"></div>
       <div class="flex gap-2 mt-2" id="drawerAppealImages"></div>
     </div>
     <!-- 处理记录 -->
     <div class="mb-6">
-      <div class="section-title" data-anno="12"><i data-lucide="clock" class="w-[14px] h-[14px]"></i> 处理记录</div>
+      <div class="section-title" data-anno="14"><i data-lucide="clock" class="w-[14px] h-[14px]"></i> 处理记录</div>
       <div id="drawerRecords" class="text-[13px]"></div>
     </div>
     <!-- 处理操作 -->
     <div class="mb-6 hidden" id="drawerOps">
       <div class="section-title"><i data-lucide="settings" class="w-[14px] h-[14px]"></i> 处理操作</div>
-      <div class="flex items-center gap-3 mb-4" data-anno="14">
+      <div class="flex items-center gap-3 mb-4" data-anno="15">
         <span class="text-[13px] text-ink-sub">变更状态：</span>
         <div class="select-wrap">
-          <select class="filter-select" id="drawerStatusSelect" onchange="onStatusChange()">
+          <select class="inline-select" id="drawerStatusSelect" onchange="onStatusChange()">
             <option value="">-- 选择目标状态 --</option>
           </select>
         </div>
       </div>
-      <div class="flex items-center gap-3 mb-4" data-anno="15">
+      <div class="flex items-center gap-3 mb-4" data-anno="16">
         <span class="text-[13px] text-ink-sub">指派处理人：</span>
         <div class="select-wrap">
-          <select class="filter-select" id="drawerAssigneeSelect" onchange="onAssigneeChange()">
+          <select class="inline-select" id="drawerAssigneeSelect" onchange="onAssigneeChange()">
             <option value="">-- 选择处理人 --</option>
             <option value="张管理">张管理</option>
             <option value="李运营">李运营</option>
@@ -431,7 +457,7 @@
           </select>
         </div>
       </div>
-      <div class="mb-3" data-anno="16">
+      <div class="mb-3" data-anno="17">
         <textarea class="form-textarea" id="drawerNoteInput" placeholder="输入处理备注（追加后不可删除，作为纠纷证据链）" rows="3"></textarea>
         <div class="flex items-center gap-2 mt-2">
           <button class="btn btn-primary btn-sm" onclick="addProcessingNote()"><i data-lucide="plus" class="w-[13px] h-[13px]"></i> 添加备注</button>
@@ -741,6 +767,7 @@ function applyFilters() {
   currentFilters.dateFrom = document.getElementById('filterDateFrom').value;
   currentFilters.dateTo = document.getElementById('filterDateTo').value;
   currentFilters.keyword = document.getElementById('filterKeyword').value.trim();
+  toggleSearchClear();
   currentPage = 1;
   renderTable();
 }
@@ -753,9 +780,26 @@ function resetFilters() {
   document.getElementById('filterSource').value = 'all';
   document.getElementById('filterDateFrom').value = '';
   document.getElementById('filterDateTo').value = '';
+  document.getElementById('filterDateFrom').type = 'text';
+  document.getElementById('filterDateTo').type = 'text';
   document.getElementById('filterKeyword').value = '';
+  toggleSearchClear();
   currentPage = 1;
   renderTable();
+}
+
+function toggleSearchClear() {
+  var kw = document.getElementById('filterKeyword');
+  var btn = document.getElementById('searchClear');
+  if (kw.value.trim()) { btn.style.display = 'block'; kw.style.paddingRight = '36px'; }
+  else { btn.style.display = 'none'; kw.style.paddingRight = '8px'; }
+}
+
+function clearSearch() {
+  document.getElementById('filterKeyword').value = '';
+  toggleSearchClear();
+  document.getElementById('filterKeyword').focus();
+  applyFilters();
 }
 
 function sortTable(field) {
@@ -1139,13 +1183,13 @@ function navigateToPage(page) {
   var fname = page.split("/").pop();
   var cur = window.location.pathname.split("/").pop();
   if (fname === cur) return;
-  if (page.endsWith('.html')) { window.location.href = page; }
+  if (page.endsWith('.html')) { if(window.top===window){window.location.href=page}else{try{window.top.location.href=page}catch(e){window.location.href=page}} }
   else {
     document.getElementById('mainContent').innerHTML = '<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6"><h2 class="text-[16px] font-semibold text-ink-title mb-2">' + page + '</h2><p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p></div></div>';
   }
 }
 
-function navigate(url) { if (url === "#") return; var fname = url.split("/").pop(); var cur = window.location.pathname.split("/").pop(); if (fname === cur) return; window.location.href = url; }
+function navigate(url) { if (url === "#") return; var fname = url.split("/").pop(); var cur = window.location.pathname.split("/").pop(); if (fname === cur) return; if(window.top===window){window.location.href=url}else{try{window.top.location.href=url}catch(e){window.location.href=url}} }
 
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
@@ -1164,48 +1208,52 @@ function initSidebarActive() {
    PORTAL ANNOTATION SYSTEM
    ================================================================ */
 var annotations = {
-  1: { title:'异常工单页面标题', desc:[
-    '页面主标题，标识当前为异常工单管理模块',
-    '右侧"标记异常"按钮可快速创建工单（见标注 #7）'
-  ]},
-  2: { title:'工单统计概览', desc:[
-    '展示当前筛选范围内工单的汇总统计',
-    '全部工单 / 待处理 / 处理中 / P0 紧急四个维度',
-    '数字用 mono 字体，P0 紧急用 danger 色图标突出',
-    'P0 工单包含锁柜失败、开柜异常两类，为高优先级跟踪项'
-  ]},
-  3: { title:'工单状态筛选 Tab', desc:[
+  1: { title:'工单状态筛选 Tab', desc:[
     '触发：点击状态 Tab（全部/待处理/处理中/已处理/已关闭）',
     '响应：表格按所选状态前端过滤刷新',
     '状态 Badge 语义色：待处理=warning / 处理中=info / 已处理=success / 已关闭=ink-muted',
     '默认：进入页面默认"全部"',
     '工作台带筛选进入时可自动应用对应状态过滤'
   ]},
-  4: { title:'异常类型筛选', desc:[
+  2: { title:'关键词搜索', desc:[
+    '触发：输入工单号 / 关联订单号后按回车或点击查询',
+    '响应：模糊匹配工单号和关联订单号字段',
+    '有内容时右侧显示清空按钮 ✕，点击清空并重新查询'
+  ]},
+  3: { title:'异常类型筛选', desc:[
     '触发：选择异常类型下拉选项',
     '响应：表格按所选异常类型过滤',
     '枚举：延误、损坏、遗失、取件码/存储码错误、支付异常、锁柜失败(P0)、开柜异常(P0)、其他',
     'P0 类型（锁柜失败/开柜异常）在表格中以 danger 底色和红点突出'
   ]},
-  5: { title:'来源筛选', desc:[
+  4: { title:'来源筛选', desc:[
     '触发：选择来源下拉选项',
     '响应：表格按工单来源过滤',
     '运营标记：运营在订单管理"标记异常"生成',
     '用户售后：用户端"客服/售后"提交自动生成，详情中展示用户诉求',
     '系统生成：系统检测到锁柜失败等异常自动生成'
   ]},
-  6: { title:'日期与关键词搜索', desc:[
-    '日期范围：选择起止日期筛选该时间段内创建的工单',
-    '关键词：按工单号 / 关联订单号模糊搜索，回车或查询按钮触发',
-    '查询：应用所有筛选条件并刷新表格',
-    '重置：清空所有筛选恢复默认（状态=全部，其他=空）'
+  5: { title:'创建时间日期范围', desc:[
+    '触发：点击日期输入框 → 弹出原生日期选择器 → 选择日期后自动筛选',
+    '开始时间/结束时间可分别设置，也可只设一端',
+    'focus 时 type 切换为 date（原生选择器），blur 无值时恢复 text（显示 placeholder）'
+  ]},
+  6: { title:'工单列表标题', desc:[
+    '区块2标题，标识下方为工单数据列表区域',
+    '右侧"标记异常"按钮可快速创建工单（见标注 #7）'
   ]},
   7: { title:'标记异常按钮', desc:[
-    '触发：点击页面头右侧"标记异常"按钮',
-    '响应：打开标记异常弹窗（见标注 #18-21），从订单管理触发时自动带入订单号',
+    '触发：点击"标记异常"按钮',
+    '响应：打开标记异常弹窗（见标注 #18-21）',
     '提交后自动生成一条待处理工单，可跳转查看'
   ]},
-  8: { title:'工单列表表格', desc:[
+  8: { title:'工单统计指标卡', desc:[
+    '展示当前筛选范围内工单的汇总统计',
+    '全部工单 / 待处理 / 处理中 / P0 紧急四个维度',
+    '数字用 mono 字体，P0 紧急用 danger 色图标突出',
+    'P0 工单包含锁柜失败、开柜异常两类，为高优先级跟踪项'
+  ]},
+  9: { title:'工单列表表格', desc:[
     '列：工单号(mono)、关联订单(mono,可点击跳转)、异常类型、来源、工单状态(Badge)、处理人、创建时间(mono)、更新时间(mono)、操作',
     '所有列左对齐，数字编码列用 JetBrains Mono 字体',
     'P0 工单行（锁柜失败/开柜异常）用 danger 浅底色高亮，左侧红点标记',
@@ -1214,54 +1262,50 @@ var annotations = {
     '关联订单号点击 → 跳转订单详情（工单↔订单双向跳转）',
     '创建时间/更新时间列头支持排序切换'
   ]},
-  9: { title:'工单详情 — 工单信息', desc:[
+  10: { title:'分页器', desc:[
+    '触发：点击页码 / 上/下页 / 输入跳转页码 / 更改每页条数',
+    '≤7页全部显示，>7页首尾+当前页±1+省略号',
+    '默认每页10条，可选20/50条',
+    '显示总记录数和当前页码',
+    '位于表格所在卡片内部右下方'
+  ]},
+  11: { title:'工单详情 — 工单信息', desc:[
     '展示工单基本信息：工单号、异常类型、来源、工单状态、创建/更新时间',
     'P0 工单额外显示"P0 高优"warning Badge',
     '状态以对应语义色 Badge 展示',
     '工单号和时间为 mono 字体'
   ]},
-  10: { title:'工单详情 — 关联订单摘要', desc:[
+  12: { title:'工单详情 — 关联订单摘要', desc:[
     '展示关联订单关键信息：订单号(可点击跳转)、业务类型、柜机位置、订单状态',
     '订单号点击跳转订单详情页，实现工单↔订单双向跳转'
   ]},
-  11: { title:'工单详情 — 用户诉求', desc:[
+  13: { title:'工单详情 — 用户诉求', desc:[
     '仅当工单来源为"用户售后"时显示',
     '展示用户提交的问题描述和上传图片（原型用图标占位），为售后工单处理提供上下文'
   ]},
-  12: { title:'工单详情 — 处理记录', desc:[
+  14: { title:'工单详情 — 处理记录', desc:[
     '时间线样式展示所有处理留痕',
     '每条含：操作人 + 时间 + 内容，首条节点为 primary 色',
     '处理记录作为纠纷证据链，仅可追加，不可删除',
     '追加时自动记录当前操作人和时间戳'
   ]},
-  13: { title:'P0 紧急统计', desc:[
-    '统计当前筛选范围内 P0 类型（锁柜失败/开柜异常）且未关闭的工单数',
-    'P0 工单需优先处理，在表格中以 danger 底色突出，左侧带红色圆点'
-  ]},
-  14: { title:'工单详情 — 状态变更', desc:[
+  15: { title:'工单详情 — 状态变更', desc:[
     '触发：选择目标状态',
     '响应：弹出确认弹窗 → 确认后变更状态并自动追加记录',
     '流转顺序：待处理(warning)→处理中(info)→已处理(success)→已关闭(ink-muted)',
     '仅可按序流转，不可跳跃',
     '已关闭工单不可再操作（除重开外）'
   ]},
-  15: { title:'工单详情 — 指派处理人', desc:[
+  16: { title:'工单详情 — 指派处理人', desc:[
     '触发：选择处理人 → 确认',
     '响应：更新处理人并追加记录',
-    '可选人员：张管理、李运营、王运营、赵运营、刘客服',
-    '常见逻辑补充功能'
+    '可选人员：张管理、李运营、王运营、赵运营、刘客服'
   ]},
-  16: { title:'工单详情 — 添加处理备注', desc:[
+  17: { title:'工单详情 — 添加处理备注', desc:[
     '触发：输入备注内容 → 点击"添加备注"',
     '响应：追加一条处理记录（自动记录操作人+时间+内容）',
     '规则：备注一经提交不可删除，仅可追加，作为纠纷证据链',
     '空内容提交时输入框边框变红提示'
-  ]},
-  17: { title:'分页器', desc:[
-    '触发：点击页码 / 上/下页 / 输入跳转页码 / 更改每页条数',
-    '≤7页全部显示，>7页首尾+当前页±1+省略号',
-    '默认每页10条，可选20/50条',
-    '显示总记录数和当前页码'
   ]},
   18: { title:'标记异常 — 关联订单', desc:[
     '从订单管理触发时自动带入订单号，本页手动发起预填随机订单号',
@@ -1279,6 +1323,7 @@ var annotations = {
     '选填，可指定运营人员处理，不选时处理人为"--"，后续可在详情中指派'
   ]}
 };
+
 
 var annoVisible = true;
 

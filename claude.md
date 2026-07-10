@@ -333,7 +333,7 @@ function closeModal() {
 
 - **顶栏**（56px）：左侧 Logo + 系统名（点击回首页），右侧任务列表/消息中心（红色角标）/账号信息图标
 - **侧边栏**（220px）：可展开菜单，当前页高亮（`active-l1` 蓝色字+图标 / `active-l2` 蓝底蓝字），移动端可折叠。菜单交互见下方「侧边栏菜单交互规范」
-- **主内容区**（flex-1，`bg-page` 背景）：内容居中 `max-w-[1280px]`，卡片 `bg-white rounded-lg border` + `p-5 md:p-6`
+- **主内容区**（flex-1，`bg-page` 背景）：卡片 `bg-white rounded-lg border` + `p-5 md:p-6`
 - 文件名用**中文语义化命名**（如 `成员管理.html`、`订单看板.html`）；
 - 页面间用 `<a href>` 或 JS 跳转互通；
 - 后台各页共用侧边导航，当前页高亮。

@@ -1,0 +1,2573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>游寄后台管理系统 - 优惠券管理</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+  <style>
+    body{overflow:hidden;}
+    /* Sidebar */
+    .menu-item{cursor:pointer;transition:background .12s,color .12s;user-select:none;display:flex;align-items:center;gap:10px;padding:10px 16px;color:#1A1D24;font-size:13px;position:relative;text-decoration:none;}
+    .menu-item:hover{background:#F3F4F6;}
+    .menu-item.l1{padding-left:20px;font-weight:500;}
+    .menu-item.l2{padding-left:64px;font-size:13px;}
+    .menu-item.active-l1{color:#0066FF;}
+    .menu-item.active-l2{background:#E6F0FF;color:#0066FF;font-weight:500;}
+    .menu-ico{width:28px;height:28px;border-radius:7px;border:1.5px solid #D0D3D9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#6E7685;flex-shrink:0;transition:all .15s;}
+    .active-l1 .menu-ico{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .menu-arrow{font-size:10px;color:#9DA2AC;margin-left:auto;transition:transform .2s;flex-shrink:0;}
+    .menu-arrow.open{transform:rotate(180deg);}
+    .submenu{overflow:hidden;transition:max-height .25s ease,opacity .2s;}
+    .submenu.collapsed{max-height:0!important;opacity:0;}
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;}
+    .btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+    .btn-primary:hover{background:#0052CC;}
+    .btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+    .btn-default:hover{border-color:#0066FF;color:#0066FF;}
+    .btn-danger{background:#D9001B;color:#fff;border-color:#D9001B;}
+    .btn-danger:hover{background:#B80017;}
+    .btn-sm{height:28px;padding:0 10px;font-size:12px;}
+    /* Topbar */
+    .topbar-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#F3F4F6;cursor:pointer;transition:background .15s;position:relative;border:none;outline:none;}
+    .topbar-btn:hover{background:#E6F0FF;}
+    .topbar-btn:hover svg{stroke:#0066FF;}
+    .badge-dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#FF3B30;color:#fff;font-size:10px;font-weight:600;line-height:18px;text-align:center;}
+    /* Toggle Switch */
+    .toggle-switch{position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;flex-shrink:0;}
+    .toggle-switch input{opacity:0;width:0;height:0;}
+    .toggle-slider{position:absolute;inset:0;background:#C7CAD1;border-radius:11px;transition:background .2s;}
+    .toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:transform .2s;}
+    .toggle-switch input:checked + .toggle-slider{background:#0066FF;}
+    .toggle-switch input:checked + .toggle-slider::before{transform:translateX(18px);}
+    /* Tab bar */
+    .cp-tabs{display:flex;border-bottom:2px solid #DFE1E5;margin-bottom:16px;}
+    .cp-tab{padding:10px 24px;font-size:14px;font-weight:500;color:#6E7685;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap;}
+    .cp-tab:hover{color:#0066FF;}
+    .cp-tab.active{color:#0066FF;border-bottom-color:#0066FF;}
+    /* Filter grid */
+    .filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 16px;align-items:start;}
+    @media(max-width:1100px){.filter-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:640px){.filter-grid{grid-template-columns:1fr;}}
+    .filter-item{display:flex;align-items:center;gap:0;}
+    .filter-label{width:78px;flex-shrink:0;text-align:right;font-size:14px;color:#1A1D24;line-height:32px;white-space:nowrap;}
+    .filter-label::after{content:'：';}
+    .filter-ctrl{flex:1;min-width:0;display:flex;align-items:center;gap:4px;}
+    .filter-ctrl input,.filter-ctrl select{width:100%;height:32px;font-size:14px;padding:0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;font-family:inherit;background:#fff;}
+    .filter-ctrl input::placeholder,.filter-ctrl select::placeholder{color:#9DA2AC;font-size:14px;}
+    .filter-ctrl input:focus,.filter-ctrl select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .filter-ctrl select{appearance:none;-webkit-appearance:none;padding-right:24px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239DA2AC' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+    .date-sep{font-size:14px;color:#9DA2AC;flex-shrink:0;margin:0 2px;}
+    /* Tables */
+    .data-table{width:100%;border-collapse:collapse;font-size:13px;}
+    .data-table thead th{position:sticky;top:0;background:#F0F1F3;color:#6E7685;font-weight:600;font-size:12px;padding:9px 12px;text-align:left;border-bottom:1px solid #DFE1E5;white-space:nowrap;}
+    .data-table tbody td{padding:9px 12px;color:#3A3F4A;border-bottom:1px solid #F0F1F3;text-align:left;vertical-align:middle;}
+    .data-table tbody tr{transition:background .12s;}
+    .data-table tbody tr:hover{background:#F3F4F6;}
+    /* Badge */
+    .badge{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:500;white-space:nowrap;}
+    .badge-success{color:#0FC060;background:#E7F9F0;}
+    .badge-warning{color:#E7772D;background:#FDF2E9;}
+    .badge-danger{color:#D9001B;background:#FFE8EB;}
+    .badge-info{color:#0091D5;background:#E4F4FB;}
+    .badge-muted{color:#9DA2AC;background:#F0F1F3;}
+    /* Action links */
+    .action-link{color:#0066FF;cursor:pointer;font-size:13px;}
+    .action-link:hover{color:#0052CC;text-decoration:underline;}
+    .action-link.danger{color:#D9001B;}
+    .action-link.danger:hover{color:#B80017;}
+    .action-sep{color:#DFE1E5;margin:0 6px;font-size:13px;}
+    /* Pagination */
+    .pg-nav{display:flex;gap:4px;}
+    .pg-btn{min-width:30px;height:30px;padding:0 8px;font-size:12px;font-weight:500;font-family:inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
+    .pg-btn:hover:not(.pg-current):not(:disabled){color:#0066FF;border-color:#0066FF;}
+    .pg-btn.pg-current{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .pg-btn:disabled{color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;border-color:#DFE1E5;}
+    .pg-ellipsis{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;font-size:13px;}
+    .pg-select-wrap{position:relative;display:inline-flex;align-items:center;}
+    .pg-select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+    .pg-select{font-size:12px;font-family:inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;}
+    .pg-jump{font-size:12px;font-family:inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+    .pg-jump:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .pg-stats{color:#9DA2AC;white-space:nowrap;}
+    /* Drawer */
+    .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1100;display:none;}
+    .drawer-overlay.open{display:block;}
+    .drawer-panel{position:absolute;top:0;right:0;bottom:0;width:800px;max-width:100%;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.1);display:flex;flex-direction:column;animation:drawer-in .22s ease;}
+    @keyframes drawer-in{from{transform:translateX(100%);}to{transform:translateX(0);}}
+    .drawer-header{height:56px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #DFE1E5;flex-shrink:0;}
+    .drawer-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:#9DA2AC;cursor:pointer;background:none;border:none;transition:background .15s;}
+    .drawer-close:hover{background:#F3F4F6;}
+    .drawer-body{flex:1;overflow-y:auto;padding:24px;}
+    .drawer-footer{flex-shrink:0;border-top:1px solid #DFE1E5;padding:12px 24px;display:flex;justify-content:flex-end;gap:10px;}
+    /* Form fields */
+    .form-group{display:flex;align-items:flex-start;margin-bottom:20px;}
+    .form-label{width:110px;text-align:right;font-size:14px;color:#3A3F4A;padding-top:6px;padding-right:12px;flex-shrink:0;line-height:22px;}
+    .form-label.required::before{content:'* ';color:#D9001B;}
+    .form-wrap{flex:1;min-width:0;max-width:480px;position:relative;}
+    .form-input,.form-select,.form-textarea{width:100%;height:32px;padding:0 10px;font-size:13px;color:#3A3F4A;border:1px solid #DFE1E5;border-radius:4px;outline:none;transition:border-color .15s;background:#fff;font-family:inherit;}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .form-input.error,.form-select.error,.form-textarea.error{border-color:#D9001B;}
+    .form-textarea{height:80px;padding:8px 10px;resize:vertical;}
+    .form-error{font-size:12px;color:#D9001B;margin-top:4px;display:none;}
+    .form-error.show{display:block;}
+    .form-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239DA2AC' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:28px;}
+    .form-input:disabled,.form-select:disabled,.form-textarea:disabled{background:#F7F8FA;color:#9DA2AC;cursor:not-allowed;}
+    .char-counter{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#9DA2AC;font-family:mono;}
+    .textarea-counter{text-align:right;font-size:12px;color:#9DA2AC;margin-top:4px;}
+    /* Radio / Checkbox group */
+    .radio-group,.check-group{display:flex;flex-wrap:wrap;gap:16px;}
+    .radio-item,.check-item{display:flex;align-items:center;gap:6px;font-size:13px;color:#3A3F4A;cursor:pointer;}
+    .radio-item input,.check-item input{width:14px;height:14px;accent-color:#0066FF;cursor:pointer;}
+    /* Conditional field */
+    .cond-field{display:none;}
+    .cond-field.show{display:flex;}
+    /* Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1200;display:none;align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal-box{background:#fff;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.12);width:760px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #DFE1E5;}
+    .modal-header h3{font-size:16px;font-weight:600;color:#1A1D24;}
+    .modal-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:none;background:none;border-radius:4px;color:#9DA2AC;cursor:pointer;padding:0;transition:background .15s;}
+    .modal-close:hover{background:#F3F4F6;}
+    .modal-body{padding:24px;overflow-y:auto;}
+    .modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:12px 24px;border-top:1px solid #DFE1E5;}
+    /* Dialog */
+    .dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1300;display:none;align-items:center;justify-content:center;}
+    .dialog-overlay.open{display:flex;}
+    .dialog-box{width:600px;max-width:92vw;height:250px;background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);display:flex;flex-direction:column;position:relative;animation:modal-in .15s ease;}
+    @keyframes modal-in{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
+    .dialog-close{position:absolute;top:14px;right:18px;font-size:20px;color:#9DA2AC;cursor:pointer;z-index:1;}
+    .dialog-body{flex:1;display:flex;align-items:center;padding:0 24px;gap:12px;}
+    .dialog-ico{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+    .dialog-title{font-size:16px;font-weight:600;color:#1A1D24;}
+    .dialog-sub{font-size:14px;color:#6E7685;margin-top:6px;}
+    .dialog-footer{padding:0 24px 20px;display:flex;justify-content:flex-end;gap:12px;}
+    .dialog-btn-cancel{padding:6px 20px;border-radius:4px;background:#fff;color:#3A3F4A;border:1px solid #DFE1E5;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;}
+    .dialog-btn-confirm{padding:6px 20px;border-radius:4px;border:1px solid transparent;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;background:#0066FF;color:#fff;}
+    .dialog-btn-confirm.danger{background:#D9001B;border-color:#D9001B;}
+    /* Toast */
+    #cpToast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1A1D24;color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:4px;z-index:1500;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
+    /* Portal annotation badge */
+    .anno-portal-badge{position:absolute;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .15s;line-height:1;pointer-events:auto;}
+    .anno-portal-badge:hover{transform:scale(1.2);}
+    .anno-hidden .anno-portal-badge{display:none;}
+    /* KPI */
+    .kpi-card{padding:16px;border-radius:6px;border:1px solid #DFE1E5;background:#F7F8FA;}
+    .kpi-label{font-size:12px;color:#6E7685;margin-bottom:4px;}
+    .kpi-value{font-size:28px;font-weight:600;color:#1A1D24;}
+    .kpi-trend{font-size:12px;margin-top:4px;}
+    /* Chart */
+    .chart-wrap{position:relative;height:320px;}
+    .chart-wrap canvas{width:100%!important;height:100%!important;}
+    /* File upload */
+    .upload-area{border:2px dashed #DFE1E5;border-radius:6px;padding:24px;text-align:center;cursor:pointer;transition:all .15s;}
+    .upload-area:hover{border-color:#0066FF;background:#F7F8FA;}
+    /* Multi-select */
+    .multi-select-wrap{position:relative;}
+    .multi-select-input{border:1px solid #DFE1E5;border-radius:4px;padding:4px 8px;min-height:32px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;cursor:text;}
+    .multi-select-input:focus-within{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .multi-select-tag{display:inline-flex;align-items:center;gap:4px;padding:1px 6px;background:#E6F0FF;color:#0066FF;border-radius:4px;font-size:12px;}
+    .multi-select-tag .remove-tag{cursor:pointer;font-weight:700;opacity:.6;}
+    .multi-select-tag .remove-tag:hover{opacity:1;}
+    .multi-select-inner-input{border:none;outline:none;font-size:13px;min-width:120px;flex:1;font-family:inherit;}
+    /* Sidebar mobile */
+    @media(max-width:768px){.sidebar{display:none;}.sidebar.open{display:flex;position:fixed;top:56px;left:0;bottom:0;z-index:50;}.sidebar-overlay{display:none;}.sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;}}
+    /* Topbar tooltips */
+    .topbar-btn[data-tip]{position:relative;}
+    .topbar-btn[data-tip]::after{content:attr(data-tip);position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(-4px);background:#1A1D24;color:#fff;font-size:12px;line-height:1;padding:6px 10px;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;z-index:60;}
+    .topbar-btn[data-tip]::before{content:'';position:absolute;top:calc(100% - 2px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:#1A1D24;opacity:0;pointer-events:none;transition:opacity .15s;z-index:60;}
+    .topbar-btn[data-tip]:hover::after{opacity:1;transform:translateX(-50%) translateY(0);}
+    .topbar-btn[data-tip]:hover::before{opacity:1;}
+    /* Sortable column header */
+    .sortable{cursor:pointer;user-select:none;}
+    .sortable:hover{color:#0066FF;}
+    .sort-icon{display:inline-block;margin-left:2px;font-size:10px;}
+  </style>
+</head>
+<body class="font-sans flex flex-col h-screen">
+
+<!-- ===== TOP BAR ===== -->
+<header class="h-14 bg-white border-b border-line flex items-center px-4 md:px-6 flex-shrink-0 gap-3">
+  <button class="topbar-btn md:hidden" onclick="toggleSidebar()" title="菜单"><i data-lucide="menu" class="w-[18px] h-[18px]"></i></button>
+  <div class="flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigate('index.html')">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span class="text-white font-bold text-sm">游</span></div>
+    <span class="text-[15px] font-semibold text-ink-title hidden sm:block">游寄后台管理系统</span>
+  </div>
+  <div class="ml-auto flex items-center gap-3 md:gap-5">
+    <button class="topbar-btn" data-tip="任务列表" onclick="openTaskDrawer()"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i><span class="badge-dot" id="taskBadge" style="display:none;">0</span></button>
+    <button class="topbar-btn" data-tip="消息中心" onclick="navigate('消息中心.html')"><i data-lucide="bell" class="w-[18px] h-[18px]"></i><span class="badge-dot" id="msgBadge">5</span></button>
+    <div class="uc-wrap" id="ucWrap" onmouseenter="ucShowCard()" onmouseleave="ucScheduleHide()">
+      <button class="uc-avatar" id="ucAvatar" data-uc-anno="trigger" aria-label="用户信息"></button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== BODY: SIDEBAR + CONTENT ===== -->
+<div class="flex flex-1 min-h-0">
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
+    <div class="menu-item l1" data-page="工作台.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台</div>
+    <div class="menu-item l1" data-page="数据概览.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览</div>
+    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理</div>
+    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单</div>
+    <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控</div>
+    <div class="menu-item l1" data-page="对账中心.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心</div>
+    <div class="menu-item l1 active-l1" data-sub="sub-ops" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置<span class="menu-arrow open">▼</span></div>
+    <div class="submenu" id="sub-ops" style="max-height:400px;">
+      <div class="menu-item l2 active-l2" data-page="优惠券管理.html" onclick="menuSelect(this)">优惠券管理</div>
+      <div class="menu-item l2" data-page="价格配置.html" onclick="menuSelect(this)">价格配置</div>
+      <div class="menu-item l2" data-page="目的地配置.html" onclick="menuSelect(this)">目的地配置</div>
+    </div>
+    <div class="menu-item l1" data-page="用户管理.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="users" class="w-[15px] h-[15px]"></i></div>用户管理</div>
+    <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置<span class="menu-arrow">▼</span></div>
+    <div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
+      <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
+      <div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div>
+      <div class="menu-item l2" data-page="角色管理.html" onclick="menuSelect(this)">角色管理</div>
+      <div class="menu-item l2" data-page="消息设置.html" onclick="menuSelect(this)">消息设置</div>
+      <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
+      <div class="menu-item l2" data-page="操作日志.html" onclick="menuSelect(this)">操作日志</div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
+    <div class="p-4">
+
+      <!-- ===== 区块1: Tab 切换 + 筛选区 ===== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+        <div class="cp-tabs" style="margin-bottom:16px;" data-anno="1">
+          <div class="cp-tab active" data-tab="templates" onclick="switchTab('templates')">券模板管理</div>
+          <div class="cp-tab" data-tab="records" onclick="switchTab('records')">发放记录</div>
+          <div class="cp-tab" data-tab="stats" onclick="switchTab('stats')">核销统计</div>
+        </div>
+
+        <!-- Tab 1: 券模板管理 筛选区 -->
+        <div id="tab-templates-filter">
+          <div class="filter-grid" data-anno="2">
+            <div class="filter-item">
+              <label class="filter-label">搜索券名称</label>
+              <div class="filter-ctrl"><input type="text" id="tplSearch" placeholder="请输入券名称关键词"></div>
+            </div>
+            <div class="filter-item">
+              <label class="filter-label">券种</label>
+              <div class="filter-ctrl"><select id="tplType"><option value="">全部</option><option value="立减券">立减券</option><option value="折扣券">折扣券</option><option value="免费时长券">免费时长券</option></select></div>
+            </div>
+            <div class="filter-item">
+              <label class="filter-label">状态</label>
+              <div class="filter-ctrl"><select id="tplStatus"><option value="">全部</option><option value="1">启用</option><option value="0">停用</option></select></div>
+            </div>
+            <div class="filter-item">
+              <label class="filter-label" style="visibility:hidden;">占位</label>
+              <div class="filter-ctrl">
+                <button class="btn btn-primary" onclick="tplSearch()">查询</button>
+                <button class="btn btn-default" style="margin-left:8px;" onclick="tplReset()">重置</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: 发放记录 筛选区 -->
+        <div id="tab-records-filter" style="display:none;">
+          <div class="filter-grid" data-anno="6">
+            <div class="filter-item">
+              <label class="filter-label">搜索用户</label>
+              <div class="filter-ctrl"><input type="text" id="recSearch" placeholder="用户名/手机号"></div>
+            </div>
+            <div class="filter-item">
+              <label class="filter-label">券种</label>
+              <div class="filter-ctrl"><select id="recType"><option value="">全部</option><option value="立减券">立减券</option><option value="折扣券">折扣券</option><option value="免费时长券">免费时长券</option></select></div>
+            </div>
+            <div class="filter-item">
+              <label class="filter-label">发放时间</label>
+              <div class="filter-ctrl"><input type="text" id="recDateFrom" placeholder="开始时间" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'"><span class="date-sep">~</span><input type="text" id="recDateTo" placeholder="结束时间" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'"></div>
+            </div>
+            <div class="filter-item">
+              <label class="filter-label" style="visibility:hidden;">占位</label>
+              <div class="filter-ctrl">
+                <button class="btn btn-primary" onclick="recSearch()">查询</button>
+                <button class="btn btn-default" style="margin-left:8px;" onclick="recReset()">重置</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: 核销统计 筛选区 -->
+        <div id="tab-stats-filter" style="display:none;">
+          <div class="filter-grid" data-anno="12">
+            <div class="filter-item">
+              <label class="filter-label">时间范围</label>
+              <div class="filter-ctrl"><select id="stTimeRange"><option value="30">最近30天</option><option value="7">最近7天</option><option value="90">最近90天</option><option value="all">全部</option></select></div>
+            </div>
+            <div class="filter-item">
+              <label class="filter-label">券种</label>
+              <div class="filter-ctrl"><select id="stType"><option value="">全部</option><option value="立减券">立减券</option><option value="折扣券">折扣券</option><option value="免费时长券">免费时长券</option></select></div>
+            </div>
+            <div class="filter-item">
+              <label class="filter-label">券名称</label>
+              <div class="filter-ctrl"><select id="stCoupon"><option value="">全部</option></select></div>
+            </div>
+            <div class="filter-item">
+              <label class="filter-label" style="visibility:hidden;">占位</label>
+              <div class="filter-ctrl">
+                <button class="btn btn-primary" onclick="stSearch()">查询</button>
+                <button class="btn btn-default" style="margin-left:8px;" onclick="stReset()">重置</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 区块2: Tab 1 券模板管理 数据区 ===== -->
+      <div id="tab-templates-data" class="bg-white rounded-lg border border-line p-5 md:p-6">
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <h2 class="text-[18px] font-semibold text-ink-title inline-block">券模板列表</h2>
+          <button class="btn btn-primary" data-anno="3" onclick="openCouponDrawer()"><i data-lucide="plus" class="w-[15px] h-[15px]"></i> 创建优惠券</button>
+        </div>
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table class="data-table" data-anno="4">
+            <thead>
+              <tr>
+                <th>券名称</th><th>券种</th><th>面额/折扣/时长</th><th>使用门槛</th><th>适用范围</th><th>有效期规则</th><th>发放量</th><th>状态</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tplTbody"></tbody>
+          </table>
+          <div id="tplEmpty" style="display:none;" class="text-center py-16 text-ink-muted text-[14px]"><i data-lucide="inbox" class="w-[44px] h-[44px] mx-auto mb-3"></i><p>暂无券模板数据</p></div>
+        </div>
+        <!-- Pagination -->
+        <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]" data-anno="5">
+          <div class="pg-nav" id="tplPgNav"></div>
+          <span class="pg-select-wrap"><select class="pg-select" id="tplPgSize" onchange="tplChangePageSize()"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
+          <span class="flex items-center gap-1">跳至 <input class="pg-jump" id="tplPgJump" onkeydown="if(event.key==='Enter')tplJumpPage()"> 页</span>
+          <span class="pg-stats" id="tplPgStats"></span>
+        </div>
+      </div>
+
+      <!-- ===== 区块2: Tab 2 发放记录 数据区 ===== -->
+      <div id="tab-records-data" style="display:none;" class="bg-white rounded-lg border border-line p-5 md:p-6">
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <h2 class="text-[18px] font-semibold text-ink-title inline-block">发放记录</h2>
+          <div class="flex items-center gap-3">
+            <button class="btn btn-primary" data-anno="7" onclick="openManualIssueModal()"><i data-lucide="send" class="w-[15px] h-[15px]"></i> 手动发放</button>
+            <button class="btn btn-default" data-anno="8" onclick="openRegisterConfigModal()"><i data-lucide="gift" class="w-[15px] h-[15px]"></i> 配置注册赠券</button>
+            <button class="btn btn-default" data-anno="9" onclick="openActivityConfigModal()"><i data-lucide="ticket" class="w-[15px] h-[15px]"></i> 配置活动领券</button>
+          </div>
+        </div>
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table class="data-table" data-anno="10">
+            <thead>
+              <tr><th>用户</th><th>券名称</th><th>券种</th><th>面额/折扣/时长</th><th>发放方式</th><th>发放时间</th><th>券状态</th><th>操作人</th></tr>
+            </thead>
+            <tbody id="recTbody"></tbody>
+          </table>
+          <div id="recEmpty" style="display:none;" class="text-center py-16 text-ink-muted text-[14px]"><i data-lucide="inbox" class="w-[44px] h-[44px] mx-auto mb-3"></i><p>暂无发放记录</p></div>
+        </div>
+        <!-- Pagination -->
+        <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]" data-anno="11">
+          <div class="pg-nav" id="recPgNav"></div>
+          <span class="pg-select-wrap"><select class="pg-select" id="recPgSize" onchange="recChangePageSize()"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
+          <span class="flex items-center gap-1">跳至 <input class="pg-jump" id="recPgJump" onkeydown="if(event.key==='Enter')recJumpPage()"> 页</span>
+          <span class="pg-stats" id="recPgStats"></span>
+        </div>
+      </div>
+
+      <!-- ===== 区块2: Tab 3 核销统计 KPI + 图表 ===== -->
+      <div id="tab-stats-data" style="display:none;" class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+        <h2 class="text-[18px] font-semibold text-ink-title inline-block mb-4">核销统计</h2>
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4" data-anno="14">
+          <div class="kpi-card"><div class="kpi-label">发放量</div><div class="kpi-value font-mono" id="kpiIssued">--</div><div class="kpi-trend text-ink-muted">张</div></div>
+          <div class="kpi-card"><div class="kpi-label">领取量</div><div class="kpi-value font-mono" id="kpiClaimed">--</div><div class="kpi-trend text-ink-muted">张</div></div>
+          <div class="kpi-card"><div class="kpi-label">使用量</div><div class="kpi-value font-mono" id="kpiUsed">--</div><div class="kpi-trend text-ink-muted">张</div></div>
+          <div class="kpi-card"><div class="kpi-label">核销率</div><div class="kpi-value font-mono" id="kpiRate">--</div><div class="kpi-trend text-ink-muted">%</div></div>
+          <div class="kpi-card"><div class="kpi-label">抵扣总额</div><div class="kpi-value font-mono" id="kpiAmount">--</div><div class="kpi-trend text-ink-muted">元</div></div>
+        </div>
+        <!-- Chart -->
+        <div data-anno="15">
+          <h3 class="text-[14px] font-semibold text-ink-title mb-3">使用量 / 抵扣趋势</h3>
+          <div class="chart-wrap"><canvas id="stChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ===== 区块2: Tab 3 核销统计 数据列表 ===== -->
+      <div id="tab-stats-table" style="display:none;" class="bg-white rounded-lg border border-line p-5 md:p-6">
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <h2 class="text-[18px] font-semibold text-ink-title inline-block" data-anno="16">券明细数据</h2>
+          <button class="btn btn-default btn-sm" data-anno="13" onclick="stExport()"><i data-lucide="download" class="w-[13px] h-[13px]"></i> 导出数据</button>
+        </div>
+        <!-- Detail Table -->
+        <div class="overflow-x-auto">
+          <table class="data-table" data-anno="17">
+            <thead>
+              <tr><th>券名称</th><th>券种</th><th>发放量</th><th>领取量</th><th class="sortable" onclick="stSort('used')">使用量 <span class="sort-icon" id="stSortUsed"></span></th><th class="sortable" onclick="stSort('rate')">核销率(%) <span class="sort-icon" id="stSortRate"></span></th><th class="sortable" onclick="stSort('amount')">抵扣总额(¥) <span class="sort-icon" id="stSortAmount"></span></th></tr>
+            </thead>
+            <tbody id="stTbody"></tbody>
+          </table>
+          <div id="stEmpty" style="display:none;" class="text-center py-16 text-ink-muted text-[14px]"><i data-lucide="inbox" class="w-[44px] h-[44px] mx-auto mb-3"></i><p>暂无统计数据</p></div>
+        </div>
+        <!-- Pagination -->
+        <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]">
+          <div class="pg-nav" id="stPgNav"></div>
+          <span class="pg-select-wrap"><select class="pg-select" id="stPgSize" onchange="stChangePageSize()"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
+          <span class="flex items-center gap-1">跳至 <input class="pg-jump" id="stPgJump" onkeydown="if(event.key==='Enter')stJumpPage()"> 页</span>
+          <span class="pg-stats" id="stPgStats"></span>
+        </div>
+      </div>
+  </main>
+</div>
+
+<!-- ===== CREATE/EDIT COUPON DRAWER ===== -->
+<div class="drawer-overlay" id="cpDrawerOverlay" onclick="checkDiscardThen(function(){closeCouponDrawer(true);})">
+  <aside class="drawer-panel" id="cpDrawerPanel" onclick="event.stopPropagation()">
+    <header class="drawer-header">
+      <h3 class="text-[16px] font-semibold text-ink-title inline-block" id="cpDrawerTitle" data-anno="18">创建优惠券</h3>
+      <button class="drawer-close" onclick="checkDiscardThen(function(){closeCouponDrawer(true);})" aria-label="关闭"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+    </header>
+    <div class="drawer-body" id="cpDrawerBody">
+      <form id="cpForm" novalidate onsubmit="return false;">
+        <!-- 券名称 -->
+        <div class="form-group">
+          <label class="form-label required" for="cpName">券名称</label>
+          <div class="form-wrap">
+            <input class="form-input" type="text" id="cpName" maxlength="20" placeholder="请输入券名称" oninput="updateCharCounter('cpName','cpNameCounter')">
+            <span class="char-counter font-mono" id="cpNameCounter">0/20</span>
+            <div class="form-error" id="cpNameErr">请输入券名称（1-20个字符）</div>
+          </div>
+        </div>
+        <!-- 券种 -->
+        <div class="form-group">
+          <label class="form-label required">券种</label>
+          <div class="form-wrap">
+            <div class="radio-group" data-anno="19">
+              <label class="radio-item"><input type="radio" name="cpType" value="立减券" onchange="onCouponTypeChange()"> 立减券</label>
+              <label class="radio-item"><input type="radio" name="cpType" value="折扣券" onchange="onCouponTypeChange()"> 折扣券</label>
+              <label class="radio-item"><input type="radio" name="cpType" value="免费时长券" onchange="onCouponTypeChange()"> 免费时长券</label>
+            </div>
+            <div class="form-error" id="cpTypeErr">请选择券种</div>
+          </div>
+        </div>
+        <!-- 立减券：面额 -->
+        <div class="form-group cond-field" id="cpFieldAmount" style="display:none;">
+          <label class="form-label required" for="cpAmount">面额</label>
+          <div class="form-wrap">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:14px;color:#3A3F4A;">¥</span>
+              <input class="form-input" type="number" id="cpAmount" step="0.01" min="0.01" placeholder="请输入面额" style="flex:1;">
+            </div>
+            <div class="form-error" id="cpAmountErr">请输入有效的面额（最小0.01元）</div>
+          </div>
+        </div>
+        <!-- 折扣券：折扣率 + 最高抵扣 -->
+        <div class="form-group cond-field" id="cpFieldDiscount" style="display:none;">
+          <label class="form-label required" for="cpDiscount">折扣率</label>
+          <div class="form-wrap">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <input class="form-input" type="number" id="cpDiscount" min="1" max="99" placeholder="如8折填80" style="flex:1;">
+              <span style="font-size:13px;color:#6E7685;">%（如8折填80）</span>
+            </div>
+            <div class="form-error" id="cpDiscountErr">请输入1-99的整数</div>
+          </div>
+        </div>
+        <div class="form-group cond-field" id="cpFieldDiscountMax" style="display:none;">
+          <label class="form-label" for="cpDiscountMax">最高抵扣</label>
+          <div class="form-wrap">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:14px;color:#3A3F4A;">¥</span>
+              <input class="form-input" type="number" id="cpDiscountMax" step="0.01" min="0.01" placeholder="留空则无上限" style="flex:1;">
+            </div>
+            <div class="form-error" id="cpDiscountMaxErr">请输入有效的金额</div>
+          </div>
+        </div>
+        <!-- 免费时长券：时长 -->
+        <div class="form-group cond-field" id="cpFieldDuration" style="display:none;">
+          <label class="form-label required" for="cpDuration">免费时长</label>
+          <div class="form-wrap">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <input class="form-input" type="number" id="cpDuration" min="1" placeholder="请输入时长" style="flex:1;">
+              <select class="form-select" id="cpDurationUnit" style="width:120px;"><option value="h">小时</option><option value="min">分钟</option></select>
+            </div>
+            <div class="form-error" id="cpDurationErr">请输入有效的正整数时长</div>
+          </div>
+        </div>
+        <!-- 使用门槛 -->
+        <div class="form-group">
+          <label class="form-label required">使用门槛</label>
+          <div class="form-wrap" data-anno="20">
+            <div class="radio-group" style="margin-bottom:8px;">
+              <label class="radio-item"><input type="radio" name="cpThreshold" value="none" onchange="onThresholdChange()"> 无门槛</label>
+              <label class="radio-item"><input type="radio" name="cpThreshold" value="amount" onchange="onThresholdChange()"> 满X元可用</label>
+            </div>
+            <div id="cpThresholdAmountWrap" style="display:none;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-size:13px;color:#3A3F4A;">满</span>
+                <span style="font-size:14px;color:#3A3F4A;">¥</span>
+                <input class="form-input" type="number" id="cpThresholdAmount" step="0.01" min="0.01" placeholder="请输入金额" style="width:160px;">
+                <span style="font-size:13px;color:#3A3F4A;">可用</span>
+              </div>
+              <div class="form-error" id="cpThresholdAmountErr">请输入有效的门槛金额</div>
+            </div>
+            <div class="form-error" id="cpThresholdErr">请选择使用门槛</div>
+          </div>
+        </div>
+        <!-- 适用范围 -->
+        <div class="form-group">
+          <label class="form-label required">适用范围</label>
+          <div class="form-wrap" data-anno="21">
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="cpScope" value="寄存"> 仅寄存</label>
+              <label class="check-item"><input type="checkbox" name="cpScope" value="寄送"> 仅寄送</label>
+              <label class="check-item"><input type="checkbox" name="cpScope" value="通用"> 通用</label>
+            </div>
+            <div class="form-error" id="cpScopeErr">请至少选择一项适用范围</div>
+          </div>
+        </div>
+        <!-- 有效期类型 -->
+        <div class="form-group">
+          <label class="form-label required">有效期类型</label>
+          <div class="form-wrap" data-anno="22">
+            <div class="radio-group">
+              <label class="radio-item"><input type="radio" name="cpValidType" value="days" onchange="onValidTypeChange()"> 领取后N天有效</label>
+              <label class="radio-item"><input type="radio" name="cpValidType" value="range" onchange="onValidTypeChange()"> 固定起止日期</label>
+            </div>
+            <div class="form-error" id="cpValidTypeErr">请选择有效期类型</div>
+          </div>
+        </div>
+        <!-- 有效期-领取后N天 -->
+        <div class="form-group cond-field" id="cpFieldValidDays" style="display:none;">
+          <label class="form-label required" for="cpValidDays">有效天数</label>
+          <div class="form-wrap">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:13px;color:#3A3F4A;">领取后</span>
+              <input class="form-input" type="number" id="cpValidDays" min="1" placeholder="天数" style="width:100px;">
+              <span style="font-size:13px;color:#3A3F4A;">天内有效</span>
+            </div>
+            <div class="form-error" id="cpValidDaysErr">请输入有效的正整数天数</div>
+          </div>
+        </div>
+        <!-- 有效期-固定起止 -->
+        <div class="form-group cond-field" id="cpFieldValidRange" style="display:none;">
+          <label class="form-label required">有效日期</label>
+          <div class="form-wrap">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <input type="date" class="form-input" id="cpValidFrom" title="开始日期">
+              <span style="font-size:13px;color:#6E7685;">至</span>
+              <input type="date" class="form-input" id="cpValidTo" title="结束日期">
+            </div>
+            <div class="form-error" id="cpValidRangeErr">请选择有效期起止日期（起始日期不可早于今天）</div>
+          </div>
+        </div>
+        <!-- 发放总量 -->
+        <div class="form-group">
+          <label class="form-label required" for="cpTotalQty">发放总量</label>
+          <div class="form-wrap">
+            <input class="form-input" type="number" id="cpTotalQty" min="1" placeholder="请输入发放总量" style="width:200px;">
+            <div class="form-error" id="cpTotalQtyErr">请输入正整数（最小1）</div>
+          </div>
+        </div>
+        <!-- 状态 -->
+        <div class="form-group">
+          <label class="form-label required">状态</label>
+          <div class="form-wrap" data-anno="23">
+            <div class="radio-group">
+              <label class="radio-item"><input type="radio" name="cpStatus" value="1" checked> 启用</label>
+              <label class="radio-item"><input type="radio" name="cpStatus" value="0"> 停用</label>
+            </div>
+          </div>
+        </div>
+        <!-- 备注 -->
+        <div class="form-group">
+          <label class="form-label" for="cpRemark">备注</label>
+          <div class="form-wrap">
+            <textarea class="form-textarea" id="cpRemark" maxlength="200" placeholder="请输入备注说明（选填）" oninput="updateTextareaCounter()"></textarea>
+            <div class="textarea-counter font-mono" id="cpRemarkCounter">0/200</div>
+          </div>
+        </div>
+        <!-- Locked fields notice (edit mode) -->
+        <div id="cpLockNotice" style="display:none;background:#FDF2E9;border:1px solid #E7772D;border-radius:4px;padding:10px 14px;margin-bottom:20px;font-size:13px;color:#E7772D;">
+          <i data-lucide="alert-triangle" class="w-[15px] h-[15px] inline align-text-bottom"></i>
+          该券已发放给用户，面额/折扣/门槛字段不可修改。如需调整请停用后新建券模板。
+        </div>
+      </form>
+    </div>
+    <footer class="drawer-footer">
+      <button class="btn btn-default" onclick="checkDiscardThen(function(){closeCouponDrawer(true);})">取消</button>
+      <button class="btn btn-primary" data-anno="24" onclick="submitCouponForm()">保存</button>
+    </footer>
+  </aside>
+</div>
+
+<!-- ===== MANUAL ISSUE MODAL ===== -->
+<div class="modal-overlay" id="issueModalOverlay" onclick="closeIssueModal()">
+  <div class="modal-box" id="issueModalBox" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="inline-block" data-anno="25">手动发放优惠券</h3>
+      <button class="modal-close" onclick="closeIssueModal()" aria-label="关闭"><i data-lucide="x" class="w-[18px] h-[18px]"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="issueForm" novalidate onsubmit="return false;">
+        <div class="form-group">
+          <label class="form-label required">选择券模板</label>
+          <div class="form-wrap">
+            <select class="form-select" id="issueCouponId"></select>
+            <div class="form-error" id="issueCouponIdErr">请选择券模板</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label required">发放方式</label>
+          <div class="form-wrap">
+            <div class="radio-group" data-anno="26">
+              <label class="radio-item"><input type="radio" name="issueMethod" value="specific" checked onchange="onIssueMethodChange()"> 指定用户</label>
+              <label class="radio-item"><input type="radio" name="issueMethod" value="batch" onchange="onIssueMethodChange()"> 批量用户</label>
+            </div>
+          </div>
+        </div>
+        <!-- 指定用户 -->
+        <div id="issueSpecificWrap">
+          <div class="form-group">
+            <label class="form-label required">选择用户</label>
+            <div class="form-wrap">
+              <div class="multi-select-wrap">
+                <div class="multi-select-input" id="issueUserTags" onclick="document.getElementById('issueUserInput').focus()">
+                  <input class="multi-select-inner-input" id="issueUserInput" type="text" placeholder="输入用户名或手机号搜索" oninput="filterIssueUsers()" onfocus="showIssueUserDropdown()">
+                </div>
+                <div id="issueUserDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #DFE1E5;border-radius:4px;max-height:180px;overflow-y:auto;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,.1);"></div>
+              </div>
+              <div class="form-error" id="issueUsersErr">请至少选择一位用户</div>
+            </div>
+          </div>
+        </div>
+        <!-- 批量用户 -->
+        <div id="issueBatchWrap" style="display:none;">
+          <div class="form-group">
+            <label class="form-label required">上传文件</label>
+            <div class="form-wrap">
+              <div class="upload-area" data-anno="27" onclick="document.getElementById('issueFileInput').click()">
+                <input type="file" id="issueFileInput" accept=".xlsx,.xls" style="display:none;" onchange="handleIssueFile(this)">
+                <i data-lucide="upload-cloud" class="w-[32px] h-[32px] mx-auto mb-2 text-ink-muted"></i>
+                <p class="text-[13px] text-ink-muted">点击上传Excel文件或拖拽到此处</p>
+                <p class="text-[12px] text-ink-muted mt-1"><a href="#" onclick="event.stopPropagation();cpToast('模板下载中...');" class="text-primary">下载模板</a>，按模板格式填写用户手机号</p>
+              </div>
+              <div class="form-error" id="issueFileErr">请上传Excel文件</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label required" for="issueQty">每人发放数量</label>
+          <div class="form-wrap">
+            <input class="form-input" type="number" id="issueQty" min="1" value="1" style="width:120px;">
+            <div class="form-error" id="issueQtyErr">请输入正整数</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="issueRemark">发放备注</label>
+          <div class="form-wrap">
+            <input class="form-input" type="text" id="issueRemark" maxlength="100" placeholder="如：客服补偿-订单XX" oninput="updateIssueCharCounter()">
+            <span class="char-counter font-mono" id="issueRemarkCounter">0/100</span>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeIssueModal()">取消</button>
+      <button class="btn btn-primary" data-anno="28" onclick="confirmIssue()">确认发放</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== REGISTER COUPON CONFIG MODAL ===== -->
+<div class="modal-overlay" id="regModalOverlay" onclick="closeRegModal()">
+  <div class="modal-box" id="regModalBox" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="inline-block" data-anno="29">配置注册赠券</h3>
+      <button class="modal-close" onclick="closeRegModal()" aria-label="关闭"><i data-lucide="x" class="w-[18px] h-[18px]"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">启用状态</label>
+        <div class="form-wrap" style="padding-top:5px;">
+          <label class="toggle-switch" data-anno="30"><input type="checkbox" id="regEnabled" checked><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">赠送的券</label>
+        <div class="form-wrap">
+          <div id="regCouponList">
+            <div class="reg-coupon-row flex items-center gap-3 mb-2" id="regRow0" style="display:flex;">
+              <select class="form-select" style="flex:1;"><option value="">请选择券模板</option></select>
+              <span style="font-size:13px;color:#6E7685;">×</span>
+              <input class="form-input" type="number" min="1" value="1" style="width:80px;">
+              <span style="font-size:13px;color:#6E7685;">张</span>
+              <button class="btn btn-default btn-sm" onclick="removeRegRow(0)" style="color:#D9001B;border-color:#D9001B;">删除</button>
+            </div>
+          </div>
+          <button class="btn btn-default btn-sm mt-2" data-anno="31" onclick="addRegRow()"><i data-lucide="plus" class="w-[13px] h-[13px]"></i> 添加券</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeRegModal()">取消</button>
+      <button class="btn btn-primary" data-anno="32" onclick="saveRegConfig()">保存配置</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ACTIVITY COUPON CONFIG MODAL ===== -->
+<div class="modal-overlay" id="actModalOverlay" onclick="closeActModal()">
+  <div class="modal-box" id="actModalBox" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="inline-block" data-anno="33">配置活动领券</h3>
+      <button class="modal-close" onclick="closeActModal()" aria-label="关闭"><i data-lucide="x" class="w-[18px] h-[18px]"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="actForm" novalidate onsubmit="return false;">
+        <div class="form-group">
+          <label class="form-label required" for="actName">活动名称</label>
+          <div class="form-wrap">
+            <input class="form-input" type="text" id="actName" maxlength="20" placeholder="请输入活动名称">
+            <div class="form-error" id="actNameErr">请输入活动名称（1-20个字符）</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label required">关联券模板</label>
+          <div class="form-wrap">
+            <select class="form-select" id="actCouponId"></select>
+            <div class="form-error" id="actCouponIdErr">请选择券模板</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label required">活动有效期</label>
+          <div class="form-wrap">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <input type="date" class="form-input" id="actDateFrom"><span style="font-size:13px;">至</span><input type="date" class="form-input" id="actDateTo">
+            </div>
+            <div class="form-error" id="actDateErr">请选择活动有效期</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label required" for="actPerLimit">每人限领次数</label>
+          <div class="form-wrap">
+            <input class="form-input" type="number" id="actPerLimit" min="1" value="1" style="width:120px;">
+            <div class="form-error" id="actPerLimitErr">请输入正整数</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="actTotalLimit">总领取上限</label>
+          <div class="form-wrap">
+            <input class="form-input" type="number" id="actTotalLimit" min="1" placeholder="留空则不限" style="width:160px;">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">活动状态</label>
+          <div class="form-wrap" style="padding-top:5px;">
+            <label class="toggle-switch"><input type="checkbox" id="actEnabled" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeActModal()">取消</button>
+      <button class="btn btn-primary" data-anno="34" onclick="saveActConfig()">保存配置</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONFIRM DIALOG (reusable) ===== -->
+<div class="dialog-overlay" id="confirmDialog" onclick="closeConfirmDialog()">
+  <div class="dialog-box" onclick="event.stopPropagation()">
+    <div class="dialog-close" onclick="closeConfirmDialog()">×</div>
+    <div class="dialog-body">
+      <div class="dialog-ico" id="confirmIco" style="background:#FDF2E9;color:#E7772D;">?</div>
+      <div>
+        <div class="dialog-title" id="confirmTitle">确认操作</div>
+        <div class="dialog-sub" id="confirmSub"></div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn-cancel" onclick="closeConfirmDialog()">取消</button>
+      <button class="dialog-btn-confirm" id="confirmBtn" onclick="execConfirm()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DISCARD CHANGES DIALOG ===== -->
+<div class="dialog-overlay" id="discardDialog">
+  <div class="dialog-box" onclick="event.stopPropagation()">
+    <div class="dialog-close" onclick="closeDiscardDialog()">×</div>
+    <div class="dialog-body">
+      <div class="dialog-ico" style="background:#FDF2E9;color:#E7772D;">?</div>
+      <div>
+        <div class="dialog-title">确认放弃编辑？</div>
+        <div class="dialog-sub">关闭后将丢失已填写的内容。</div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn-cancel" onclick="closeDiscardDialog()">继续编辑</button>
+      <button class="dialog-btn-confirm danger" onclick="forceCloseDrawer()">放弃编辑</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PORTAL ANNOTATION LAYER ===== -->
+<div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></div>
+<div id="annoToggle" class="fixed z-[9997]" style="right:8px;bottom:40px;cursor:grab;" onmousedown="startDragToggle(event)">
+  <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] bg-white/90 backdrop-blur text-primary border border-primary/30 shadow-sm">
+    <i data-lucide="eye" id="annoToggleIcon" class="w-[13px] h-[13px]"></i> 标注
+  </div>
+</div>
+<div id="annoPopup" class="hidden fixed inset-0 z-[9999]" style="background:rgba(0,0,0,.2);" onclick="closeAnnoPopup()">
+  <div id="annoPopupBox" class="fixed bg-white rounded-lg shadow-xl p-6 w-[480px] max-w-[90vw] max-h-[70vh] overflow-y-auto" style="top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 12px 40px rgba(0,0,0,.18);" onclick="event.stopPropagation()">
+    <button onclick="closeAnnoPopup()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted z-10"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+    <div id="annoPopupDrag" class="flex items-center gap-2 mb-3 select-none" style="cursor:grab;" onmousedown="startDragPopup(event)" title="拖拽移动弹窗">
+      <i data-lucide="grip-horizontal" class="w-[16px] h-[16px] text-ink-muted flex-shrink-0" style="opacity:.4;"></i>
+      <h3 id="annoPopupTitle" class="text-[16px] font-semibold text-ink-title"></h3>
+    </div>
+    <ul id="annoPopupBody" class="text-[14px] text-ink-body leading-relaxed space-y-2"></ul>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="cpToast"></div>
+
+<!-- ================================================================
+     GLOBAL COMPONENT: 任务列表抽屉（顶栏入口，全站共享）
+     ================================================================ -->
+<style>
+  .tk-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1100;}
+  .tk-drawer{position:absolute;top:0;right:0;bottom:0;width:800px;max-width:100%;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.1);display:flex;flex-direction:column;animation:tk-drawer-in .22s ease;}
+  @keyframes tk-drawer-in{from{transform:translateX(100%);}to{transform:translateX(0);}}
+  .tk-header{height:56px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #DFE1E5;flex-shrink:0;}
+  .tk-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:#9DA2AC;cursor:pointer;background:none;border:none;transition:background .15s;}
+  .tk-close:hover{background:#F3F4F6;}
+  .tk-tabs{display:flex;padding:0 24px;border-bottom:1px solid #DFE1E5;flex-shrink:0;}
+  .tk-tab{padding:10px 20px;font-size:14px;font-weight:500;color:#6E7685;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;}
+  .tk-tab:hover{color:#0066FF;}
+  .tk-tab.active{color:#0066FF;border-bottom-color:#0066FF;}
+  .tk-filters{padding:16px 24px;border-bottom:1px solid #F0F1F3;flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;}
+  @media(max-width:640px){.tk-filters{grid-template-columns:1fr;}}
+  .tk-filter-item{display:flex;align-items:center;}
+  .tk-filter-label{width:78px;flex-shrink:0;text-align:right;font-size:14px;color:#1A1D24;line-height:32px;white-space:nowrap;}
+  .tk-filter-label::after{content:'：';}
+  .tk-ctrl{flex:1;min-width:0;display:flex;align-items:center;gap:4px;}
+  .tk-input,.tk-select{width:100%;height:32px;font-size:14px;padding:0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;font-family:inherit;background:#fff;}
+  .tk-input::placeholder{color:#9DA2AC;font-size:14px;}
+  .tk-input:focus,.tk-select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+  .tk-select{appearance:none;-webkit-appearance:none;padding-right:24px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239DA2AC' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+  .tk-date-sep{font-size:14px;color:#9DA2AC;flex-shrink:0;margin:0 2px;}
+  .tk-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;font-family:inherit;}
+  .tk-btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+  .tk-btn-primary:hover{background:#0052CC;}
+  .tk-btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+  .tk-btn-default:hover{border-color:#0066FF;color:#0066FF;}
+  .tk-note{margin:12px 24px 0;padding:8px 12px;background:#E4F4FB;border-radius:4px;font-size:12px;color:#0091D5;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .tk-body{flex:1;overflow:auto;padding:12px 24px 0;}
+  .tk-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;min-width:700px;}
+  .tk-table thead th{position:sticky;top:0;background:#F0F1F3;color:#6E7685;font-weight:600;font-size:12px;padding:9px 12px;text-align:left;border-bottom:1px solid #DFE1E5;white-space:nowrap;z-index:1;}
+  .tk-table tbody td{padding:9px 12px;color:#3A3F4A;border-bottom:1px solid #F0F1F3;text-align:left;vertical-align:middle;}
+  .tk-table tbody tr{transition:background .12s;}
+  .tk-table tbody tr:hover{background:#F3F4F6;}
+  .tk-ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .tk-progress{height:4px;background:#E6F0FF;border-radius:2px;overflow:hidden;margin-top:4px;max-width:130px;}
+  .tk-progress-fill{height:100%;background:#0066FF;border-radius:2px;transition:width .3s;}
+  .tk-link{color:#0066FF;cursor:pointer;}
+  .tk-link:hover{color:#0052CC;text-decoration:underline;}
+  .tk-link.tk-disabled{color:#9DA2AC;cursor:not-allowed;}
+  .tk-link.tk-disabled:hover{color:#9DA2AC;text-decoration:none;}
+  .tk-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 0;color:#9DA2AC;}
+  .tk-footer{flex-shrink:0;border-top:1px solid #DFE1E5;padding:12px 24px;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:16px;font-size:12px;background:#fff;}
+  .tk-pg-nav{display:flex;gap:4px;}
+  .tk-pg-btn{min-width:30px;height:30px;padding:0 8px;font-size:12px;font-weight:500;font-family:inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
+  .tk-pg-btn:hover:not(.tk-pg-current):not(:disabled){color:#0066FF;border-color:#0066FF;}
+  .tk-pg-btn.tk-pg-current{background:#0066FF;border-color:#0066FF;color:#fff;}
+  .tk-pg-btn:disabled{color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;border-color:#DFE1E5;}
+  .tk-pg-ellipsis{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;font-size:13px;}
+  .tk-pg-select-wrap{position:relative;display:inline-flex;align-items:center;}
+  .tk-pg-select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+  .tk-pg-select{font-size:12px;font-family:inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;}
+  .tk-pg-jump{font-size:12px;font-family:inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+  .tk-pg-jump:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+  .tk-pg-stats{color:#9DA2AC;white-space:nowrap;}
+  #tkToast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1A1D24;color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:4px;z-index:1300;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
+</style>
+<div class="tk-overlay" id="tkOverlay" style="display:none;">
+  <aside class="tk-drawer" id="tkDrawerPanel" role="dialog" aria-label="任务列表">
+    <header class="tk-header">
+      <h3 class="text-[16px] font-semibold text-ink-title inline-block">任务列表</h3>
+      <button class="tk-close" onclick="closeTaskDrawer()" aria-label="关闭"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+    </header>
+    <nav class="tk-tabs">
+      <div class="tk-tab active" id="tkTabImport">导入任务</div>
+      <div class="tk-tab" id="tkTabDownload">下载任务</div>
+    </nav>
+    <div class="tk-filters">
+      <div class="tk-filter-item"><label class="tk-filter-label">任务模块</label><div class="tk-ctrl"><select class="tk-select" id="tkFilterModule"><option value="">全部</option><option value="订单管理">订单管理</option><option value="异常工单">异常工单</option></select></div></div>
+      <div class="tk-filter-item"><label class="tk-filter-label">操作人</label><div class="tk-ctrl"><input class="tk-input" id="tkFilterOp" list="tkOpsList" placeholder="全部（输入姓名模糊搜索）"><datalist id="tkOpsList"></datalist></div></div>
+      <div class="tk-filter-item"><label class="tk-filter-label">操作时间</label><div class="tk-ctrl"><input type="date" class="tk-input" id="tkDateFrom" title="开始时间"><span class="tk-date-sep">~</span><input type="date" class="tk-input" id="tkDateTo" title="结束时间"></div></div>
+      <div class="tk-filter-item"><label class="tk-filter-label" style="visibility:hidden;">占位</label><div class="tk-ctrl"><button class="tk-btn tk-btn-primary" onclick="tkSearch()">搜索</button><button class="tk-btn tk-btn-default" style="margin-left:8px;" onclick="tkReset()">重置</button></div></div>
+    </div>
+    <div class="tk-note" id="tkNote" style="display:none;"><i data-lucide="info" class="w-[13px] h-[13px] flex-shrink-0"></i><span>说明：导出数据在系统平台内记录最多保留 30 天，30 天后自动清除</span></div>
+    <div class="tk-body" id="tkBody">
+      <table class="tk-table"><colgroup><col style="width:120px;"><col><col style="width:90px;"><col style="width:150px;"><col style="width:180px;"><col style="width:100px;"></colgroup>
+        <thead><tr><th>模块</th><th>文件名称</th><th>操作人</th><th>操作时间</th><th>任务阶段</th><th>操作</th></tr></thead>
+        <tbody id="tkTbody"></tbody>
+      </table>
+      <div class="tk-empty" id="tkEmpty" style="display:none;"><i data-lucide="inbox" class="w-[44px] h-[44px] mb-3"></i><p class="text-[13px]" id="tkEmptyText">暂无任务记录</p></div>
+    </div>
+    <footer class="tk-footer">
+      <div class="tk-pg-nav" id="tkPgNav"></div>
+      <span class="tk-pg-select-wrap"><select class="tk-pg-select" id="tkPgSize" onchange="tkChangePageSize()"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
+      <span class="flex items-center gap-1">跳至 <input class="tk-pg-jump" id="tkPgJump" onkeydown="if(event.key==='Enter')tkJumpPage()"> 页</span>
+      <span class="tk-pg-stats" id="tkPgStats"></span>
+    </footer>
+  </aside>
+</div>
+<div id="tkToast"></div>
+
+<!-- ================================================================
+     GLOBAL COMPONENT: 顶栏用户气泡卡片 + 修改账号信息弹窗（全站共享）
+     ================================================================ -->
+<style>
+  .uc-wrap{position:relative;display:flex;align-items:center;}
+  .uc-avatar{width:36px;height:36px;border-radius:50%;background:#0066FF;color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;border:none;padding:0;cursor:default;font-family:inherit;line-height:1;flex-shrink:0;}
+  .uc-card{position:fixed;top:60px;width:240px;background:#fff;border:1px solid #DFE1E5;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.12);padding:20px 16px 8px;z-index:1000;display:none;}
+  .uc-card::before{content:'';position:absolute;top:-6px;right:14px;width:10px;height:10px;background:#fff;border-left:1px solid #DFE1E5;border-top:1px solid #DFE1E5;transform:rotate(45deg);}
+  .uc-avatar-lg{width:60px;height:60px;border-radius:50%;background:#0066FF;color:#fff;font-size:24px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;line-height:1;}
+  .uc-name-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px;}
+  .uc-name{font-size:15px;font-weight:600;color:#1A1D24;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .uc-edit{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border:none;background:none;border-radius:4px;color:#9DA2AC;cursor:pointer;padding:0;transition:all .15s;}
+  .uc-edit:hover{color:#0066FF;background:#E6F0FF;}
+  .uc-roles{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding-bottom:14px;border-bottom:1px solid #F0F1F3;}
+  .uc-role-tag{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:12px;line-height:18px;background:#E6F0FF;color:#0066FF;font-weight:500;}
+  .uc-menu{padding-top:6px;}
+  .uc-menu-item{display:flex;align-items:center;gap:8px;height:36px;padding:0 8px;border-radius:4px;font-size:13px;color:#3A3F4A;cursor:pointer;transition:background .12s;}
+  .uc-menu-item:hover{background:#F3F4F6;color:#1A1D24;}
+  .uc-mi-ico{color:#6E7685;flex-shrink:0;display:flex;}
+  .uc-mi-label{flex:1;}
+  .uc-mi-arrow{color:#9DA2AC;flex-shrink:0;display:flex;}
+  .uc-divider{height:1px;background:#F0F1F3;margin:4px 8px;}
+  .uc-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1100;display:flex;align-items:center;justify-content:center;}
+  .uc-modal-overlay.hidden{display:none;}
+  .uc-modal-box{background:#fff;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.12);width:760px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;position:relative;}
+  .uc-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #DFE1E5;}
+  .uc-modal-header h3{font-size:16px;font-weight:600;color:#1A1D24;margin:0;}
+  .uc-modal-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:none;background:none;border-radius:4px;color:#9DA2AC;cursor:pointer;padding:0;transition:background .15s;}
+  .uc-modal-close:hover{background:#F3F4F6;}
+  .uc-modal-body{padding:24px;overflow-y:auto;}
+  .uc-modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:12px 24px;border-top:1px solid #DFE1E5;}
+  .uc-form-field{display:flex;align-items:flex-start;margin-bottom:20px;}
+  .uc-form-label{width:110px;text-align:right;font-size:14px;color:#3A3F4A;padding-top:6px;padding-right:12px;flex-shrink:0;line-height:22px;}
+  .uc-form-label.required::before{content:'* ';color:#D9001B;}
+  .uc-form-wrap{flex:1;min-width:0;max-width:400px;}
+  .uc-form-input,.uc-form-select{width:100%;height:32px;padding:0 10px;font-size:13px;color:#3A3F4A;border:1px solid #DFE1E5;border-radius:4px;outline:none;transition:border-color .15s;background:#fff;font-family:inherit;}
+  .uc-form-input:focus,.uc-form-select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+  .uc-form-input.error,.uc-form-select.error{border-color:#D9001B;}
+  .uc-form-error{font-size:12px;color:#D9001B;margin-top:4px;display:none;}
+  .uc-form-error.show{display:block;}
+  .uc-form-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239DA2AC' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:28px;}
+  .uc-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;font-size:13px;font-weight:500;border-radius:4px;border:1px solid transparent;cursor:pointer;transition:all .15s;outline:none;font-family:inherit;}
+  .uc-btn-primary{background:#0066FF;color:#fff;border-color:#0066FF;}
+  .uc-btn-primary:hover{background:#0052CC;}
+  .uc-btn-default{background:#fff;color:#3A3F4A;border-color:#DFE1E5;}
+  .uc-btn-default:hover{border-color:#0066FF;color:#0066FF;}
+  #ucToast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1A1D24;color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:4px;z-index:1300;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
+</style>
+<div class="uc-card" id="ucCard" onmouseenter="ucCancelHide()" onmouseleave="ucScheduleHide()">
+  <div class="uc-avatar-lg" id="ucCardAvatar"></div>
+  <div class="uc-name-row">
+    <span class="uc-name" id="ucName"></span>
+    <button class="uc-edit" title="修改账号信息" onclick="ucOpenEditModal()"><i data-lucide="pencil" class="w-[13px] h-[13px]"></i></button>
+  </div>
+  <div class="uc-roles" id="ucRoles"></div>
+  <nav class="uc-menu">
+    <div class="uc-menu-item" onclick="navigate('账号信息.html')"><span class="uc-mi-ico"><i data-lucide="user" class="w-[15px] h-[15px]"></i></span><span class="uc-mi-label">账号信息</span><span class="uc-mi-arrow"><i data-lucide="chevron-right" class="w-[14px] h-[14px]"></i></span></div>
+    <div class="uc-menu-item" onclick="navigate('操作日志.html')"><span class="uc-mi-ico"><i data-lucide="file-clock" class="w-[15px] h-[15px]"></i></span><span class="uc-mi-label">操作日志</span><span class="uc-mi-arrow"><i data-lucide="chevron-right" class="w-[14px] h-[14px]"></i></span></div>
+    <div class="uc-divider"></div>
+    <div class="uc-menu-item" onclick="navigate('登录.html')"><span class="uc-mi-ico"><i data-lucide="log-out" class="w-[15px] h-[15px]"></i></span><span class="uc-mi-label">退出登录</span><span class="uc-mi-arrow"><i data-lucide="chevron-right" class="w-[14px] h-[14px]"></i></span></div>
+  </nav>
+</div>
+<div class="uc-modal-overlay hidden" id="ucEditModal" onclick="ucCloseEditModal()">
+  <div class="uc-modal-box" id="ucEditModalBox" onclick="event.stopPropagation()">
+    <div class="uc-modal-header">
+      <h3 class="inline-block">修改账号信息</h3>
+      <button class="uc-modal-close" onclick="ucCloseEditModal()" aria-label="关闭"><i data-lucide="x" class="w-[18px] h-[18px]"></i></button>
+    </div>
+    <div class="uc-modal-body">
+      <form id="ucEditForm" onsubmit="ucSubmitEdit(event)" novalidate>
+        <div class="uc-form-field"><label class="uc-form-label required">成员名称</label><div class="uc-form-wrap"><input class="uc-form-input" type="text" id="ucEditName" placeholder="请输入成员名称" maxlength="30"><div class="uc-form-error" id="ucErrName">请输入成员名称（2-30个字符）</div></div></div>
+        <div class="uc-form-field"><label class="uc-form-label">所属角色</label><div class="uc-form-wrap"><select class="uc-form-select" id="ucEditRole"></select><div class="uc-form-error" id="ucErrRole">请选择所属角色</div></div></div>
+        <div class="uc-form-field" style="margin-bottom:8px;"><label class="uc-form-label">绑定手机号</label><div class="uc-form-wrap"><input class="uc-form-input font-mono" type="text" id="ucEditPhone" placeholder="请输入手机号" maxlength="11"><div class="uc-form-error" id="ucErrPhone">请输入正确的11位手机号</div></div></div>
+        <p class="text-[12px] text-ink-muted" style="margin:0 0 4px 122px;">修改手机号后需重新验证，原手机号将自动解绑。</p>
+      </form>
+    </div>
+    <div class="uc-modal-footer">
+      <button class="uc-btn uc-btn-default" onclick="ucCloseEditModal()">取消</button>
+      <button class="uc-btn uc-btn-primary" onclick="document.getElementById('ucEditForm').requestSubmit()">保存</button>
+    </div>
+  </div>
+</div>
+<div id="ucToast"></div>
+
+<!-- ================================================================
+     COUPON MANAGEMENT SCRIPTS
+     ================================================================ -->
+<script>
+'use strict';
+
+/* ==================== MOCK DATA ==================== */
+
+// Coupon templates (12 items, mix of 3 types, both statuses)
+var couponTemplates = [
+  {id:1,name:'新用户立减券',type:'立减券',amount:5,discount:null,discountMax:null,duration:null,durationUnit:null,threshold:'none',thresholdAmount:null,scope:['寄存','寄送','通用'],validType:'days',validDays:30,validFrom:'',validTo:'',totalQty:500,issuedCount:200,status:1,remark:'新用户注册即赠'},
+  {id:2,name:'满减大礼包',type:'立减券',amount:10,discount:null,discountMax:null,duration:null,durationUnit:null,threshold:'amount',thresholdAmount:50,scope:['通用'],validType:'range',validDays:null,validFrom:'2026-07-01',validTo:'2026-12-31',totalQty:300,issuedCount:50,status:1,remark:''},
+  {id:3,name:'周末特惠8折',type:'折扣券',amount:null,discount:80,discountMax:20,duration:null,durationUnit:null,threshold:'none',thresholdAmount:null,scope:['寄存'],validType:'range',validDays:null,validFrom:'2026-07-01',validTo:'2026-09-30',totalQty:200,issuedCount:80,status:1,remark:'周末寄存享8折'},
+  {id:4,name:'VIP尊享折扣',type:'折扣券',amount:null,discount:90,discountMax:30,duration:null,durationUnit:null,threshold:'amount',thresholdAmount:100,scope:['通用'],validType:'days',validDays:60,validFrom:'',validTo:'',totalQty:100,issuedCount:10,status:1,remark:'VIP会员专享'},
+  {id:5,name:'免费寄存1小时',type:'免费时长券',amount:null,discount:null,discountMax:null,duration:1,durationUnit:'h',threshold:'none',thresholdAmount:null,scope:['寄存'],validType:'days',validDays:30,validFrom:'',validTo:'',totalQty:100,issuedCount:0,status:0,remark:'暂停发放'},
+  {id:6,name:'新人专享时长券',type:'免费时长券',amount:null,discount:null,discountMax:null,duration:2,durationUnit:'h',threshold:'none',thresholdAmount:null,scope:['寄送'],validType:'range',validDays:null,validFrom:'2026-06-01',validTo:'2026-08-31',totalQty:150,issuedCount:30,status:1,remark:''},
+  {id:7,name:'节日特惠立减',type:'立减券',amount:15,discount:null,discountMax:null,duration:null,durationUnit:null,threshold:'amount',thresholdAmount:80,scope:['通用'],validType:'range',validDays:null,validFrom:'2026-07-01',validTo:'2026-10-07',totalQty:400,issuedCount:120,status:1,remark:'国庆中秋双节特惠'},
+  {id:8,name:'老用户回馈7折',type:'折扣券',amount:null,discount:70,discountMax:null,duration:null,durationUnit:null,threshold:'none',thresholdAmount:null,scope:['通用'],validType:'days',validDays:90,validFrom:'',validTo:'',totalQty:200,issuedCount:45,status:1,remark:''},
+  {id:9,name:'旅游高峰免费存',type:'免费时长券',amount:null,discount:null,discountMax:null,duration:30,durationUnit:'min',threshold:'none',thresholdAmount:null,scope:['通用'],validType:'range',validDays:null,validFrom:'2026-07-15',validTo:'2026-08-15',totalQty:100,issuedCount:5,status:0,remark:'暑期旅游高峰期专用'},
+  {id:10,name:'拼团专享立减',type:'立减券',amount:8,discount:null,discountMax:null,duration:null,durationUnit:null,threshold:'amount',thresholdAmount:30,scope:['寄存'],validType:'days',validDays:15,validFrom:'',validTo:'',totalQty:50,issuedCount:0,status:1,remark:'拼团成功即送'},
+  {id:11,name:'会员日折扣券',type:'折扣券',amount:null,discount:85,discountMax:50,duration:null,durationUnit:null,threshold:'amount',thresholdAmount:200,scope:['通用'],validType:'days',validDays:30,validFrom:'',validTo:'',totalQty:80,issuedCount:15,status:1,remark:''},
+  {id:12,name:'开学季大礼包',type:'立减券',amount:20,discount:null,discountMax:null,duration:null,durationUnit:null,threshold:'none',thresholdAmount:null,scope:['寄送'],validType:'range',validDays:null,validFrom:'2026-08-20',validTo:'2026-09-30',totalQty:300,issuedCount:90,status:1,remark:'开学季寄送行李专享'}
+];
+
+// Issuance records (12 items)
+var issuanceRecords = [
+  {id:1,userName:'张明远',userPhone:'138****0002',couponName:'新用户立减券',type:'立减券',faceText:'¥5',method:'注册赠券',time:'2026-07-09 10:23:15',status:'未使用',operator:'系统'},
+  {id:2,userName:'李婷',userPhone:'139****1234',couponName:'满减大礼包',type:'立减券',faceText:'¥10',method:'手动发放',time:'2026-07-08 16:45:30',status:'已使用',operator:'张伟'},
+  {id:3,userName:'王浩然',userPhone:'150****5678',couponName:'周末特惠8折',type:'折扣券',faceText:'8折(最高抵扣¥20)',method:'活动领取',time:'2026-07-08 14:22:10',status:'未使用',operator:'系统'},
+  {id:4,userName:'赵晓丽',userPhone:'186****9012',couponName:'新用户立减券',type:'立减券',faceText:'¥5',method:'注册赠券',time:'2026-07-07 09:11:45',status:'已过期',operator:'系统'},
+  {id:5,userName:'陈刚',userPhone:'137****3456',couponName:'VIP尊享折扣',type:'折扣券',faceText:'9折(最高抵扣¥30)',method:'手动发放',time:'2026-07-07 15:33:20',status:'已使用',operator:'张伟'},
+  {id:6,userName:'刘美玲',userPhone:'158****7890',couponName:'节日特惠立减',type:'立减券',faceText:'¥15',method:'活动领取',time:'2026-07-06 11:08:55',status:'已使用',operator:'系统'},
+  {id:7,userName:'周文博',userPhone:'182****2345',couponName:'老用户回馈7折',type:'折扣券',faceText:'7折',method:'手动发放',time:'2026-07-06 10:27:40',status:'已退回',operator:'张伟'},
+  {id:8,userName:'孙晓',userPhone:'139****6789',couponName:'新人专享时长券',type:'免费时长券',faceText:'免费2h',method:'活动领取',time:'2026-07-05 18:42:15',status:'未使用',operator:'系统'},
+  {id:9,userName:'吴志强',userPhone:'176****0123',couponName:'新用户立减券',type:'立减券',faceText:'¥5',method:'注册赠券',time:'2026-07-05 08:55:00',status:'已过期',operator:'系统'},
+  {id:10,userName:'郑丽华',userPhone:'155****4567',couponName:'会员日折扣券',type:'折扣券',faceText:'8.5折(最高抵扣¥50)',method:'手动发放',time:'2026-07-04 14:30:25',status:'未使用',operator:'张伟'},
+  {id:11,userName:'马天宇',userPhone:'133****8901',couponName:'拼团专享立减',type:'立减券',faceText:'¥8',method:'活动领取',time:'2026-07-03 09:15:50',status:'已使用',operator:'系统'},
+  {id:12,userName:'黄晓燕',userPhone:'189****3456',couponName:'旅游高峰免费存',type:'免费时长券',faceText:'免费30min',method:'手动发放',time:'2026-07-03 16:08:30',status:'已过期',operator:'张伟'}
+];
+
+// Mock users for multi-select
+var mockUsers = [
+  {name:'张明远',phone:'13800000001'},{name:'李婷',phone:'13900000002'},{name:'王浩然',phone:'15000000003'},
+  {name:'赵晓丽',phone:'18600000004'},{name:'陈刚',phone:'13700000005'},{name:'刘美玲',phone:'15800000006'},
+  {name:'周文博',phone:'18200000007'},{name:'孙晓',phone:'13900000008'},{name:'吴志强',phone:'17600000009'},
+  {name:'郑丽华',phone:'15500000010'},{name:'马天宇',phone:'13300000011'},{name:'黄晓燕',phone:'18900000012'}
+];
+
+// Selected users for manual issue
+var selectedIssueUsers = [];
+
+/* ==================== TOAST ==================== */
+var cpToastTimer = null;
+function cpToast(msg){
+  var el = document.getElementById('cpToast');
+  el.textContent = msg; el.style.opacity = '1';
+  if(cpToastTimer) clearTimeout(cpToastTimer);
+  cpToastTimer = setTimeout(function(){ el.style.opacity = '0'; }, 2200);
+}
+
+/* ==================== TAB SWITCHING ==================== */
+var currentTab = 'templates';
+function switchTab(tab){
+  currentTab = tab;
+  document.querySelectorAll('.cp-tab').forEach(function(t){ t.classList.toggle('active', t.getAttribute('data-tab') === tab); });
+  document.getElementById('tab-templates-filter').style.display = tab === 'templates' ? '' : 'none';
+  document.getElementById('tab-templates-data').style.display = tab === 'templates' ? '' : 'none';
+  document.getElementById('tab-records-filter').style.display = tab === 'records' ? '' : 'none';
+  document.getElementById('tab-records-data').style.display = tab === 'records' ? '' : 'none';
+  document.getElementById('tab-stats-filter').style.display = tab === 'stats' ? '' : 'none';
+  document.getElementById('tab-stats-data').style.display = tab === 'stats' ? '' : 'none';
+  document.getElementById('tab-stats-table').style.display = tab === 'stats' ? '' : 'none';
+  if(tab === 'templates') renderTplTable();
+  else if(tab === 'records') renderRecTable();
+  else if(tab === 'stats') { renderStatsTab(); }
+  lucide.createIcons();
+  renderAnnoBadges();
+}
+
+/* ==================== TAB 1: 券模板管理 ==================== */
+var tplFilters = {search:'',type:'',status:''};
+var tplPage = 1, tplPageSize = 10;
+
+function getFaceText(tpl){
+  if(tpl.type === '立减券') return '¥' + tpl.amount;
+  if(tpl.type === '折扣券'){
+    var d = (tpl.discount / 10).toFixed(1).replace(/\.0$/,'');
+    var suffix = tpl.discountMax ? '（最高抵扣¥' + tpl.discountMax + '）' : '';
+    return d + '折' + suffix;
+  }
+  if(tpl.type === '免费时长券'){
+    var unit = tpl.durationUnit === 'h' ? 'h' : 'min';
+    return '免费' + tpl.duration + unit;
+  }
+  return '';
+}
+
+function getThresholdText(tpl){
+  if(tpl.threshold === 'none') return '无门槛';
+  return '满¥' + tpl.thresholdAmount + '可用';
+}
+
+function getScopeText(tpl){
+  return tpl.scope.join('/');
+}
+
+function getValidText(tpl){
+  if(tpl.validType === 'days') return '领取后' + tpl.validDays + '天';
+  return tpl.validFrom + ' 至 ' + tpl.validTo;
+}
+
+function tplFiltered(){
+  return couponTemplates.filter(function(t){
+    if(tplFilters.search && t.name.indexOf(tplFilters.search) === -1) return false;
+    if(tplFilters.type && t.type !== tplFilters.type) return false;
+    if(tplFilters.status !== '' && t.status !== parseInt(tplFilters.status)) return false;
+    return true;
+  });
+}
+
+function renderTplTable(){
+  var list = tplFiltered();
+  var totalPages = Math.max(1, Math.ceil(list.length / tplPageSize));
+  if(tplPage > totalPages) tplPage = totalPages;
+  var page = list.slice((tplPage-1)*tplPageSize, tplPage*tplPageSize);
+
+  var html = '';
+  for(var i=0;i<page.length;i++){
+    var t = page[i];
+    var statusChecked = t.status === 1 ? ' checked' : '';
+    var faceText = getFaceText(t);
+    var thresholdText = getThresholdText(t);
+    var scopeText = getScopeText(t);
+    var validText = getValidText(t);
+    var issuedText = '已发' + t.issuedCount + ' / 总量' + t.totalQty;
+    html += '<tr>';
+    html += '<td class="font-medium text-ink-title">' + t.name + '</td>';
+    html += '<td><span class="badge badge-info">' + t.type + '</span></td>';
+    html += '<td class="font-mono">' + faceText + '</td>';
+    html += '<td>' + thresholdText + '</td>';
+    html += '<td>' + scopeText + '</td>';
+    html += '<td>' + validText + '</td>';
+    html += '<td class="font-mono text-[12px]">' + issuedText + '</td>';
+    html += '<td><label class="toggle-switch" data-anno="35"><input type="checkbox" ' + statusChecked + ' onchange="toggleTplStatus(' + t.id + ', this.checked)"><span class="toggle-slider"></span></label></td>';
+    html += '<td><span class="action-link" onclick="editCoupon(' + t.id + ')">编辑</span><span class="action-sep">|</span><span class="action-link" onclick="issueCoupon(' + t.id + ')">发放</span><span class="action-sep">|</span><span class="action-link danger" onclick="deleteCoupon(' + t.id + ')">删除</span></td>';
+    html += '</tr>';
+  }
+  document.getElementById('tplTbody').innerHTML = html;
+  document.getElementById('tplEmpty').style.display = page.length === 0 ? '' : 'none';
+  renderTplPager(list.length, totalPages);
+}
+
+function renderTplPager(total, totalPages){
+  var html = '<button class="pg-btn" ' + (tplPage<=1?'disabled':'') + ' onclick="tplGoPage(' + (tplPage-1) + ')">‹</button>';
+  var pages = pgList(tplPage, totalPages);
+  for(var i=0;i<pages.length;i++){
+    if(pages[i]==='…'){ html += '<span class="pg-ellipsis">…</span>'; continue; }
+    html += '<button class="pg-btn' + (pages[i]===tplPage?' pg-current':'') + '" onclick="tplGoPage(' + pages[i] + ')">' + pages[i] + '</button>';
+  }
+  html += '<button class="pg-btn" ' + (tplPage>=totalPages?'disabled':'') + ' onclick="tplGoPage(' + (tplPage+1) + ')">›</button>';
+  document.getElementById('tplPgNav').innerHTML = html;
+  document.getElementById('tplPgStats').textContent = '共' + total + '条记录 第' + tplPage + '/' + totalPages + '页';
+}
+
+function tplSearch(){
+  tplFilters.search = document.getElementById('tplSearch').value.trim();
+  tplFilters.type = document.getElementById('tplType').value;
+  tplFilters.status = document.getElementById('tplStatus').value;
+  tplPage = 1;
+  renderTplTable();
+  lucide.createIcons();
+}
+
+function tplReset(){
+  document.getElementById('tplSearch').value = '';
+  document.getElementById('tplType').value = '';
+  document.getElementById('tplStatus').value = '';
+  tplFilters = {search:'',type:'',status:''};
+  tplPage = 1;
+  renderTplTable();
+  lucide.createIcons();
+}
+
+function tplGoPage(p){ var totalPages = Math.max(1, Math.ceil(tplFiltered().length / tplPageSize)); if(p<1||p>totalPages) return; tplPage = p; renderTplTable(); }
+function tplChangePageSize(){ tplPageSize = parseInt(document.getElementById('tplPgSize').value, 10); tplPage = 1; renderTplTable(); }
+function tplJumpPage(){ var v = parseInt(document.getElementById('tplPgJump').value, 10); var totalPages = Math.max(1, Math.ceil(tplFiltered().length / tplPageSize)); if(isNaN(v)||v<1||v>totalPages){ cpToast('请输入有效页码'); return; } tplPage = v; document.getElementById('tplPgJump').value = ''; renderTplTable(); }
+
+/* Toggle status */
+function toggleTplStatus(id, checked){
+  var tpl = couponTemplates.find(function(t){ return t.id === id; });
+  if(!tpl) return;
+  if(!checked){
+    // 停用：show confirm
+    showConfirm(
+      '确认停用',
+      '停用后该券将无法被领取和使用，确认停用？',
+      'confirm',
+      'danger',
+      function(){
+        tpl.status = 0;
+        renderTplTable();
+        cpToast('停用成功');
+        lucide.createIcons();
+      }
+    );
+  } else {
+    tpl.status = 1;
+    renderTplTable();
+    cpToast('已启用');
+    lucide.createIcons();
+  }
+}
+
+/* Delete coupon */
+function deleteCoupon(id){
+  var tpl = couponTemplates.find(function(t){ return t.id === id; });
+  if(!tpl) return;
+  showConfirm(
+    '确认删除',
+    '删除后不可恢复，已发放给用户的券不受影响，确认删除？',
+    'confirm',
+    'danger',
+    function(){
+      var idx = couponTemplates.indexOf(tpl);
+      if(idx >= 0) couponTemplates.splice(idx, 1);
+      renderTplTable();
+      cpToast('删除成功');
+      lucide.createIcons();
+    }
+  );
+}
+
+/* Issue coupon (from table action) */
+function issueCoupon(id){
+  switchTab('records');
+  setTimeout(function(){ openManualIssueModal(id); }, 200);
+}
+
+/* ==================== TAB 2: 发放记录 ==================== */
+var recFilters = {search:'',type:'',dateFrom:'',dateTo:''};
+var recPage = 1, recPageSize = 10;
+
+function getStatusBadge(status){
+  if(status === '未使用') return '<span class="badge badge-info">未使用</span>';
+  if(status === '已使用') return '<span class="badge badge-success">已使用</span>';
+  if(status === '已过期') return '<span class="badge badge-muted">已过期</span>';
+  if(status === '已退回') return '<span class="badge badge-warning">已退回</span>';
+  return status;
+}
+
+function recFiltered(){
+  return issuanceRecords.filter(function(r){
+    if(recFilters.search){
+      var s = recFilters.search.toLowerCase();
+      if(r.userName.toLowerCase().indexOf(s) === -1 && r.userPhone.indexOf(s) === -1) return false;
+    }
+    if(recFilters.type && r.type !== recFilters.type) return false;
+    if(recFilters.dateFrom && r.time.slice(0,10) < recFilters.dateFrom) return false;
+    if(recFilters.dateTo && r.time.slice(0,10) > recFilters.dateTo) return false;
+    return true;
+  });
+}
+
+function renderRecTable(){
+  var list = recFiltered();
+  var totalPages = Math.max(1, Math.ceil(list.length / recPageSize));
+  if(recPage > totalPages) recPage = totalPages;
+  var page = list.slice((recPage-1)*recPageSize, recPage*recPageSize);
+  var html = '';
+  for(var i=0;i<page.length;i++){
+    var r = page[i];
+    html += '<tr>';
+    html += '<td><span class="font-medium text-ink-title">' + r.userName + '</span><br><span class="text-[12px] text-ink-muted font-mono">' + r.userPhone + '</span></td>';
+    html += '<td>' + r.couponName + '</td>';
+    html += '<td><span class="badge badge-info">' + r.type + '</span></td>';
+    html += '<td class="font-mono">' + r.faceText + '</td>';
+    html += '<td>' + r.method + '</td>';
+    html += '<td class="font-mono text-[12px]">' + r.time + '</td>';
+    html += '<td>' + getStatusBadge(r.status) + '</td>';
+    html += '<td>' + r.operator + '</td>';
+    html += '</tr>';
+  }
+  document.getElementById('recTbody').innerHTML = html;
+  document.getElementById('recEmpty').style.display = page.length === 0 ? '' : 'none';
+  renderRecPager(list.length, totalPages);
+}
+
+function renderRecPager(total, totalPages){
+  var html = '<button class="pg-btn" ' + (recPage<=1?'disabled':'') + ' onclick="recGoPage(' + (recPage-1) + ')">‹</button>';
+  var pages = pgList(recPage, totalPages);
+  for(var i=0;i<pages.length;i++){
+    if(pages[i]==='…'){ html += '<span class="pg-ellipsis">…</span>'; continue; }
+    html += '<button class="pg-btn' + (pages[i]===recPage?' pg-current':'') + '" onclick="recGoPage(' + pages[i] + ')">' + pages[i] + '</button>';
+  }
+  html += '<button class="pg-btn" ' + (recPage>=totalPages?'disabled':'') + ' onclick="recGoPage(' + (recPage+1) + ')">›</button>';
+  document.getElementById('recPgNav').innerHTML = html;
+  document.getElementById('recPgStats').textContent = '共' + total + '条记录 第' + recPage + '/' + totalPages + '页';
+}
+
+function recSearch(){
+  recFilters.search = document.getElementById('recSearch').value.trim();
+  recFilters.type = document.getElementById('recType').value;
+  recFilters.dateFrom = document.getElementById('recDateFrom').value;
+  recFilters.dateTo = document.getElementById('recDateTo').value;
+  recPage = 1; renderRecTable();
+}
+
+function recReset(){
+  document.getElementById('recSearch').value = '';
+  document.getElementById('recType').value = '';
+  document.getElementById('recDateFrom').value = '';
+  document.getElementById('recDateTo').value = '';
+  recFilters = {search:'',type:'',dateFrom:'',dateTo:''};
+  recPage = 1; renderRecTable();
+}
+
+function recGoPage(p){ var totalPages = Math.max(1, Math.ceil(recFiltered().length / recPageSize)); if(p<1||p>totalPages) return; recPage = p; renderRecTable(); }
+function recChangePageSize(){ recPageSize = parseInt(document.getElementById('recPgSize').value, 10); recPage = 1; renderRecTable(); }
+function recJumpPage(){ var v = parseInt(document.getElementById('recPgJump').value, 10); var totalPages = Math.max(1, Math.ceil(recFiltered().length / recPageSize)); if(isNaN(v)||v<1||v>totalPages){ cpToast('请输入有效页码'); return; } recPage = v; document.getElementById('recPgJump').value = ''; renderRecTable(); }
+
+/* ==================== MANUAL ISSUE MODAL ==================== */
+function openManualIssueModal(preId){
+  selectedIssueUsers = [];
+  document.getElementById('issueUserInput').value = '';
+  document.getElementById('issueCouponId').innerHTML = '<option value="">请选择券模板</option>' +
+    couponTemplates.filter(function(t){ return t.status === 1; }).map(function(t){
+      return '<option value="' + t.id + '"' + (t.id===preId?' selected':'') + '>' + t.name + '（' + t.type + '）</option>';
+    }).join('');
+  document.getElementById('issueQty').value = 1;
+  document.getElementById('issueRemark').value = '';
+  document.getElementById('issueRemarkCounter').textContent = '0/100';
+  document.querySelector('input[name="issueMethod"][value="specific"]').checked = true;
+  onIssueMethodChange();
+  clearFormErrors('#issueForm');
+  renderSelectedUsers();
+  document.getElementById('issueModalOverlay').classList.add('open');
+  lucide.createIcons();
+  pushAnnoScope(document.getElementById('issueModalBox'));
+}
+
+function closeIssueModal(){
+  document.getElementById('issueModalOverlay').classList.remove('open');
+  popAnnoScope(document.getElementById('issueModalBox'));
+}
+
+function onIssueMethodChange(){
+  var method = document.querySelector('input[name="issueMethod"]:checked').value;
+  document.getElementById('issueSpecificWrap').style.display = method === 'specific' ? '' : 'none';
+  document.getElementById('issueBatchWrap').style.display = method === 'batch' ? '' : 'none';
+}
+
+// Multi-select users
+function showIssueUserDropdown(){ filterIssueUsers(); }
+function filterIssueUsers(){
+  var q = document.getElementById('issueUserInput').value.trim().toLowerCase();
+  var available = mockUsers.filter(function(u){ return !selectedIssueUsers.find(function(s){ return s.phone === u.phone; }); });
+  if(q) available = available.filter(function(u){ return u.name.toLowerCase().indexOf(q) !== -1 || u.phone.indexOf(q) !== -1; });
+  var dd = document.getElementById('issueUserDropdown');
+  dd.innerHTML = available.length === 0
+    ? '<div class="text-[13px] text-ink-muted p-3">无匹配用户</div>'
+    : available.map(function(u){
+        return '<div class="flex items-center justify-between p-2 hover:bg-bg-hover cursor-pointer text-[13px]" onclick="addIssueUser(\'' + u.name + '\',\'' + u.phone + '\')">' +
+          '<span>' + u.name + '</span><span class="text-ink-muted font-mono text-[12px]">' + u.phone.replace(/\d{4}$/, '****') + '</span></div>';
+      }).join('');
+  dd.style.display = 'block';
+}
+
+document.addEventListener('click', function(e){
+  var dd = document.getElementById('issueUserDropdown');
+  if(dd && !dd.parentElement.contains(e.target)) dd.style.display = 'none';
+});
+
+function addIssueUser(name, phone){
+  if(selectedIssueUsers.find(function(u){ return u.phone === phone; })) return;
+  selectedIssueUsers.push({name:name, phone:phone});
+  document.getElementById('issueUserInput').value = '';
+  document.getElementById('issueUserDropdown').style.display = 'none';
+  renderSelectedUsers();
+}
+
+function removeIssueUser(phone){
+  selectedIssueUsers = selectedIssueUsers.filter(function(u){ return u.phone !== phone; });
+  renderSelectedUsers();
+}
+
+function renderSelectedUsers(){
+  var container = document.getElementById('issueUserTags');
+  var tags = selectedIssueUsers.map(function(u){
+    return '<span class="multi-select-tag">' + u.name + '<span class="remove-tag" onclick="event.stopPropagation();removeIssueUser(\'' + u.phone + '\')">×</span></span>';
+  }).join('');
+  container.innerHTML = tags + '<input class="multi-select-inner-input" id="issueUserInput" type="text" placeholder="输入用户名或手机号搜索" oninput="filterIssueUsers()" onfocus="showIssueUserDropdown()">';
+}
+
+function handleIssueFile(input){
+  if(input.files && input.files[0]) cpToast('文件已选择：' + input.files[0].name + '（模拟解析中...）');
+}
+
+function confirmIssue(){
+  var couponId = document.getElementById('issueCouponId').value;
+  var qty = parseInt(document.getElementById('issueQty').value, 10);
+  var method = document.querySelector('input[name="issueMethod"]:checked').value;
+  var remark = document.getElementById('issueRemark').value.trim();
+  var valid = true;
+
+  if(!couponId){ document.getElementById('issueCouponIdErr').classList.add('show'); valid = false; }
+  else document.getElementById('issueCouponIdErr').classList.remove('show');
+
+  if(method === 'specific' && selectedIssueUsers.length === 0){
+    document.getElementById('issueUsersErr').classList.add('show'); valid = false;
+  } else document.getElementById('issueUsersErr').classList.remove('show');
+
+  if(isNaN(qty) || qty < 1){ document.getElementById('issueQtyErr').classList.add('show'); valid = false; }
+  else document.getElementById('issueQtyErr').classList.remove('show');
+
+  if(!valid) return;
+
+  var userCount = method === 'specific' ? selectedIssueUsers.length : 5; // batch mock
+  var tpl = couponTemplates.find(function(t){ return t.id === parseInt(couponId); });
+  var couponName = tpl ? tpl.name : '';
+
+  showConfirm(
+    '确认发放',
+    '确认向 ' + userCount + ' 位用户各发放 ' + qty + ' 张【' + couponName + '】？',
+    'confirm',
+    '',
+    function(){
+      // Add issuance records
+      var now = new Date();
+      var timeStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+      var users = method === 'specific' ? selectedIssueUsers : mockUsers.slice(0,5);
+      users.forEach(function(u){
+        issuanceRecords.unshift({
+          id: issuanceRecords.length + 1,
+          userName: u.name,
+          userPhone: u.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
+          couponName: couponName,
+          type: tpl ? tpl.type : '',
+          faceText: tpl ? getFaceText(tpl) : '',
+          method: '手动发放',
+          time: timeStr,
+          status: '未使用',
+          operator: '张伟'
+        });
+      });
+      // Update template issued count
+      if(tpl) tpl.issuedCount += userCount * qty;
+      closeIssueModal();
+      renderRecTable();
+      cpToast('发放成功（' + userCount + '位用户 × ' + qty + '张）');
+      lucide.createIcons();
+    }
+  );
+}
+
+function updateIssueCharCounter(){
+  var input = document.getElementById('issueRemark');
+  document.getElementById('issueRemarkCounter').textContent = input.value.length + '/100';
+}
+
+/* ==================== REGISTER CONFIG MODAL ==================== */
+var regRowCounter = 1;
+function openRegisterConfigModal(){
+  regRowCounter = 1;
+  document.getElementById('regCouponList').innerHTML = '<div class="reg-coupon-row flex items-center gap-3 mb-2" id="regRow0" style="display:flex;">' +
+    '<select class="form-select" style="flex:1;">' +
+    '<option value="">请选择券模板</option>' +
+    couponTemplates.filter(function(t){ return t.status === 1; }).map(function(t){ return '<option value="' + t.id + '">' + t.name + '</option>'; }).join('') +
+    '</select>' +
+    '<span style="font-size:13px;color:#6E7685;">×</span>' +
+    '<input class="form-input" type="number" min="1" value="1" style="width:80px;">' +
+    '<span style="font-size:13px;color:#6E7685;">张</span>' +
+    '<button class="btn btn-default btn-sm" onclick="removeRegRow(0)" style="color:#D9001B;border-color:#D9001B;">删除</button>' +
+    '</div>';
+  document.getElementById('regModalOverlay').classList.add('open');
+  lucide.createIcons();
+  pushAnnoScope(document.getElementById('regModalBox'));
+}
+
+function closeRegModal(){
+  document.getElementById('regModalOverlay').classList.remove('open');
+  popAnnoScope(document.getElementById('regModalBox'));
+}
+
+function addRegRow(){
+  var idx = regRowCounter++;
+  var list = document.getElementById('regCouponList');
+  var div = document.createElement('div');
+  div.className = 'reg-coupon-row flex items-center gap-3 mb-2';
+  div.id = 'regRow' + idx;
+  div.style.display = 'flex';
+  div.innerHTML = '<select class="form-select" style="flex:1;"><option value="">请选择券模板</option>' +
+    couponTemplates.filter(function(t){ return t.status === 1; }).map(function(t){ return '<option value="' + t.id + '">' + t.name + '</option>'; }).join('') +
+    '</select>' +
+    '<span style="font-size:13px;color:#6E7685;">×</span>' +
+    '<input class="form-input" type="number" min="1" value="1" style="width:80px;">' +
+    '<span style="font-size:13px;color:#6E7685;">张</span>' +
+    '<button class="btn btn-default btn-sm" onclick="removeRegRow(' + idx + ')" style="color:#D9001B;border-color:#D9001B;">删除</button>';
+  list.appendChild(div);
+  lucide.createIcons();
+}
+
+function removeRegRow(idx){
+  var el = document.getElementById('regRow' + idx);
+  if(el) el.remove();
+}
+
+function saveRegConfig(){
+  cpToast('注册赠券配置已保存');
+  closeRegModal();
+}
+
+/* ==================== ACTIVITY CONFIG MODAL ==================== */
+function openActivityConfigModal(){
+  document.getElementById('actName').value = '';
+  document.getElementById('actCouponId').innerHTML = '<option value="">请选择券模板</option>' +
+    couponTemplates.filter(function(t){ return t.status === 1; }).map(function(t){
+      return '<option value="' + t.id + '">' + t.name + '（' + t.type + '）</option>';
+    }).join('');
+  document.getElementById('actDateFrom').value = ''; document.getElementById('actDateTo').value = '';
+  document.getElementById('actPerLimit').value = 1;
+  document.getElementById('actTotalLimit').value = '';
+  document.getElementById('actEnabled').checked = true;
+  clearFormErrors('#actForm');
+  document.getElementById('actModalOverlay').classList.add('open');
+  lucide.createIcons();
+  pushAnnoScope(document.getElementById('actModalBox'));
+}
+
+function closeActModal(){
+  document.getElementById('actModalOverlay').classList.remove('open');
+  popAnnoScope(document.getElementById('actModalBox'));
+}
+
+function saveActConfig(){
+  var name = document.getElementById('actName').value.trim();
+  var couponId = document.getElementById('actCouponId').value;
+  var dateFrom = document.getElementById('actDateFrom').value;
+  var dateTo = document.getElementById('actDateTo').value;
+  var perLimit = parseInt(document.getElementById('actPerLimit').value, 10);
+  var valid = true;
+
+  if(!name){ document.getElementById('actNameErr').classList.add('show'); valid = false; }
+  else document.getElementById('actNameErr').classList.remove('show');
+
+  if(!couponId){ document.getElementById('actCouponIdErr').classList.add('show'); valid = false; }
+  else document.getElementById('actCouponIdErr').classList.remove('show');
+
+  if(!dateFrom || !dateTo){ document.getElementById('actDateErr').classList.add('show'); valid = false; }
+  else document.getElementById('actDateErr').classList.remove('show');
+
+  if(isNaN(perLimit) || perLimit < 1){ document.getElementById('actPerLimitErr').classList.add('show'); valid = false; }
+  else document.getElementById('actPerLimitErr').classList.remove('show');
+
+  if(!valid) return;
+  cpToast('活动领券配置已保存');
+  closeActModal();
+}
+
+/* ==================== CREATE/EDIT COUPON DRAWER ==================== */
+var editingId = null;       // null = creating, number = editing
+var cpFormDirty = false;    // track if form was modified
+var discardCallback = null; // callback when user confirms discard
+
+function openCouponDrawer(){
+  editingId = null; cpFormDirty = false;
+  document.getElementById('cpDrawerTitle').textContent = '创建优惠券';
+  document.getElementById('cpLockNotice').style.display = 'none';
+  resetCouponForm();
+  // Clear type radios
+  document.querySelectorAll('input[name="cpType"]').forEach(function(r){ r.checked = false; r.disabled = false; });
+  document.getElementById('cpDrawerOverlay').classList.add('open');
+  lucide.createIcons();
+  pushAnnoScope(document.getElementById('cpDrawerPanel'));
+}
+
+function editCoupon(id){
+  var tpl = couponTemplates.find(function(t){ return t.id === id; });
+  if(!tpl) return;
+  editingId = id; cpFormDirty = false;
+  document.getElementById('cpDrawerTitle').textContent = '编辑优惠券';
+  resetCouponForm();
+  // Populate fields
+  document.getElementById('cpName').value = tpl.name;
+  updateCharCounter('cpName','cpNameCounter');
+  // Type radios: set and disable
+  document.querySelectorAll('input[name="cpType"]').forEach(function(r){
+    r.checked = r.value === tpl.type;
+    r.disabled = true; // 券种创建后不可修改
+  });
+  onCouponTypeChange();
+  // Dynamic fields
+  if(tpl.type === '立减券'){
+    document.getElementById('cpAmount').value = tpl.amount;
+  } else if(tpl.type === '折扣券'){
+    document.getElementById('cpDiscount').value = tpl.discount;
+    if(tpl.discountMax) document.getElementById('cpDiscountMax').value = tpl.discountMax;
+  } else if(tpl.type === '免费时长券'){
+    document.getElementById('cpDuration').value = tpl.duration;
+    document.getElementById('cpDurationUnit').value = tpl.durationUnit || 'h';
+  }
+  // Threshold
+  document.querySelector('input[name="cpThreshold"][value="' + tpl.threshold + '"]').checked = true;
+  onThresholdChange();
+  if(tpl.threshold === 'amount') document.getElementById('cpThresholdAmount').value = tpl.thresholdAmount;
+  // Scope
+  document.querySelectorAll('input[name="cpScope"]').forEach(function(c){ c.checked = tpl.scope.indexOf(c.value) >= 0; });
+  // Valid type
+  document.querySelector('input[name="cpValidType"][value="' + tpl.validType + '"]').checked = true;
+  onValidTypeChange();
+  if(tpl.validType === 'days') document.getElementById('cpValidDays').value = tpl.validDays;
+  else {
+    document.getElementById('cpValidFrom').value = tpl.validFrom;
+    document.getElementById('cpValidTo').value = tpl.validTo;
+  }
+  // Total qty
+  document.getElementById('cpTotalQty').value = tpl.totalQty;
+  // Status
+  document.querySelector('input[name="cpStatus"][value="' + tpl.status + '"]').checked = true;
+  // Remark
+  document.getElementById('cpRemark').value = tpl.remark || '';
+  updateTextareaCounter();
+  // Lock core fields if issued
+  if(tpl.issuedCount > 0){
+    document.getElementById('cpLockNotice').style.display = '';
+    document.getElementById('cpAmount').disabled = true;
+    document.getElementById('cpDiscount').disabled = true;
+    document.getElementById('cpDiscountMax').disabled = true;
+    document.getElementById('cpDuration').disabled = true;
+    document.getElementById('cpDurationUnit').disabled = true;
+    document.querySelectorAll('input[name="cpThreshold"]').forEach(function(r){ r.disabled = true; });
+    document.getElementById('cpThresholdAmount').disabled = true;
+  } else {
+    document.getElementById('cpLockNotice').style.display = 'none';
+  }
+  clearFormErrors('#cpForm');
+  document.getElementById('cpDrawerOverlay').classList.add('open');
+  lucide.createIcons();
+  pushAnnoScope(document.getElementById('cpDrawerPanel'));
+}
+
+function resetCouponForm(){
+  document.getElementById('cpName').value = '';
+  document.getElementById('cpAmount').value = '';
+  document.getElementById('cpDiscount').value = '';
+  document.getElementById('cpDiscountMax').value = '';
+  document.getElementById('cpDuration').value = '';
+  document.getElementById('cpDurationUnit').value = 'h';
+  document.getElementById('cpThresholdAmount').value = '';
+  document.getElementById('cpValidDays').value = '';
+  document.getElementById('cpValidFrom').value = '';
+  document.getElementById('cpValidTo').value = '';
+  document.getElementById('cpTotalQty').value = '';
+  document.getElementById('cpRemark').value = '';
+  document.getElementById('cpNameCounter').textContent = '0/20';
+  document.getElementById('cpRemarkCounter').textContent = '0/200';
+  document.querySelectorAll('input[name="cpType"]').forEach(function(r){ r.checked = false; r.disabled = false; });
+  document.querySelectorAll('input[name="cpThreshold"]').forEach(function(r){ r.checked = false; });
+  document.querySelectorAll('input[name="cpScope"]').forEach(function(c){ c.checked = false; });
+  document.querySelectorAll('input[name="cpValidType"]').forEach(function(r){ r.checked = false; });
+  document.querySelector('input[name="cpStatus"][value="1"]').checked = true;
+  document.getElementById('cpFieldAmount').style.display = 'none';
+  document.getElementById('cpFieldDiscount').style.display = 'none';
+  document.getElementById('cpFieldDiscountMax').style.display = 'none';
+  document.getElementById('cpFieldDuration').style.display = 'none';
+  document.getElementById('cpThresholdAmountWrap').style.display = 'none';
+  document.getElementById('cpFieldValidDays').style.display = 'none';
+  document.getElementById('cpFieldValidRange').style.display = 'none';
+  document.getElementById('cpLockNotice').style.display = 'none';
+  // Re-enable disabled inputs
+  document.getElementById('cpAmount').disabled = false;
+  document.getElementById('cpDiscount').disabled = false;
+  document.getElementById('cpDiscountMax').disabled = false;
+  document.getElementById('cpDuration').disabled = false;
+  document.getElementById('cpDurationUnit').disabled = false;
+  document.querySelectorAll('input[name="cpThreshold"]').forEach(function(r){ r.disabled = false; });
+  document.getElementById('cpThresholdAmount').disabled = false;
+  clearFormErrors('#cpForm');
+}
+
+function checkDiscardThen(cb){
+  if(!cpFormDirty){ cb(); return; }
+  discardCallback = cb;
+  document.getElementById('discardDialog').classList.add('open');
+}
+
+function closeDiscardDialog(){
+  document.getElementById('discardDialog').classList.remove('open');
+  discardCallback = null;
+}
+
+function forceCloseDrawer(){
+  document.getElementById('discardDialog').classList.remove('open');
+  if(discardCallback){ discardCallback(); discardCallback = null; }
+  closeCouponDrawer(true);
+}
+
+function closeCouponDrawer(force){
+  if(!force){ checkDiscardThen(function(){ closeCouponDrawer(true); }); return; }
+  document.getElementById('cpDrawerOverlay').classList.remove('open');
+  popAnnoScope(document.getElementById('cpDrawerPanel'));
+  editingId = null; cpFormDirty = false; discardCallback = null;
+  renderAnnoBadges();
+  lucide.createIcons();
+}
+
+/* Form dirty tracking */
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(function(){
+    var formEl = document.getElementById('cpForm');
+    if(formEl){
+      formEl.addEventListener('input', function(){ cpFormDirty = true; });
+      formEl.addEventListener('change', function(){ cpFormDirty = true; });
+    }
+  }, 500);
+});
+
+function onCouponTypeChange(){
+  var val = document.querySelector('input[name="cpType"]:checked');
+  var type = val ? val.value : '';
+  document.getElementById('cpFieldAmount').style.display = type === '立减券' ? '' : 'none';
+  document.getElementById('cpFieldDiscount').style.display = type === '折扣券' ? '' : 'none';
+  document.getElementById('cpFieldDiscountMax').style.display = type === '折扣券' ? '' : 'none';
+  document.getElementById('cpFieldDuration').style.display = type === '免费时长券' ? '' : 'none';
+}
+
+function onThresholdChange(){
+  var val = document.querySelector('input[name="cpThreshold"]:checked');
+  document.getElementById('cpThresholdAmountWrap').style.display = (val && val.value === 'amount') ? '' : 'none';
+}
+
+function onValidTypeChange(){
+  var val = document.querySelector('input[name="cpValidType"]:checked');
+  var v = val ? val.value : '';
+  document.getElementById('cpFieldValidDays').style.display = v === 'days' ? '' : 'none';
+  document.getElementById('cpFieldValidRange').style.display = v === 'range' ? '' : 'none';
+}
+
+function updateCharCounter(inputId, counterId){
+  var input = document.getElementById(inputId);
+  document.getElementById(counterId).textContent = input.value.length + '/' + input.maxLength;
+}
+
+function updateTextareaCounter(){
+  var ta = document.getElementById('cpRemark');
+  document.getElementById('cpRemarkCounter').textContent = ta.value.length + '/' + ta.maxLength;
+}
+
+function clearFormErrors(containerSelector){
+  var container = containerSelector ? document.querySelector(containerSelector) : document;
+  container.querySelectorAll('.form-input.error, .form-select.error, .form-textarea.error').forEach(function(el){ el.classList.remove('error'); });
+  container.querySelectorAll('.form-error.show').forEach(function(el){ el.classList.remove('show'); });
+}
+
+function submitCouponForm(){
+  clearFormErrors('#cpForm');
+  var valid = true;
+  var name = document.getElementById('cpName').value.trim();
+  var typeEl = document.querySelector('input[name="cpType"]:checked');
+  var type = typeEl ? typeEl.value : '';
+  var thresholdEl = document.querySelector('input[name="cpThreshold"]:checked');
+  var threshold = thresholdEl ? thresholdEl.value : '';
+  var validTypeEl = document.querySelector('input[name="cpValidType"]:checked');
+  var validType = validTypeEl ? validTypeEl.value : '';
+  var statusEl = document.querySelector('input[name="cpStatus"]:checked');
+  var statusVal = statusEl ? parseInt(statusEl.value) : 1;
+
+  // Name
+  if(!name){ document.getElementById('cpName').classList.add('error'); document.getElementById('cpNameErr').classList.add('show'); valid = false; }
+  // Type
+  if(!type){ document.getElementById('cpTypeErr').classList.add('show'); valid = false; }
+  // Dynamic fields
+  if(type === '立减券'){
+    var amount = parseFloat(document.getElementById('cpAmount').value);
+    if(isNaN(amount) || amount < 0.01){ document.getElementById('cpAmount').classList.add('error'); document.getElementById('cpAmountErr').classList.add('show'); valid = false; }
+  } else if(type === '折扣券'){
+    var discount = parseInt(document.getElementById('cpDiscount').value, 10);
+    if(isNaN(discount) || discount < 1 || discount > 99){ document.getElementById('cpDiscount').classList.add('error'); document.getElementById('cpDiscountErr').classList.add('show'); valid = false; }
+    var discountMax = document.getElementById('cpDiscountMax').value.trim();
+    if(discountMax && (isNaN(parseFloat(discountMax)) || parseFloat(discountMax) < 0.01)){
+      document.getElementById('cpDiscountMax').classList.add('error'); document.getElementById('cpDiscountMaxErr').classList.add('show'); valid = false;
+    }
+  } else if(type === '免费时长券'){
+    var duration = parseInt(document.getElementById('cpDuration').value, 10);
+    if(isNaN(duration) || duration < 1){ document.getElementById('cpDuration').classList.add('error'); document.getElementById('cpDurationErr').classList.add('show'); valid = false; }
+  }
+  // Threshold
+  if(!threshold){ document.getElementById('cpThresholdErr').classList.add('show'); valid = false; }
+  else if(threshold === 'amount'){
+    var thresholdAmount = parseFloat(document.getElementById('cpThresholdAmount').value);
+    if(isNaN(thresholdAmount) || thresholdAmount < 0.01){ document.getElementById('cpThresholdAmount').classList.add('error'); document.getElementById('cpThresholdAmountErr').classList.add('show'); valid = false; }
+  }
+  // Scope
+  var scopeChecked = document.querySelectorAll('input[name="cpScope"]:checked');
+  if(scopeChecked.length === 0){ document.getElementById('cpScopeErr').classList.add('show'); valid = false; }
+  // Valid type
+  if(!validType){ document.getElementById('cpValidTypeErr').classList.add('show'); valid = false; }
+  else if(validType === 'days'){
+    var days = parseInt(document.getElementById('cpValidDays').value, 10);
+    if(isNaN(days) || days < 1){ document.getElementById('cpValidDays').classList.add('error'); document.getElementById('cpValidDaysErr').classList.add('show'); valid = false; }
+  } else {
+    var vFrom = document.getElementById('cpValidFrom').value;
+    var vTo = document.getElementById('cpValidTo').value;
+    if(!vFrom || !vTo){ document.getElementById('cpValidRangeErr').classList.add('show'); valid = false; }
+  }
+  // Total qty
+  var totalQty = parseInt(document.getElementById('cpTotalQty').value, 10);
+  if(isNaN(totalQty) || totalQty < 1){ document.getElementById('cpTotalQty').classList.add('error'); document.getElementById('cpTotalQtyErr').classList.add('show'); valid = false; }
+
+  if(!valid) return;
+
+  var scope = []; scopeChecked.forEach(function(c){ scope.push(c.value); });
+  var remark = document.getElementById('cpRemark').value.trim();
+
+  if(editingId){
+    // Update existing
+    var tpl = couponTemplates.find(function(t){ return t.id === editingId; });
+    if(tpl){
+      tpl.name = name; tpl.status = statusVal;
+      tpl.scope = scope; tpl.remark = remark;
+      tpl.totalQty = totalQty;
+      tpl.validType = validType;
+      if(validType === 'days') tpl.validDays = parseInt(document.getElementById('cpValidDays').value, 10);
+      else { tpl.validFrom = vFrom; tpl.validTo = vTo; }
+      if(tpl.issuedCount === 0){
+        // Core fields editable only if never issued
+        tpl.type = type;
+        if(type === '立减券') tpl.amount = parseFloat(document.getElementById('cpAmount').value);
+        else { tpl.amount = null; }
+        if(type === '折扣券'){
+          tpl.discount = parseInt(document.getElementById('cpDiscount').value, 10);
+          var dm = document.getElementById('cpDiscountMax').value.trim();
+          tpl.discountMax = dm ? parseFloat(dm) : null;
+        } else { tpl.discount = null; tpl.discountMax = null; }
+        if(type === '免费时长券'){
+          tpl.duration = parseInt(document.getElementById('cpDuration').value, 10);
+          tpl.durationUnit = document.getElementById('cpDurationUnit').value;
+        } else { tpl.duration = null; tpl.durationUnit = null; }
+        tpl.threshold = threshold;
+        if(threshold === 'amount') tpl.thresholdAmount = parseFloat(document.getElementById('cpThresholdAmount').value);
+        else tpl.thresholdAmount = null;
+      }
+      cpToast('修改成功');
+    }
+  } else {
+    // Create new
+    var newTpl = {
+      id: Math.max.apply(null, couponTemplates.map(function(t){ return t.id; })) + 1,
+      name: name, type: type, status: statusVal, scope: scope, remark: remark,
+      totalQty: totalQty, issuedCount: 0,
+      validType: validType, threshold: threshold, thresholdAmount: null,
+      amount: null, discount: null, discountMax: null, duration: null, durationUnit: null,
+      validDays: null, validFrom: '', validTo: ''
+    };
+    if(validType === 'days') newTpl.validDays = parseInt(document.getElementById('cpValidDays').value, 10);
+    else { newTpl.validFrom = vFrom; newTpl.validTo = vTo; }
+    if(type === '立减券') newTpl.amount = parseFloat(document.getElementById('cpAmount').value);
+    if(type === '折扣券'){
+      newTpl.discount = parseInt(document.getElementById('cpDiscount').value, 10);
+      var dm = document.getElementById('cpDiscountMax').value.trim();
+      newTpl.discountMax = dm ? parseFloat(dm) : null;
+    }
+    if(type === '免费时长券'){
+      newTpl.duration = parseInt(document.getElementById('cpDuration').value, 10);
+      newTpl.durationUnit = document.getElementById('cpDurationUnit').value;
+    }
+    if(threshold === 'amount') newTpl.thresholdAmount = parseFloat(document.getElementById('cpThresholdAmount').value);
+    couponTemplates.push(newTpl);
+    cpToast('创建成功');
+  }
+  cpFormDirty = false;
+  closeCouponDrawer(true);
+  renderTplTable();
+  lucide.createIcons();
+}
+
+/* ==================== CONFIRM DIALOG ==================== */
+var confirmCallback = null;
+function showConfirm(title, sub, type, btnClass, cb){
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmSub').textContent = sub;
+  document.getElementById('confirmBtn').className = 'dialog-btn-confirm' + (btnClass === 'danger' ? ' danger' : '');
+  confirmCallback = cb;
+  // Set icon
+  var ico = document.getElementById('confirmIco');
+  if(type === 'confirm'){
+    ico.style.background = '#FDF2E9'; ico.style.color = '#E7772D'; ico.textContent = '?';
+  } else if(type === 'danger'){
+    ico.style.background = '#FFE8EB'; ico.style.color = '#D9001B'; ico.textContent = '✕';
+  } else {
+    ico.style.background = '#E4F4FB'; ico.style.color = '#0091D5'; ico.textContent = 'i';
+  }
+  document.getElementById('confirmDialog').classList.add('open');
+}
+
+function closeConfirmDialog(){
+  document.getElementById('confirmDialog').classList.remove('open');
+  confirmCallback = null;
+}
+
+function execConfirm(){
+  if(confirmCallback){ confirmCallback(); confirmCallback = null; }
+  closeConfirmDialog();
+}
+
+/* ==================== TAB 3: 核销统计 ==================== */
+var stSortKey = 'used';
+var stSortDir = -1; // -1 = desc
+var stFilteredList = [];
+
+// Generate 30 days of trend data
+function generateTrendData(){
+  var data = [];
+  var now = new Date('2026-07-09');
+  for(var i=29;i>=0;i--){
+    var d = new Date(now);
+    d.setDate(d.getDate() - i);
+    var used = Math.floor(Math.random() * 80) + 10;
+    var amount = Math.round((used * (Math.random() * 15 + 5)) * 100) / 100;
+    data.push({date: d.toISOString().slice(0,10), used: used, amount: amount});
+  }
+  return data;
+}
+
+var trendData = generateTrendData();
+
+// Stats table data (aggregated per coupon, 12 items)
+function generateStatsData(){
+  return couponTemplates.map(function(t){
+    var issued = t.issuedCount + Math.floor(Math.random() * 20);
+    var claimed = Math.floor(issued * (0.5 + Math.random() * 0.4));
+    var used = Math.floor(claimed * (0.3 + Math.random() * 0.5));
+    var rate = issued > 0 ? (used / issued * 100) : 0;
+    var avgFace = t.type === '立减券' ? (t.amount || 10) : (t.type === '折扣券' ? 15 : 8);
+    var amount = Math.round(used * avgFace * 100) / 100;
+    return {
+      couponName: t.name,
+      type: t.type,
+      issued: issued,
+      claimed: claimed,
+      used: used,
+      rate: Math.round(rate * 10) / 10,
+      amount: amount
+    };
+  });
+}
+
+var statsData = generateStatsData();
+var stChart = null;
+
+function renderStatsTab(){
+  // Fill coupon dropdown
+  var sel = document.getElementById('stCoupon');
+  if(sel.options.length <= 1){
+    couponTemplates.forEach(function(t){
+      sel.innerHTML += '<option value="' + t.id + '">' + t.name + '</option>';
+    });
+  }
+  computeAndRenderStats();
+}
+
+function computeAndRenderStats(){
+  var list = statsData.slice();
+  // Filter
+  var stType = document.getElementById('stType').value;
+  var stCoupon = document.getElementById('stCoupon').value;
+  if(stType) list = list.filter(function(d){ return d.type === stType; });
+  if(stCoupon) list = list.filter(function(d){ return d.couponName === couponTemplates.find(function(t){ return t.id === parseInt(stCoupon); })?.name; });
+
+  // Sort
+  list.sort(function(a,b){
+    var va = a[stSortKey], vb = b[stSortKey];
+    if(typeof va === 'string') return stSortDir * va.localeCompare(vb);
+    return stSortDir * (va - vb);
+  });
+  stFilteredList = list;
+
+  // KPI (full list)
+  var totalIssued = list.reduce(function(s,d){ return s + d.issued; }, 0);
+  var totalClaimed = list.reduce(function(s,d){ return s + d.claimed; }, 0);
+  var totalUsed = list.reduce(function(s,d){ return s + d.used; }, 0);
+  var totalAmount = list.reduce(function(s,d){ return s + d.amount; }, 0);
+  var overallRate = totalIssued > 0 ? (totalUsed / totalIssued * 100) : 0;
+
+  document.getElementById('kpiIssued').textContent = formatNum(totalIssued);
+  document.getElementById('kpiClaimed').textContent = formatNum(totalClaimed);
+  document.getElementById('kpiUsed').textContent = formatNum(totalUsed);
+  document.getElementById('kpiRate').textContent = overallRate.toFixed(1);
+  document.getElementById('kpiAmount').textContent = '¥' + formatMoney(totalAmount);
+
+  // Detail table (paginated)
+  var totalPages = Math.ceil(list.length / stPageSize);
+  if(stPage > totalPages) stPage = totalPages || 1;
+  var start = (stPage - 1) * stPageSize;
+  var pageList = list.slice(start, start + stPageSize);
+  var html = '';
+  for(var i=0;i<pageList.length;i++){
+    var d = pageList[i];
+    html += '<tr>';
+    html += '<td>' + d.couponName + '</td>';
+    html += '<td><span class="badge badge-info">' + d.type + '</span></td>';
+    html += '<td class="font-mono">' + formatNum(d.issued) + '</td>';
+    html += '<td class="font-mono">' + formatNum(d.claimed) + '</td>';
+    html += '<td class="font-mono">' + formatNum(d.used) + '</td>';
+    html += '<td class="font-mono">' + d.rate.toFixed(1) + '%</td>';
+    html += '<td class="font-mono">¥' + formatMoney(d.amount) + '</td>';
+    html += '</tr>';
+  }
+  document.getElementById('stTbody').innerHTML = html;
+  document.getElementById('stEmpty').style.display = list.length === 0 ? '' : 'none';
+
+  // Sort indicators
+  document.getElementById('stSortUsed').textContent = stSortKey === 'used' ? (stSortDir > 0 ? '▲' : '▼') : '';
+  document.getElementById('stSortRate').textContent = stSortKey === 'rate' ? (stSortDir > 0 ? '▲' : '▼') : '';
+  document.getElementById('stSortAmount').textContent = stSortKey === 'amount' ? (stSortDir > 0 ? '▲' : '▼') : '';
+
+  // Chart
+  renderStatsChart();
+  // Pagination
+  updateStPagination();
+}
+
+function stSearch(){ stPage = 1; computeAndRenderStats(); }
+function stReset(){
+  document.getElementById('stTimeRange').value = '30';
+  document.getElementById('stType').value = '';
+  document.getElementById('stCoupon').value = '';
+  stPage = 1;
+  computeAndRenderStats();
+}
+
+function stSort(key){
+  if(stSortKey === key) stSortDir = -stSortDir;
+  else { stSortKey = key; stSortDir = -1; }
+  computeAndRenderStats();
+}
+
+function stExport(){ cpToast('导出成功（模拟：已下载券明细数据.xlsx）'); }
+
+/* Stats pagination */
+var stPage = 1, stPageSize = 10;
+function stChangePageSize(){ stPageSize = parseInt(document.getElementById('stPgSize').value); stPage = 1; computeAndRenderStats(); }
+function stJumpPage(){ var p = parseInt(document.getElementById('stPgJump').value); var total = Math.ceil(stFilteredList.length / stPageSize); if(p >= 1 && p <= total){ stPage = p; computeAndRenderStats(); } }
+function stGoPage(p){ stPage = p; computeAndRenderStats(); updateStPagination(); }
+
+function updateStPagination(){
+  var total = stFilteredList.length;
+  var totalPages = Math.ceil(total / stPageSize);
+  if(stPage > totalPages) stPage = totalPages || 1;
+  var html = '';
+  if(totalPages <= 7){
+    for(var i = 1; i <= totalPages; i++){
+      html += '<button class="pg-btn' + (i === stPage ? ' active' : '') + '" onclick="stGoPage(' + i + ')">' + i + '</button>';
+    }
+  } else {
+    html += '<button class="pg-btn' + (1 === stPage ? ' active' : '') + '" onclick="stGoPage(1)">1</button>';
+    if(stPage > 3) html += '<span class="pg-ellipsis">…</span>';
+    var start = Math.max(2, stPage - 1);
+    var end = Math.min(totalPages - 1, stPage + 1);
+    for(var i = start; i <= end; i++){
+      html += '<button class="pg-btn' + (i === stPage ? ' active' : '') + '" onclick="stGoPage(' + i + ')">' + i + '</button>';
+    }
+    if(stPage < totalPages - 2) html += '<span class="pg-ellipsis">…</span>';
+    html += '<button class="pg-btn' + (totalPages === stPage ? ' active' : '') + '" onclick="stGoPage(' + totalPages + ')">' + totalPages + '</button>';
+  }
+  document.getElementById('stPgNav').innerHTML = html;
+  document.getElementById('stPgStats').textContent = '共 ' + total + ' 条';
+}
+
+function renderStatsChart(){
+  var ctx = document.getElementById('stChart').getContext('2d');
+  if(stChart) stChart.destroy();
+  var labels = trendData.map(function(d){ return d.date.slice(5); });
+  var usedData = trendData.map(function(d){ return d.used; });
+  var amountData = trendData.map(function(d){ return d.amount; });
+
+  stChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: '使用量（张）',
+          data: usedData,
+          borderColor: '#0066FF',
+          backgroundColor: 'rgba(0,102,255,0.06)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 2,
+          yAxisID: 'y'
+        },
+        {
+          label: '抵扣总额（¥）',
+          data: amountData,
+          borderColor: '#0FC060',
+          backgroundColor: 'rgba(15,192,96,0.06)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 2,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, padding: 20, font: { size: 12 } } },
+        tooltip: {
+          backgroundColor: '#1A1D24', titleFont: { size: 13 }, bodyFont: { size: 12 },
+          callbacks: { label: function(ctx){ return ctx.dataset.label + ': ' + (ctx.dataset.yAxisID === 'y1' ? '¥' : '') + ctx.parsed.y; } }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#9DA2AC' } },
+        y: {
+          type: 'linear', position: 'left',
+          title: { display: true, text: '使用量（张）', font: { size: 12 }, color: '#6E7685' },
+          grid: { color: '#F0F1F3' }, ticks: { font: { size: 11 }, color: '#9DA2AC' }
+        },
+        y1: {
+          type: 'linear', position: 'right',
+          title: { display: true, text: '抵扣总额（¥）', font: { size: 12 }, color: '#6E7685' },
+          grid: { drawOnChartArea: false }, ticks: { font: { size: 11 }, color: '#9DA2AC' }
+        }
+      }
+    }
+  });
+}
+
+/* ==================== HELPERS ==================== */
+function pad(n){ return n < 10 ? '0' + n : '' + n; }
+function formatNum(n){ return n >= 1000 ? (n/1000).toFixed(1) + 'k' : String(n); }
+function formatMoney(n){ return n.toFixed(2); }
+
+function pgList(cur, total){
+  if(total <= 7){ var a=[]; for(var i=1;i<=total;i++) a.push(i); return a; }
+  var pages = [1];
+  if(cur > 3) pages.push('…');
+  for(var p = Math.max(2, cur-1); p <= Math.min(total-1, cur+1); p++) pages.push(p);
+  if(cur < total - 2) pages.push('…');
+  pages.push(total);
+  return pages;
+}
+
+/* ==================== MENU / SIDEBAR ==================== */
+function menuSelect(el) {
+  if (el.classList.contains('l1')) handleL1(el);
+  else if (el.classList.contains('l2')) handleL2(el);
+}
+function handleL1(el) {
+  var subId = el.getAttribute('data-sub');
+  if (subId) handleL1Toggle(el, subId);
+  else selectL1NoChildren(el);
+}
+function handleL1Toggle(el, subId) {
+  var sub = document.getElementById(subId);
+  if (!sub) return;
+  var arrow = el.querySelector('.menu-arrow');
+  var isExpanded = !sub.classList.contains('collapsed');
+  if (isExpanded) {
+    sub.classList.add('collapsed');
+    if (arrow) arrow.classList.remove('open');
+    if (!sub.querySelector('.menu-item.active-l2')) el.classList.remove('active-l1');
+  } else {
+    collapseAllExcept(subId);
+    sub.classList.remove('collapsed');
+    if (arrow) arrow.classList.add('open');
+    if (sub.querySelector('.menu-item.active-l2')) el.classList.add('active-l1');
+  }
+}
+function selectL1NoChildren(el) {
+  collapseAllExcept(null);
+  clearAllActive();
+  el.classList.add('active-l1');
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+function handleL2(el) {
+  var parentSub = el.closest('.submenu');
+  var parentSubId = parentSub ? parentSub.id : null;
+  collapseAllExcept(parentSubId);
+  if (parentSub && parentSub.classList.contains('collapsed')) parentSub.classList.remove('collapsed');
+  clearAllActive();
+  el.classList.add('active-l2');
+  var parentL1 = findParentL1BySubId(parentSubId);
+  if (parentL1) {
+    parentL1.classList.add('active-l1');
+    var arrow = parentL1.querySelector('.menu-arrow');
+    if (arrow) arrow.classList.add('open');
+  }
+  var page = el.getAttribute('data-page');
+  navigateToPage(page);
+}
+function collapseAllExcept(keepSubId) {
+  document.querySelectorAll('.submenu').forEach(function(sub) {
+    if (sub.id === keepSubId) return;
+    if (sub.classList.contains('collapsed')) return;
+    sub.classList.add('collapsed');
+    var l1 = findParentL1BySubId(sub.id);
+    if (l1) {
+      var arrow = l1.querySelector('.menu-arrow');
+      if (arrow) arrow.classList.remove('open');
+      if (!sub.querySelector('.menu-item.active-l2')) l1.classList.remove('active-l1');
+    }
+  });
+}
+function clearAllActive() {
+  document.querySelectorAll('.menu-item').forEach(function(item) { item.classList.remove('active-l1', 'active-l2'); });
+}
+function findParentL1BySubId(subId) {
+  if (!subId) return null;
+  return document.querySelector('.menu-item.l1[data-sub="' + subId + '"]');
+}
+function navigateToPage(page) {
+  if (!page) return;
+  var fname = page.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  if (page.endsWith('.html')) if(window.top===window){window.location.href=page}else{try{window.top.location.href=page}catch(e){window.location.href=page}}
+  else document.getElementById('mainContent').innerHTML = '<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6"><h2 class="text-[16px] font-semibold text-ink-title mb-2">' + page + '</h2><p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p></div></div>';
+}
+function navigate(url) {
+  if (url === '#') return;
+  var fname = url.split("/").pop();
+  var cur = window.location.pathname.split("/").pop();
+  if (fname === cur) return;
+  if(window.top===window){window.location.href=url}else{try{window.top.location.href=url}catch(e){window.location.href=url}}
+}
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+/* ==================== PORTAL ANNOTATION SYSTEM ==================== */
+var annotations = {
+  1: { title: 'Tab 切换栏', desc: ['三个 Tab：券模板管理 / 发放记录 / 核销统计','点击切换内容区，选中态蓝色高亮带下划线','切换 Tab 时列表/图表自动刷新'] },
+  2: { title: '券模板筛选区', desc: ['搜索券名称：关键词模糊搜索','券种：下拉单选（全部/立减券/折扣券/免费时长券）','状态：下拉单选（全部/启用/停用）','查询：应用筛选条件回第1页；重置：清空所有筛选'] },
+  3: { title: '创建优惠券按钮', desc: ['触发：右侧滑出抽屉，800px 宽','默认创建模式，券种可自由选择','表单按 PRD §4.1 字段完整展示'] },
+  4: { title: '券模板列表', desc: ['8列：券名称/券种/面额折扣时长/使用门槛/适用范围/有效期规则/发放量/状态/操作','状态列使用 Toggle 开关：启用绿色、停用灰色','操作列：编辑(抽屉)/发放(跳转发放记录Tab)/删除(确认弹窗)'] },
+  5: { title: '券模板分页', desc: ['默认10条/页，支持切换10/20/50','页码导航+跳页+统计，≤7页全显，>7页省略号折叠'] },
+  6: { title: '发放记录筛选区', desc: ['搜索用户名/手机号关键词','券种下拉筛选','发放时间区间筛选'] },
+  7: { title: '手动发放按钮', desc: ['打开手动发放弹窗（760px Modal）','选择券模板（仅已启用）+指定/批量用户+每人数量','确认发放前弹出二次确认弹窗'] },
+  8: { title: '配置注册赠券', desc: ['配置新用户注册时自动赠送的券','启用/停用 Toggle 开关','多选券模板+每券数量，支持添加/删除行'] },
+  9: { title: '配置活动领券', desc: ['配置活动名称/关联券模板/有效期/每人限领次数/总领取上限','活动状态 Toggle 启停'] },
+  10: { title: '发放记录列表', desc: ['9列：用户(名+脱敏手机号)/券名称/券种/面额/发放方式/发放时间/券状态/操作人','券状态 Badge：未使用(蓝)/已使用(绿)/已过期(灰)/已退回(橙)'] },
+  11: { title: '发放记录分页', desc: ['与券模板分页一致的分页器组件'] },
+  12: { title: '核销统计筛选区', desc: ['时间范围：最近7天/30天/90天/全部','券种/券名称下拉筛选'] },
+  13: { title: '导出数据按钮', desc: ['触发：模拟导出操作 Toast「导出成功」'] },
+  14: { title: 'KPI 汇总卡片', desc: ['5项指标：发放量/领取量/使用量/核销率(%)/抵扣总额(¥)','数字使用 mono 字体，大字号醒目展示'] },
+  15: { title: '趋势折线图', desc: ['Chart.js 双Y轴折线图','左轴：使用量（张）；右轴：抵扣总额（¥）','30天数据，hover Tooltip 展示具体数值'] },
+  16: { title: '券明细数据标题', desc: [] },
+  17: { title: '券明细表格', desc: ['7列：券名称/券种/发放量/领取量/使用量/核销率/抵扣总额','支持按使用量/核销率/抵扣总额列头点击排序','数字列使用 mono 字体'] },
+  18: { title: '创建/编辑抽屉标题', desc: ['创建模式：「创建优惠券」；编辑模式：「编辑优惠券」','打开抽屉时标注作用域限定在抽屉内'] },
+  19: { title: '券种选择', desc: ['创建时可改，编辑时置灰不可修改（业务规则：券种一旦创建不可修改）','切换券种时动态展示对应字段（立减→面额/折扣→折扣率+最高抵扣/时长→时长+单位）'] },
+  20: { title: '使用门槛', desc: ['无门槛 / 满X元可用','选满X元时展示金额输入框'] },
+  21: { title: '适用范围', desc: ['至少选一项：仅寄存/仅寄送/通用','多选 checkbox'] },
+  22: { title: '有效期类型', desc: ['领取后N天有效 / 固定起止日期','选择后展示对应日期控件'] },
+  23: { title: '状态选择', desc: ['启用/停用单选，默认启用'] },
+  24: { title: '保存按钮', desc: ['全量校验必填字段，不通过标红提示','校验通过后保存：创建 Toast「创建成功」，编辑 Toast「修改成功」','关闭抽屉，列表刷新'] },
+  25: { title: '手动发放弹窗', desc: ['760px Modal','选择券模板（仅已启用）+ 指定用户/批量用户 + 每人发放数量 + 发放备注'] },
+  26: { title: '发放方式选择', desc: ['指定用户：多选搜索用户名/手机号','批量用户：上传Excel文件（含模板下载链接）'] },
+  27: { title: '批量上传区域', desc: ['点击上传或拖拽Excel文件','提供模板下载链接，按模板格式填写用户手机号'] },
+  28: { title: '确认发放按钮', desc: ['触发二次确认弹窗：「确认向 N 位用户各发放 M 张【券名称】？」','确认后执行发放，Toast「发放成功」，发放记录新增条目，券模板发放量更新'] },
+  29: { title: '注册赠券配置弹窗', desc: ['配置新用户注册自动赠送的券模板组合'] },
+  30: { title: '注册赠券启停开关', desc: ['关闭后新注册用户不再赠送券'] },
+  31: { title: '添加券按钮', desc: ['点击新增一行券选择（券模板下拉+数量输入）'] },
+  32: { title: '保存配置按钮', desc: ['保存注册赠券配置，Toast 提示'] },
+  33: { title: '活动领券配置弹窗', desc: ['配置活动名称/关联券模板/有效期/限领次数等'] },
+  34: { title: '活动领券保存按钮', desc: ['校验活动名称/券模板/有效期必填，通过后保存'] },
+  35: { title: '券模板状态开关', desc: ['启用→停用：弹出确认弹窗「停用后该券将无法被领取和使用，确认停用？」','停用→启用：直接切换，Toast「已启用」','已发放券的模板可被停用，停用后已持有用户的券同步失效'] }
+};
+
+var annoVisible = true;
+var annoScopeStack = [];
+function pushAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  annoScopeStack.push(el);
+  renderAnnoBadges();
+}
+function popAnnoScope(el) {
+  var idx = annoScopeStack.indexOf(el);
+  if (idx >= 0) annoScopeStack.splice(idx, 1);
+  renderAnnoBadges();
+}
+function renderAnnoBadges() {
+  var layer = document.getElementById('annoLayer');
+  layer.innerHTML = '';
+  if (!annoVisible) return;
+  var vw = window.innerWidth;
+  var scope = annoScopeStack.length > 0 ? annoScopeStack[annoScopeStack.length - 1] : null;
+  var container = scope || document;
+  container.querySelectorAll('[data-anno]').forEach(function(el) {
+    var id = el.getAttribute('data-anno');
+    if (el.offsetParent === null && el.tagName !== 'BODY') return;
+    var target = resolveAnnoTarget(el, vw);
+    var rect = target.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return;
+    var badge = document.createElement('div');
+    badge.className = 'anno-portal-badge';
+    badge.textContent = id;
+    badge.style.top  = (rect.top  - 10) + 'px';
+    badge.style.left = (rect.right - 10) + 'px';
+    badge.style.zIndex = '9998';
+    badge.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showAnnoPopup(id);
+    });
+    layer.appendChild(badge);
+  });
+}
+function resolveAnnoTarget(el, vw) {
+  var rect = el.getBoundingClientRect();
+  if (rect.width < 800 || rect.width < vw * 0.7) return el;
+  var inner = el.querySelector('h1, h2, h3, h4, h5, h6, button, .btn, input, select, .card-title, [class*="title"]');
+  if (inner) { var innerRect = inner.getBoundingClientRect(); if (innerRect.width < rect.width * 0.8) return inner; }
+  var first = el.firstElementChild;
+  if (first) { var firstRect = first.getBoundingClientRect(); if (firstRect.width < rect.width * 0.9) return first; }
+  return el;
+}
+function showAnnoPopup(id) {
+  var a = annotations[id];
+  if (!a) return;
+  document.getElementById('annoPopupTitle').textContent = '#' + id + ' ' + a.title;
+  document.getElementById('annoPopupBody').innerHTML = a.desc.map(function(d) {
+    return '<li class="flex items-start gap-2"><span class="text-primary font-bold flex-shrink-0">•</span><span>' + d + '</span></li>';
+  }).join('');
+  var box = document.getElementById('annoPopupBox');
+  box.style.top = '50%'; box.style.left = '50%'; box.style.transform = 'translate(-50%,-50%)';
+  document.getElementById('annoPopup').classList.remove('hidden');
+}
+function closeAnnoPopup() { document.getElementById('annoPopup').classList.add('hidden'); }
+var popupDrag = { offX: 0, offY: 0, moved: false };
+function startDragPopup(e) {
+  if (e.target.closest('button')) return;
+  popupDrag.moved = false;
+  var box = document.getElementById('annoPopupBox');
+  var rect = box.getBoundingClientRect();
+  popupDrag.offX = e.clientX - rect.left;
+  popupDrag.offY = e.clientY - rect.top;
+  document.addEventListener('mousemove', onDragPopup);
+  document.addEventListener('mouseup', stopDragPopup);
+}
+function onDragPopup(e) {
+  var dx = Math.abs(e.clientX - popupDrag.offX - document.getElementById('annoPopupBox').getBoundingClientRect().left);
+  if (dx < 3 && !popupDrag.moved) return;
+  popupDrag.moved = true;
+  var box = document.getElementById('annoPopupBox');
+  box.style.transform = 'none';
+  box.style.top  = Math.max(0, Math.min(window.innerHeight - 100, e.clientY - popupDrag.offY)) + 'px';
+  box.style.left = Math.max(0, Math.min(window.innerWidth  - 100, e.clientX - popupDrag.offX)) + 'px';
+  document.getElementById('annoPopupDrag').style.cursor = 'grabbing';
+}
+function stopDragPopup() {
+  document.removeEventListener('mousemove', onDragPopup);
+  document.removeEventListener('mouseup', stopDragPopup);
+  var h = document.getElementById('annoPopupDrag');
+  if (h) h.style.cursor = 'grab';
+}
+document.getElementById('annoToggle').addEventListener('click', function(e) {
+  if (this.dataset.dragging === '1') return;
+  annoVisible = !annoVisible;
+  if (annoVisible) {
+    document.body.classList.remove('anno-hidden');
+    document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye');
+  } else {
+    document.body.classList.add('anno-hidden');
+    document.getElementById('annoToggleIcon').setAttribute('data-lucide', 'eye-off');
+  }
+  lucide.createIcons({ attrs: { class: 'w-[13px] h-[13px]' } });
+  renderAnnoBadges();
+});
+var dragToggleY = 0, dragToggleMoved = false;
+function startDragToggle(e) { dragToggleY = e.clientY; dragToggleMoved = false; document.addEventListener('mousemove', onDragToggle); document.addEventListener('mouseup', stopDragToggle); e.preventDefault(); }
+function onDragToggle(e) { if (Math.abs(e.clientY - dragToggleY) < 5) return; dragToggleMoved = true; var w = document.getElementById('annoToggle'); w.style.top = Math.max(60, Math.min(window.innerHeight - 60, e.clientY - 20)) + 'px'; w.style.right = '8px'; w.style.cursor = 'grabbing'; }
+function stopDragToggle() { document.removeEventListener('mousemove', onDragToggle); document.removeEventListener('mouseup', stopDragToggle); var w = document.getElementById('annoToggle'); if (w) { w.style.cursor = 'grab'; w.dataset.dragging = dragToggleMoved ? '1' : ''; } }
+
+/* ==================== TASK DRAWER ==================== */
+(function(){
+  var TK_NOW = new Date('2026-07-09T15:30:00');
+  var tkImport = [
+    {module:'异常工单',file:'异常工单导入_20260705.xlsx',op:'张三',time:'2026-07-05 09:15:30',status:'processing',progress:66},
+    {module:'订单管理',file:'订单批量导入_20260704.xlsx',op:'李四',time:'2026-07-04 15:42:18',status:'processing',progress:32},
+    {module:'订单管理',file:'订单批量导入_20260701.xlsx',op:'张三',time:'2026-07-01 10:23:45',status:'partial_fail',total:100,ok:98,fail:2},
+    {module:'订单管理',file:'订单批量导入_20260630.xlsx',op:'李四',time:'2026-06-30 16:08:12',status:'success',total:50,ok:50,fail:0},
+    {module:'异常工单',file:'异常工单导入_20260629.xlsx',op:'王五',time:'2026-06-29 11:05:27',status:'partial_fail',total:36,ok:30,fail:6},
+    {module:'订单管理',file:'订单补录导入_20260628.xlsx',op:'赵六',time:'2026-06-28 14:37:56',status:'success',total:220,ok:220,fail:0},
+    {module:'异常工单',file:'异常工单导入_20260626.xlsx',op:'张三',time:'2026-06-26 09:48:03',status:'fail'},
+    {module:'订单管理',file:'订单批量导入_20260624.xlsx',op:'王五',time:'2026-06-24 17:22:41',status:'success',total:78,ok:78,fail:0}
+  ];
+  var tkDownload = [
+    {module:'异常工单',file:'异常工单导出_20260705100812.xlsx',op:'王五',time:'2026-07-05 10:08:12',status:'processing',progress:40},
+    {module:'订单管理',file:'订单管理导出_20260704161530.xlsx',op:'张三',time:'2026-07-04 16:15:30',status:'success'},
+    {module:'订单管理',file:'订单管理导出_20260701131516.xlsx',op:'张三',time:'2026-07-01 13:15:16',status:'success'}
+  ];
+  var tkMembers = ['张三','李四','王五','赵六','钱七'];
+  var tkTab = 'import', tkFilter = {module:'', op:'', from:'', to:''}, tkPage = 1, tkPageSize = 10, tkTimer = null;
+  function tkData(){ return tkTab === 'import' ? tkImport : tkDownload; }
+  function tkEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function tkIsFiltered(){ return !!(tkFilter.module || tkFilter.op || tkFilter.from || tkFilter.to); }
+  function tkFiltered(){
+    return tkData().filter(function(t){
+      if(tkFilter.module && t.module !== tkFilter.module) return false;
+      if(tkFilter.op && t.op.indexOf(tkFilter.op)===-1) return false;
+      var d=t.time.slice(0,10);
+      if(tkFilter.from && d<tkFilter.from) return false;
+      if(tkFilter.to && d>tkFilter.to) return false;
+      return true;
+    }).sort(function(a,b){return a.time<b.time?1:-1;});
+  }
+  function tkStageHtml(t){
+    if(t.status==='processing') return '<span style="color:#0066FF;">处理中 '+t.progress+'%</span><div class="tk-progress"><div class="tk-progress-fill" style="width:'+t.progress+'%;"></div></div>';
+    if(tkTab==='import'){
+      if(t.status==='success') return '<span style="color:#0FC060;">总数'+t.total+'条，成功'+t.ok+'条，失败0条</span>';
+      if(t.status==='partial_fail') return '总数'+t.total+'条，成功'+t.ok+'条，<span style="color:#D9001B;font-weight:700;">失败'+t.fail+'条</span>';
+      return '<span style="color:#D9001B;">导入失败</span>';
+    }
+    if(t.status==='success') return '<span style="color:#0FC060;">导出成功</span>';
+    return '<span style="color:#D9001B;">导出失败</span>';
+  }
+  function tkOpHtml(t,idx){
+    if(tkTab==='import'){ if(t.status==='partial_fail') return '<span class="tk-link" onclick="tkDownloadErr('+idx+')">下载错误数据</span>'; return '<span style="color:#9DA2AC;">——</span>'; }
+    if(t.status==='success') return '<span class="tk-link" onclick="tkDownloadFile('+idx+')">下载文件</span>';
+    return '<span style="color:#9DA2AC;">——</span>';
+  }
+  function tkToast(msg){ var el=document.getElementById('tkToast'); el.textContent=msg;el.style.opacity='1';setTimeout(function(){el.style.opacity='0';},2200); }
+  function tkRender(){
+    var list=tkFiltered(); var totalPages=Math.max(1,Math.ceil(list.length/tkPageSize));
+    if(tkPage>totalPages) tkPage=totalPages;
+    var rows=list.slice((tkPage-1)*tkPageSize,tkPage*tkPageSize);
+    document.getElementById('tkNote').style.display=(tkTab==='download')?'flex':'none';
+    document.getElementById('tkTbody').innerHTML=rows.map(function(t){
+      var idx=tkData().indexOf(t);
+      return '<tr><td>'+tkEsc(t.module)+'</td><td class="tk-ellipsis" title="'+tkEsc(t.file)+'">'+tkEsc(t.file)+'</td><td>'+tkEsc(t.op)+'</td><td class="font-mono" style="font-size:12px;">'+t.time+'</td><td>'+tkStageHtml(t)+'</td><td>'+tkOpHtml(t,idx)+'</td></tr>';
+    }).join('');
+    document.getElementById('tkEmpty').style.display=rows.length===0?'flex':'none';
+    document.getElementById('tkEmptyText').textContent=tkIsFiltered()?'暂无数据':'暂无任务记录';
+    var h='<button class="tk-pg-btn" '+(tkPage<=1?'disabled':'')+' onclick="tkGoPage('+(tkPage-1)+')">‹</button>';
+    var pages=pgList(tkPage,totalPages);
+    for(var i=0;i<pages.length;i++){ if(pages[i]==='…'){ h+='<span class="tk-pg-ellipsis">…</span>';continue; } h+='<button class="tk-pg-btn'+(pages[i]===tkPage?' tk-pg-current':'')+'" onclick="tkGoPage('+pages[i]+')">'+pages[i]+'</button>'; }
+    h+='<button class="tk-pg-btn" '+(tkPage>=totalPages?'disabled':'')+' onclick="tkGoPage('+(tkPage+1)+')">›</button>';
+    document.getElementById('tkPgNav').innerHTML=h;
+    document.getElementById('tkPgStats').textContent='共'+list.length+'条记录 第'+tkPage+'/'+totalPages+'页';
+    var n=tkImport.concat(tkDownload).filter(function(t){return t.status==='processing';}).length;
+    var b=document.getElementById('taskBadge'); if(b){b.textContent=n;b.style.display=n>0?'':'none';}
+  }
+  window.openTaskDrawer=function(tab){
+    tkTab=tab||sessionStorage.getItem('tk_last_tab')||'import';
+    document.getElementById('tkTabImport').classList.toggle('active',tkTab==='import');
+    document.getElementById('tkTabDownload').classList.toggle('active',tkTab==='download');
+    tkResetFilterUI(); tkPage=1; document.getElementById('tkOverlay').style.display='';
+    lucide.createIcons(); tkRender(); pushAnnoScope(document.getElementById('tkDrawerPanel'));
+    if(!tkTimer) tkTimer=setInterval(tkTick,10000);
+  };
+  window.closeTaskDrawer=function(){ document.getElementById('tkOverlay').style.display='none'; sessionStorage.setItem('tk_last_tab',tkTab); if(tkTimer){clearInterval(tkTimer);tkTimer=null;} popAnnoScope(document.getElementById('tkDrawerPanel')); };
+  window.tkSwitchTab=function(tab){ if(tkTab===tab) return; tkTab=tab; sessionStorage.setItem('tk_last_tab',tkTab); document.getElementById('tkTabImport').classList.toggle('active',tkTab==='import'); document.getElementById('tkTabDownload').classList.toggle('active',tkTab==='download'); tkResetFilterUI(); tkPage=1; tkRender(); lucide.createIcons(); };
+  function tkResetFilterUI(){ document.getElementById('tkFilterModule').value='';document.getElementById('tkFilterOp').value='';document.getElementById('tkDateFrom').value='';document.getElementById('tkDateTo').value='';tkFilter={module:'',op:'',from:'',to:''}; }
+  window.tkSearch=function(){ tkFilter={module:document.getElementById('tkFilterModule').value,op:document.getElementById('tkFilterOp').value.trim(),from:document.getElementById('tkDateFrom').value,to:document.getElementById('tkDateTo').value}; tkPage=1;tkRender(); };
+  window.tkReset=function(){ tkResetFilterUI(); tkPage=1; tkRender(); };
+  window.tkGoPage=function(p){ var totalPages=Math.max(1,Math.ceil(tkFiltered().length/tkPageSize)); if(p<1||p>totalPages) return; tkPage=p;tkRender(); };
+  window.tkChangePageSize=function(){ tkPageSize=parseInt(document.getElementById('tkPgSize').value,10); tkPage=1;tkRender(); };
+  window.tkJumpPage=function(){ var v=parseInt(document.getElementById('tkPgJump').value,10); var totalPages=Math.max(1,Math.ceil(tkFiltered().length/tkPageSize)); if(isNaN(v)||v<1||v>totalPages){tkToast('请输入有效页码');return;} tkPage=v;document.getElementById('tkPgJump').value='';tkRender(); };
+  window.tkDownloadFile=function(){ tkToast('开始下载'); };
+  window.tkDownloadErr=function(){ tkToast('开始下载'); };
+  function tkTick(){
+    var changed=false;
+    tkImport.concat(tkDownload).forEach(function(t){ if(t.status!=='processing') return; t.progress=Math.min(100,t.progress+8+Math.floor(Math.random()*10)); if(t.progress>=100){if(tkImport.indexOf(t)>-1){t.status='success';t.total=40;t.ok=40;t.fail=0;}else t.status='success';} changed=true; });
+    if(changed && document.getElementById('tkOverlay').style.display!=='none') tkRender();
+    else if(changed){ var n=tkImport.concat(tkDownload).filter(function(t){return t.status==='processing';}).length; var b=document.getElementById('taskBadge'); if(b){b.textContent=n;b.style.display=n>0?'':'none';} }
+  }
+})();
+
+/* ==================== USER CARD ==================== */
+(function(){
+  var ucUser = { name:'张伟', roles:['超级管理员','运营主管','财务专员','客服专员','设备管理员'], phoneRaw:'13900000001' };
+  var ucAllRoles = ['超级管理员','运营主管','财务专员','普通成员','客服专员','设备管理员'];
+  function ucRender(){
+    var initial = ucUser.name.charAt(0);
+    document.getElementById('ucAvatar').textContent = initial;
+    document.getElementById('ucCardAvatar').textContent = initial;
+    document.getElementById('ucName').textContent = ucUser.name;
+    var tags = ucUser.roles.slice(0, 3).map(function(r){ return '<span class="uc-role-tag">' + r + '</span>'; });
+    if (ucUser.roles.length > 3) tags.push('<span class="uc-role-tag" title="' + ucUser.roles.slice(3).join('、') + '">+' + (ucUser.roles.length - 3) + '</span>');
+    document.getElementById('ucRoles').innerHTML = tags.join('');
+  }
+  var ucHideTimer = null;
+  window.ucShowCard = function(){
+    if (ucHideTimer) { clearTimeout(ucHideTimer); ucHideTimer = null; }
+    var card = document.getElementById('ucCard');
+    if (card.style.display === 'block') return;
+    var rect = document.getElementById('ucAvatar').getBoundingClientRect();
+    card.style.right = Math.max(8, window.innerWidth - rect.right - 6) + 'px';
+    card.style.display = 'block';
+    lucide.createIcons();
+    renderAnnoBadges();
+  };
+  window.ucScheduleHide = function(){ if (ucHideTimer) clearTimeout(ucHideTimer); ucHideTimer = setTimeout(ucHideCard, 150); };
+  window.ucCancelHide = function(){ if (ucHideTimer) { clearTimeout(ucHideTimer); ucHideTimer = null; } };
+  function ucHideCard(){ document.getElementById('ucCard').style.display = 'none'; renderAnnoBadges(); }
+  window.ucOpenEditModal = function(){
+    ucHideCard();
+    document.getElementById('ucEditName').value = ucUser.name;
+    document.getElementById('ucEditRole').innerHTML = ucAllRoles.map(function(r){ return '<option value="' + r + '"' + (ucUser.roles.indexOf(r) > -1 ? ' selected' : '') + '>' + r + '</option>'; }).join('');
+    document.getElementById('ucEditPhone').value = ucUser.phoneRaw;
+    document.getElementById('ucEditModal').classList.remove('hidden');
+    lucide.createIcons();
+    pushAnnoScope(document.getElementById('ucEditModalBox'));
+  };
+  window.ucCloseEditModal = function(){
+    document.getElementById('ucEditModal').classList.add('hidden');
+    popAnnoScope(document.getElementById('ucEditModalBox'));
+  };
+  function ucSetErr(inputId, errId, bad){
+    document.getElementById(inputId).classList.toggle('error', bad);
+    document.getElementById(errId).classList.toggle('show', bad);
+    return !bad;
+  }
+  window.ucSubmitEdit = function(e){
+    e.preventDefault();
+    var name = document.getElementById('ucEditName').value.trim();
+    var role = document.getElementById('ucEditRole').value;
+    var phone = document.getElementById('ucEditPhone').value.trim();
+    var ok = true;
+    ok = ucSetErr('ucEditName', 'ucErrName', name.length < 2 || name.length > 30) && ok;
+    ok = ucSetErr('ucEditRole', 'ucErrRole', !role) && ok;
+    ok = ucSetErr('ucEditPhone', 'ucErrPhone', !/^1[3-9]\d{9}$/.test(phone)) && ok;
+    if (!ok) return;
+    ucUser.name = name; ucUser.roles = [role]; ucUser.phoneRaw = phone;
+    ucRender(); ucCloseEditModal();
+    var uct = document.getElementById('ucToast');
+    uct.textContent = '账号信息修改成功'; uct.style.opacity = '1';
+    setTimeout(function(){ uct.style.opacity = '0'; }, 2200);
+  };
+  ucRender();
+})();
+
+/* ==================== INIT ==================== */
+document.addEventListener('DOMContentLoaded', function(){
+  lucide.createIcons();
+  renderTplTable();
+  renderAnnoBadges();
+  document.getElementById('mainContent').addEventListener('scroll', renderAnnoBadges);
+  window.addEventListener('resize', renderAnnoBadges);
+  // Task drawer ops list
+  var opsEl = document.getElementById('tkOpsList');
+  if(opsEl) opsEl.innerHTML = ['张三','李四','王五','赵六','钱七'].map(function(m){ return '<option value="' + m + '">'; }).join('');
+});
+
+</script>
+
+</body>
+</html>
