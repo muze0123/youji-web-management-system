@@ -347,7 +347,7 @@
         <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]" data-anno="5">
           <div class="pg-nav" id="tplPgNav"></div>
           <span class="pg-select-wrap"><select class="pg-select" id="tplPgSize" onchange="tplChangePageSize()"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
-          <span class="flex items-center gap-1">跳至 <input class="pg-jump" id="tplPgJump" onkeydown="if(event.key==='Enter')tplJumpPage()"> 页</span>
+          <span class="flex items-center gap-1">跳至 <input class="pg-jump" id="tplPgJump" value="1" onkeydown="if(event.key==='Enter')tplJumpPage()"> 页</span>
           <span class="pg-stats" id="tplPgStats"></span>
         </div>
       </div>
@@ -376,7 +376,7 @@
         <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]" data-anno="11">
           <div class="pg-nav" id="recPgNav"></div>
           <span class="pg-select-wrap"><select class="pg-select" id="recPgSize" onchange="recChangePageSize()"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
-          <span class="flex items-center gap-1">跳至 <input class="pg-jump" id="recPgJump" onkeydown="if(event.key==='Enter')recJumpPage()"> 页</span>
+          <span class="flex items-center gap-1">跳至 <input class="pg-jump" id="recPgJump" value="1" onkeydown="if(event.key==='Enter')recJumpPage()"> 页</span>
           <span class="pg-stats" id="recPgStats"></span>
         </div>
       </div>
@@ -419,7 +419,7 @@
         <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]">
           <div class="pg-nav" id="stPgNav"></div>
           <span class="pg-select-wrap"><select class="pg-select" id="stPgSize" onchange="stChangePageSize()"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
-          <span class="flex items-center gap-1">跳至 <input class="pg-jump" id="stPgJump" onkeydown="if(event.key==='Enter')stJumpPage()"> 页</span>
+          <span class="flex items-center gap-1">跳至 <input class="pg-jump" id="stPgJump" value="1" onkeydown="if(event.key==='Enter')stJumpPage()"> 页</span>
           <span class="pg-stats" id="stPgStats"></span>
         </div>
       </div>
@@ -925,7 +925,7 @@
     <footer class="tk-footer">
       <div class="tk-pg-nav" id="tkPgNav"></div>
       <span class="tk-pg-select-wrap"><select class="tk-pg-select" id="tkPgSize" onchange="tkChangePageSize()"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
-      <span class="flex items-center gap-1">跳至 <input class="tk-pg-jump" id="tkPgJump" onkeydown="if(event.key==='Enter')tkJumpPage()"> 页</span>
+      <span class="flex items-center gap-1">跳至 <input class="tk-pg-jump" id="tkPgJump" value="1" onkeydown="if(event.key==='Enter')tkJumpPage()"> 页</span>
       <span class="tk-pg-stats" id="tkPgStats"></span>
     </footer>
   </aside>
@@ -1201,7 +1201,7 @@ function tplReset(){
 
 function tplGoPage(p){ var totalPages = Math.max(1, Math.ceil(tplFiltered().length / tplPageSize)); if(p<1||p>totalPages) return; tplPage = p; renderTplTable(); }
 function tplChangePageSize(){ tplPageSize = parseInt(document.getElementById('tplPgSize').value, 10); tplPage = 1; renderTplTable(); }
-function tplJumpPage(){ var v = parseInt(document.getElementById('tplPgJump').value, 10); var totalPages = Math.max(1, Math.ceil(tplFiltered().length / tplPageSize)); if(isNaN(v)||v<1||v>totalPages){ cpToast('请输入有效页码'); return; } tplPage = v; document.getElementById('tplPgJump').value = ''; renderTplTable(); }
+function tplJumpPage(){ var v = parseInt(document.getElementById('tplPgJump').value, 10); var totalPages = Math.max(1, Math.ceil(tplFiltered().length / tplPageSize)); if(isNaN(v)||v<1||v>totalPages){ cpToast('请输入有效页码'); return; } tplPage = v; document.getElementById('tplPgJump').value = '1'; renderTplTable(); }
 
 /* Toggle status */
 function toggleTplStatus(id, checked){
@@ -1334,7 +1334,7 @@ function recReset(){
 
 function recGoPage(p){ var totalPages = Math.max(1, Math.ceil(recFiltered().length / recPageSize)); if(p<1||p>totalPages) return; recPage = p; renderRecTable(); }
 function recChangePageSize(){ recPageSize = parseInt(document.getElementById('recPgSize').value, 10); recPage = 1; renderRecTable(); }
-function recJumpPage(){ var v = parseInt(document.getElementById('recPgJump').value, 10); var totalPages = Math.max(1, Math.ceil(recFiltered().length / recPageSize)); if(isNaN(v)||v<1||v>totalPages){ cpToast('请输入有效页码'); return; } recPage = v; document.getElementById('recPgJump').value = ''; renderRecTable(); }
+function recJumpPage(){ var v = parseInt(document.getElementById('recPgJump').value, 10); var totalPages = Math.max(1, Math.ceil(recFiltered().length / recPageSize)); if(isNaN(v)||v<1||v>totalPages){ cpToast('请输入有效页码'); return; } recPage = v; document.getElementById('recPgJump').value = '1'; renderRecTable(); }
 
 /* ==================== MANUAL ISSUE MODAL ==================== */
 function openManualIssueModal(preId){
@@ -2480,7 +2480,7 @@ function stopDragToggle() { document.removeEventListener('mousemove', onDragTogg
   window.tkReset=function(){ tkResetFilterUI(); tkPage=1; tkRender(); };
   window.tkGoPage=function(p){ var totalPages=Math.max(1,Math.ceil(tkFiltered().length/tkPageSize)); if(p<1||p>totalPages) return; tkPage=p;tkRender(); };
   window.tkChangePageSize=function(){ tkPageSize=parseInt(document.getElementById('tkPgSize').value,10); tkPage=1;tkRender(); };
-  window.tkJumpPage=function(){ var v=parseInt(document.getElementById('tkPgJump').value,10); var totalPages=Math.max(1,Math.ceil(tkFiltered().length/tkPageSize)); if(isNaN(v)||v<1||v>totalPages){tkToast('请输入有效页码');return;} tkPage=v;document.getElementById('tkPgJump').value='';tkRender(); };
+  window.tkJumpPage=function(){ var v=parseInt(document.getElementById('tkPgJump').value,10); var totalPages=Math.max(1,Math.ceil(tkFiltered().length/tkPageSize)); if(isNaN(v)||v<1||v>totalPages){tkToast('请输入有效页码');return;} tkPage=v;document.getElementById('tkPgJump').value='1';tkRender(); };
   window.tkDownloadFile=function(){ tkToast('开始下载'); };
   window.tkDownloadErr=function(){ tkToast('开始下载'); };
   function tkTick(){

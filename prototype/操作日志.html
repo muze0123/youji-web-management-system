@@ -45,6 +45,136 @@
       .sidebar-overlay{display:none;}
       .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:49;}
     }
+
+    /* ===== Filter grid (design.md §5.4) ===== */
+    .filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 16px;align-items:start;}
+    @media(max-width:1100px){.filter-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:640px){.filter-grid{grid-template-columns:1fr;}}
+    .filter-item{display:flex;align-items:center;gap:0;}
+    .filter-label{width:78px;flex-shrink:0;text-align:right;font-size:14px;color:#1A1D24;line-height:32px;white-space:nowrap;}
+    .filter-label::after{content:'：';}
+    .filter-ctrl{flex:1;min-width:0;display:flex;align-items:center;gap:4px;position:relative;}
+    .filter-ctrl input,.filter-ctrl select{width:100%;height:32px;font-size:14px;padding:0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;font-family:inherit;background:#fff;}
+    .filter-ctrl input::placeholder{color:#9DA2AC;font-size:14px;}
+    .filter-ctrl input:focus,.filter-ctrl select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .filter-ctrl select{appearance:none;-webkit-appearance:none;padding-right:24px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239DA2AC' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+    /* 日期范围 */
+    .date-sep{font-size:14px;color:#9DA2AC;flex-shrink:0;margin:0 2px;}
+    /* 操作人清空按钮 */
+    .filter-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:16px;height:16px;font-size:12px;color:#9DA2AC;cursor:pointer;display:none;line-height:16px;text-align:center;background:#fff;border-radius:50%;}
+    .filter-clear:hover{color:#6E7685;}
+    .filter-ctrl input:not(:placeholder-shown) ~ .filter-clear{display:block;}
+
+    /* ===== Data table (design.md §5.2) ===== */
+    .data-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;}
+    .data-table thead th{background:#F0F1F3;color:#6E7685;font-weight:600;font-size:12px;padding:9px 12px;text-align:left;border-bottom:1px solid #DFE1E5;white-space:nowrap;vertical-align:middle;}
+    .data-table tbody td{padding:9px 12px;color:#3A3F4A;border-bottom:1px solid #F0F1F3;vertical-align:middle;}
+    .data-table tbody tr{cursor:pointer;transition:background .12s;}
+    .data-table tbody tr:hover td{background:#F3F4F6;}
+    .data-table .col-time{width:160px;}
+    .data-table .col-op{width:100px;}
+    .data-table .col-module{width:120px;}
+    .data-table .col-type{width:100px;}
+    .data-table .col-target{width:180px;}
+    .data-table .col-action{width:80px;}
+    /* 可排序列头 */
+    .sortable{cursor:pointer;user-select:none;transition:color .15s;}
+    .sortable:hover{color:#0066FF;}
+    .sort-ico{display:inline-flex;align-items:center;gap:2px;margin-left:4px;color:#9DA2AC;font-size:10px;}
+    .sort-ico.asc::before{content:'▲';color:#0066FF;}
+    .sort-ico.desc::before{content:'▼';color:#0066FF;}
+    .sort-ico.none::before{content:'▼';opacity:.3;}
+    /* 操作类型 Badge */
+    .op-badge{display:inline-flex;align-items:center;padding:1px 8px;border-radius:4px;font-size:12px;line-height:18px;font-weight:500;}
+    .op-badge.login{background:#E4F4FB;color:#0091D5;}
+    .op-badge.logout{background:#E4F4FB;color:#0091D5;}
+    .op-badge.create{background:#E7F9F0;color:#0FC060;}
+    .op-badge.edit{background:#E6F0FF;color:#0066FF;}
+    .op-badge.delete{background:#FFE8EB;color:#D9001B;}
+    .op-badge.status_change{background:#FDF2E9;color:#E7772D;}
+    .op-badge.import{background:#E6F0FF;color:#0066FF;}
+    .op-badge.export{background:#E6F0FF;color:#0066FF;}
+    .op-badge.config_change{background:#FDF2E9;color:#E7772D;}
+    .op-badge.issue_coupon{background:#E7F9F0;color:#0FC060;}
+    .op-badge.approve{background:#E7F9F0;color:#0FC060;}
+    .op-badge.assign{background:#E6F0FF;color:#0066FF;}
+    /* 摘要省略 + tooltip */
+    .summary-cell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:0;} /* max-width:0 配合 table-layout:fixed 让 auto 列省略 */
+    .summary-tooltip{position:fixed;z-index:1400;max-width:480px;background:#1A1D24;color:#fff;font-size:12px;line-height:1.6;padding:8px 12px;border-radius:4px;box-shadow:0 6px 24px rgba(0,0,0,.15);display:none;pointer-events:none;word-break:break-all;}
+    /* 操作链接 */
+    .action-link{color:#0066FF;cursor:pointer;font-size:13px;}
+    .action-link:hover{color:#0052CC;text-decoration:underline;}
+
+    /* ===== Pagination (design.md §5.5) ===== */
+    .pg-nav{display:flex;gap:4px;}
+    .pg-btn{min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
+    .pg-btn:hover:not(.pg-current):not(:disabled){color:#0066FF;border-color:#0066FF;}
+    .pg-btn.pg-current{background:#0066FF;border-color:#0066FF;color:#fff;}
+    .pg-btn:disabled{color:#C7CAD1;background:#F7F8FA;cursor:not-allowed;border-color:#DFE1E5;}
+    .pg-ellipsis{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;font-size:13px;}
+    .pg-select-wrap{position:relative;display:inline-flex;align-items:center;}
+    .pg-select-wrap::after{content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none;}
+    .pg-select{font:12px inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;}
+    .pg-jump{font:12px inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
+    .pg-jump:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
+    .pg-stats{color:#9DA2AC;white-space:nowrap;}
+
+    /* ===== Drawer (design.md §5.7，800px) ===== */
+    .log-drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1100;display:none;}
+    .log-drawer-overlay.open{display:block;}
+    .log-drawer{position:absolute;top:0;right:0;bottom:0;width:800px;max-width:100%;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.1);display:flex;flex-direction:column;animation:log-drawer-in .22s ease;}
+    @keyframes log-drawer-in{from{transform:translateX(100%);}to{transform:translateX(0);}}
+    .log-drawer-header{height:56px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #DFE1E5;flex-shrink:0;}
+    .log-drawer-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:#9DA2AC;cursor:pointer;background:none;border:none;transition:background .15s;}
+    .log-drawer-close:hover{background:#F3F4F6;}
+    .log-drawer-body{flex:1;overflow-y:auto;padding:24px;}
+    .log-section-title{font-size:15px;font-weight:600;color:#1A1D24;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #E8EAED;}
+    .log-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 32px;}
+    .log-info-item{display:flex;align-items:flex-start;}
+    .log-info-label{width:80px;flex-shrink:0;font-size:13px;color:#6E7685;line-height:22px;}
+    .log-info-value{flex:1;font-size:13px;color:#1A1D24;line-height:22px;word-break:break-all;}
+    /* 变更详情表格 */
+    .change-table{width:100%;border-collapse:collapse;font-size:13px;}
+    .change-table thead th{background:#F0F1F3;color:#6E7685;font-weight:600;font-size:12px;padding:8px 12px;text-align:left;border-bottom:1px solid #DFE1E5;white-space:nowrap;}
+    .change-table tbody td{padding:8px 12px;color:#3A3F4A;border-bottom:1px solid #F0F1F3;word-break:break-all;}
+    .change-table .col-field{width:140px;}
+    .change-after{color:#E7772D;font-weight:500;} /* 变更后值橙色（PRD §7.4） */
+    .change-arrow{display:inline-flex;align-items:center;gap:8px;margin:8px 0;}
+    .change-state{display:inline-flex;align-items:center;padding:3px 10px;border-radius:4px;font-size:13px;font-weight:500;}
+    .change-state.before{background:#F3F4F6;color:#6E7685;}
+    .change-state.after{background:#FDF2E9;color:#E7772D;}
+    /* KV 列表（新增/删除/导入/导出/发放/审批/登录） */
+    .kv-list{display:grid;grid-template-columns:1fr;gap:0;}
+    .kv-row{display:flex;align-items:flex-start;padding:8px 0;border-bottom:1px solid #F0F1F3;}
+    .kv-row:last-child{border-bottom:none;}
+    .kv-label{width:120px;flex-shrink:0;font-size:13px;color:#6E7685;line-height:22px;}
+    .kv-value{flex:1;font-size:13px;color:#1A1D24;line-height:22px;word-break:break-all;}
+    .kv-value.mono{font-family:'JetBrains Mono',monospace;}
+
+    /* ===== Dialog (design.md §5.8) ===== */
+    .log-dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1300;display:none;align-items:center;justify-content:center;}
+    .log-dialog-overlay.open{display:flex;}
+    .log-dialog-box{width:600px;max-width:92vw;background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);display:flex;flex-direction:column;position:relative;animation:log-modal-in .15s ease;}
+    @keyframes log-modal-in{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
+    .log-dialog-close{position:absolute;top:14px;right:18px;font-size:20px;color:#9DA2AC;cursor:pointer;z-index:1;line-height:1;}
+    .log-dialog-body{flex:1;display:flex;align-items:center;padding:0 24px;gap:12px;min-height:120px;}
+    .log-dialog-ico{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+    .log-dialog-ico.confirm{background:#FDF2E9;color:#E7772D;}
+    .log-dialog-ico.warning{background:#FDF2E9;color:#E7772D;}
+    .log-dialog-title{font-size:16px;font-weight:600;color:#1A1D24;}
+    .log-dialog-sub{font-size:14px;color:#6E7685;margin-top:6px;line-height:1.5;}
+    .log-dialog-footer{padding:0 24px 20px;display:flex;justify-content:flex-end;gap:12px;}
+    .log-dialog-btn-cancel{padding:6px 20px;border-radius:4px;background:#fff;color:#3A3F4A;border:1px solid #DFE1E5;cursor:pointer;font:500 13px inherit;}
+    .log-dialog-btn-cancel:hover{border-color:#0066FF;color:#0066FF;}
+    .log-dialog-btn-confirm{padding:6px 20px;border-radius:4px;border:1px solid transparent;cursor:pointer;font:500 13px inherit;background:#0066FF;color:#fff;}
+    .log-dialog-btn-confirm:hover{background:#0052CC;}
+
+    /* ===== Toast ===== */
+    #logToast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:#1A1D24;color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:4px;z-index:1500;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;display:flex;align-items:center;gap:8px;}
+    #logToast .toast-link{color:#5B9CFF;cursor:pointer;text-decoration:underline;pointer-events:auto;}
+
+    /* ===== Empty state ===== */
+    .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 0;color:#9DA2AC;}
   </style>
 </head>
 <body class="font-sans flex flex-col h-screen">
@@ -152,15 +282,122 @@
   <main class="flex-1 bg-bg-page overflow-y-auto" id="mainContent">
     <div class="p-4">
 
-      <!-- 操作日志占位卡片（页面暂未开发） -->
+      <!-- ===== 区块1: 筛选区 ===== -->
+      <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
+        <!-- 筛选控件 -->
+        <div class="filter-grid" data-anno="1">
+          <div class="filter-item">
+            <label class="filter-label">操作时间</label>
+            <div class="filter-ctrl">
+              <input type="text" id="fDateFrom" placeholder="开始时间" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" style="min-width:0;flex:1;">
+              <span class="date-sep">~</span>
+              <input type="text" id="fDateTo" placeholder="结束时间" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" style="min-width:0;flex:1;">
+            </div>
+          </div>
+          <div class="filter-item">
+            <label class="filter-label">操作人</label>
+            <div class="filter-ctrl">
+              <input type="text" id="fOperator" list="operatorList" placeholder="全部（输入姓名搜索）">
+              <span class="filter-clear" onclick="document.getElementById('fOperator').value='';logFilter();">✕</span>
+            </div>
+          </div>
+          <div class="filter-item">
+            <label class="filter-label">操作模块</label>
+            <div class="filter-ctrl"><select id="fModule"><option value="">全部</option></select></div>
+          </div>
+          <div class="filter-item">
+            <label class="filter-label">操作类型</label>
+            <div class="filter-ctrl"><select id="fType"><option value="">全部</option></select></div>
+          </div>
+          <div class="filter-item">
+            <label class="filter-label">操作对象</label>
+            <div class="filter-ctrl">
+              <input type="text" id="fTarget" placeholder="订单号/手机号/券名称等">
+              <span class="filter-clear" onclick="document.getElementById('fTarget').value='';logFilter();">✕</span>
+            </div>
+          </div>
+          <!-- 查询/重置按钮放在末列（隐藏占位标签对齐，design.md §5.4） -->
+          <div class="filter-item">
+            <label class="filter-label" style="visibility:hidden;">占位</label>
+            <div class="filter-ctrl" style="gap:12px;justify-content:flex-start;">
+              <button class="btn btn-primary" data-anno="2" onclick="logFilter()">查询</button>
+              <button class="btn btn-default" data-anno="3" onclick="logReset()">重置</button>
+            </div>
+          </div>
+        </div>
+        <datalist id="operatorList"></datalist>
+      </div>
+
+      <!-- ===== 区块2: 数据区 ===== -->
       <div class="bg-white rounded-lg border border-line p-5 md:p-6">
-        <h2 class="text-[16px] font-semibold text-ink-title mb-4 inline-block" data-anno="1">操作日志</h2>
-        <div class="flex flex-col items-center justify-center py-20 text-center">
-          <i data-lucide="file-clock" class="w-[56px] h-[56px] text-ink-muted mb-4" style="opacity:.35;"></i>
-          <p class="text-[15px] font-medium text-ink-title mb-1.5">页面建设中</p>
-          <p class="text-[13px] text-ink-muted leading-relaxed">操作日志将记录成员的登录与关键操作流水（模块、操作人、操作内容、IP、时间），<br class="hidden md:block">并支持按模块 / 操作人 / 时间范围筛选与导出。</p>
+        <!-- 标题行：操作日志标题 + 导出数据按钮（右上居右） -->
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <h2 class="text-[18px] font-semibold text-ink-title inline-block" data-anno="4">操作日志</h2>
+          <button class="btn btn-default" data-anno="5" onclick="openExportDialog()"><i data-lucide="download" class="w-[14px] h-[14px]"></i>导出数据</button>
+        </div>
+        <!-- 表格 -->
+        <div class="overflow-x-auto">
+          <table class="data-table" data-anno="6">
+            <colgroup>
+              <col class="col-time"><col class="col-op"><col class="col-module"><col class="col-type"><col class="col-target"><col><col class="col-action">
+            </colgroup>
+            <thead>
+              <tr>
+                <th class="sortable" onclick="toggleSort()" data-anno="7">操作时间<span class="sort-ico desc" id="sortIco"></span></th>
+                <th>操作人</th>
+                <th>操作模块</th>
+                <th>操作类型</th>
+                <th>操作对象</th>
+                <th>操作摘要</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="logTbody"></tbody>
+          </table>
+          <!-- 空状态 -->
+          <div class="empty-state" id="logEmpty" style="display:none;">
+            <i data-lucide="search-x" class="w-[44px] h-[44px] mb-3"></i>
+            <p class="text-[13px]">未找到匹配的日志记录，请调整筛选条件</p>
+          </div>
+        </div>
+        <!-- 分页 -->
+        <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]" data-anno="8" id="logPager"></div>
+      </div>
+
+      <!-- 摘要 hover Tooltip -->
+      <div class="summary-tooltip" id="summaryTooltip"></div>
+
+      <!-- ===== 详情抽屉（800px，design.md §5.7） ===== -->
+      <div class="log-drawer-overlay" id="logDrawerOverlay" onclick="closeLogDrawer()">
+        <aside class="log-drawer" id="logDrawerPanel" role="dialog" aria-label="操作日志详情" onclick="event.stopPropagation()">
+          <header class="log-drawer-header">
+            <h3 class="text-[16px] font-semibold text-ink-title inline-block" data-anno="9">操作日志详情</h3>
+            <button class="log-drawer-close" onclick="closeLogDrawer()" aria-label="关闭"><i data-lucide="x" class="w-[20px] h-[20px]"></i></button>
+          </header>
+          <div class="log-drawer-body" id="logDrawerBody"></div>
+        </aside>
+      </div>
+
+      <!-- ===== 导出确认弹窗（design.md §5.8 confirm） ===== -->
+      <div class="log-dialog-overlay" id="exportDialog" onclick="closeExportDialog()">
+        <div class="log-dialog-box" onclick="event.stopPropagation()" data-anno="10">
+          <span class="log-dialog-close" onclick="closeExportDialog()">×</span>
+          <div class="log-dialog-body">
+            <div class="log-dialog-ico confirm">?</div>
+            <div>
+              <div class="log-dialog-title" id="exportDialogTitle">确认导出日志</div>
+              <div class="log-dialog-sub" id="exportDialogSub">将导出当前筛选条件下共 N 条日志记录，导出结果可在「任务列表 - 下载任务」中查看。</div>
+            </div>
+          </div>
+          <div class="log-dialog-footer">
+            <button class="log-dialog-btn-cancel" onclick="closeExportDialog()">取消</button>
+            <button class="log-dialog-btn-confirm" onclick="confirmExport()">确认导出</button>
+          </div>
         </div>
       </div>
+
+      <!-- ===== Toast ===== -->
+      <div id="logToast"></div>
 
     </div>
   </main>
@@ -361,11 +598,69 @@ function toggleSidebar() {
    - Recalculates on resize/scroll
    ================================================================ */
 var annotations = {
-  1: { title: '操作日志（建设中占位页）', desc: [
-    '状态：功能暂未开发，本页为占位原型',
-    '入口：顶栏用户气泡卡片「操作日志」/ 侧边栏 系统设置 → 操作日志',
-    '规划能力：成员登录与关键操作流水（模块、操作人、操作内容、IP、时间）',
-    '规划交互：按模块 / 操作人 / 时间范围筛选，导出接入任务列表「下载任务」'
+  1: { title: '筛选区 - 操作时间/操作人/操作模块/操作类型/操作对象 + 查询/重置', desc: [
+    '操作时间：日期区间选择器，默认近 7 天，精确到年月日，最大查询范围不限',
+    '操作人：下拉单选 + 模糊搜索（input + datalist），下拉仅展示当前数据权限范围内成员',
+    '操作模块：下拉单选，含 10 个模块（账号登录/行李寄存订单/行李寄送订单/异常工单/柜机管理/运营配置/优惠券管理/成员管理/角色管理/系统设置）',
+    '操作类型：下拉单选，选择操作模块后自动联动过滤为该模块支持的类型',
+    '操作对象：输入框，支持订单号/手机号/券名称等关键词模糊搜索',
+    '查询/重置按钮放在筛选区末列（隐藏占位标签对齐），与最后一个筛选项同一行',
+    '数据权限：当前用户为超级管理员，可查看全员日志（全部数据权限）'
+  ]},
+  2: { title: '查询按钮', desc: [
+    '位置：筛选区末列，操作对象右侧',
+    '行为：应用所有筛选条件，列表刷新至第 1 页',
+    '条件间为 AND 关系'
+  ]},
+  3: { title: '重置按钮', desc: [
+    '位置：筛选区末列，查询按钮右侧',
+    '行为：清空所有筛选条件（操作时间恢复近 7 天，其余恢复全部/空），刷新列表'
+  ]},
+  4: { title: '数据区标题', desc: [
+    '列表按操作时间倒序排列（最新操作在最上方）',
+    '每页默认显示 20 条，可切换 20/50/100 条/页',
+    '日志只读不可删，页面无删除/清空入口'
+  ]},
+  5: { title: '导出数据按钮', desc: [
+    '位置：数据区标题行右上角，与「操作日志」标题同一行',
+    '触发：点击弹出导出确认弹窗（见 #10）',
+    '导出范围：当前筛选条件下的全量日志（不受分页限制）',
+    '数据权限：导出数据仍遵循当前用户的数据权限范围',
+    '文件格式：Excel（.xlsx），命名 操作日志导出_{YYYYMMDDHHMMSS}.xlsx',
+    '导出方式：异步任务，提交后在「任务列表 - 下载任务」中查看和下载'
+  ]},
+  6: { title: '日志列表表格', desc: [
+    '列：操作时间(160px) | 操作人(100px) | 操作模块(120px) | 操作类型(100px) | 操作对象(180px) | 操作摘要(auto) | 操作(80px)',
+    '操作对象展示规则因模块而异：登录显示 IP+设备、订单显示订单号、优惠券显示券名+批次号、成员显示姓名+脱敏手机号等',
+    '操作摘要：超长省略，hover 展示完整 Tooltip',
+    '操作类型以彩色 Badge 展示（新增绿/编辑蓝/删除红/状态变更橙/登录信息蓝等）',
+    '整行可点击打开详情抽屉'
+  ]},
+  7: { title: '操作时间列 - 排序切换', desc: [
+    '点击列头切换升/降序，默认倒序（最新在上）',
+    '排序图标：▼ 降序（蓝色）/ ▲ 升序（蓝色）',
+    '切换后列表立即重新排序并回到第 1 页'
+  ]},
+  8: { title: '分页控件', desc: [
+    '默认每页 20 条，可切换 20/50/100 条/页',
+    '格式：页码导航 + 每页条数选择 + 跳页输入框 + 共N条 第X/Y页',
+    '页码 >7 页时首末页恒显 + 当前页 ±1 + 省略号折叠',
+    '跳页超出范围 Toast「请输入有效页码」'
+  ]},
+  9: { title: '详情抽屉', desc: [
+    '触发：点击列表行或「查看详情」链接，右侧滑出抽屉（宽度 800px）',
+    '结构：基本信息区块（操作时间/操作人/操作IP/操作模块/操作类型/操作对象）+ 变更详情区块',
+    '变更详情根据操作类型展示 9 种形式：编辑(三列对比表)/新增(字段列表)/删除(快照)/状态变更(前→后)/登录(KV)/导入(KV)/导出(KV)/发放优惠券(KV)/审批(KV)',
+    '变更后值以橙色（warning）标注，便于审计人员快速识别变化点',
+    '敏感字段（密码等）变更前后均显示 ***，不记录明文',
+    '关闭：点击 × 或遮罩关闭，返回列表保留筛选条件'
+  ]},
+  10: { title: '导出确认弹窗', desc: [
+    '类型：confirm 确认弹窗（design.md §5.8）',
+    '正常：文案「将导出当前筛选条件下共 N 条日志记录，导出结果可在「任务列表 - 下载任务」中查看」',
+    '大数据量（>10万条）：文案变为「当前筛选条件下共 N 条记录，导出较大可能需要较长时间，确认继续？」',
+    '点击确认导出：提交导出任务，Toast「导出任务已提交，请前往任务中心查看」（Toast 内「前往任务中心」可点击打开任务列表抽屉）',
+    '点击取消：关闭弹窗，不触发导出'
   ]}
 };
 
@@ -522,7 +817,487 @@ document.addEventListener('DOMContentLoaded', function() {
   // Recalculate on scroll (main content area) and resize
   document.getElementById('mainContent').addEventListener('scroll', renderAnnoBadges);
   window.addEventListener('resize', renderAnnoBadges);
+  // 操作日志页面初始化
+  if (typeof logInit === 'function') logInit();
 });
+</script>
+<!-- ================================================================
+     PAGE SCRIPT: 操作日志页面逻辑
+     PRD: PRD/系统设置/操作日志PRD.md
+     ================================================================ -->
+<script>
+/* ================================================================
+   操作日志页面 — mock 数据驱动 + 筛选/排序/分页/详情抽屉/导出
+   ================================================================ */
+(function(){
+  'use strict';
+
+  /* ===== 模块与类型枚举（PRD §4.2 / §4.3） ===== */
+  var MODULES = [
+    {v:'auth',           n:'账号登录'},
+    {v:'order_storage',  n:'行李寄存订单'},
+    {v:'order_delivery', n:'行李寄送订单'},
+    {v:'abnormal_ticket',n:'异常工单'},
+    {v:'cabinet_manage', n:'柜机管理'},
+    {v:'operation_config',n:'运营配置'},
+    {v:'coupon_manage',  n:'优惠券管理'},
+    {v:'member_manage',  n:'成员管理'},
+    {v:'role_manage',    n:'角色管理'},
+    {v:'system_setting', n:'系统设置'}
+  ];
+  var MODULE_MAP = {}; MODULES.forEach(function(m){ MODULE_MAP[m.v]=m.n; });
+
+  // 操作类型：v=值, n=展示名, modules=适用模块（'*'表示全部）
+  var OP_TYPES = [
+    {v:'login',         n:'登录',     modules:['auth']},
+    {v:'logout',        n:'登出',     modules:['auth']},
+    {v:'create',        n:'新增',     modules:'*'},
+    {v:'edit',          n:'编辑',     modules:'*'},
+    {v:'delete',        n:'删除',     modules:'*'},
+    {v:'status_change', n:'状态变更', modules:['order_storage','order_delivery','abnormal_ticket','coupon_manage','cabinet_manage','member_manage']},
+    {v:'import',        n:'导入',     modules:['member_manage','order_storage','order_delivery']},
+    {v:'export',        n:'导出',     modules:'*'},
+    {v:'config_change', n:'配置变更', modules:['operation_config','system_setting','coupon_manage']},
+    {v:'issue_coupon',  n:'发放优惠券',modules:['coupon_manage']},
+    {v:'approve',       n:'审批',     modules:['abnormal_ticket']},
+    {v:'assign',        n:'分配',     modules:['abnormal_ticket','member_manage']}
+  ];
+  var OP_MAP = {}; OP_TYPES.forEach(function(t){ OP_MAP[t.v]=t.n; });
+
+  /* ===== MOCK 数据：全覆盖 10 模块 + 12 操作类型 + 9 种详情形式 ===== */
+  // detail.type: edit(create表)/create(kv)/delete(kv)/status_change/login/import/export/issue_coupon/approve
+  var LOGS = [
+    {id:'L001', time:'2026-07-11 09:32:15', op:'张伟', ip:'192.168.1.1', module:'auth', type:'login', target:'192.168.1.1 / Chrome 126 / macOS', summary:'张伟 登录了后台管理系统（IP: 192.168.1.1）', detail:{type:'login', ip:'192.168.1.1', device:'Chrome 126 / macOS', result:'成功'}},
+    {id:'L002', time:'2026-07-11 09:35:42', op:'张伟', ip:'192.168.1.1', module:'coupon_manage', type:'edit', target:'新用户立减5元', summary:'张伟 编辑了 优惠券【新用户立减5元】（修改了发放总量、状态）', detail:{type:'edit', rows:[{f:'发放总量', b:'100', a:'200'},{f:'状态', b:'停用', a:'启用'}]}},
+    {id:'L003', time:'2026-07-11 10:12:08', op:'李四', ip:'10.0.12.33', module:'order_storage', type:'status_change', target:'LS202507100001', summary:'李四 变更了 订单【LS202507100001】状态（寄存中 → 已完成）', detail:{type:'status_change', before:'寄存中', after:'已完成'}},
+    {id:'L004', time:'2026-07-11 10:28:51', op:'王五', ip:'10.0.12.55', module:'abnormal_ticket', type:'approve', target:'AW202507100001', summary:'王五 审批了 工单【AW202507100001】（通过）', detail:{type:'approve', ticketNo:'AW202507100001', action:'通过', opinion:'情况属实，同意退款'}},
+    {id:'L005', time:'2026-07-11 11:05:33', op:'张伟', ip:'192.168.1.1', module:'member_manage', type:'import', target:'成员数据_20260711.xlsx', summary:'张伟 导入了 成员数据（共100条，成功98条，失败2条）', detail:{type:'import', file:'成员数据_20260711.xlsx', total:100, ok:98, fail:2, failReason:'第3行手机号格式错误；第57行部门不存在'}},
+    {id:'L006', time:'2026-07-11 11:42:19', op:'赵六', ip:'10.0.12.66', module:'cabinet_manage', type:'create', target:'龙翔桥地铁站A口·柜机#03', summary:'赵六 新增了 柜机【龙翔桥地铁站A口·柜机#03】', detail:{type:'create', rows:[{f:'柜机名称', v:'龙翔桥地铁站A口·柜机#03'},{f:'所在网点', v:'龙翔桥地铁站A口'},{f:'柜机类型', v:'大柜×10/小柜×20'},{f:'状态', v:'启用'}]}},
+    {id:'L007', time:'2026-07-11 13:15:26', op:'李四', ip:'10.0.12.33', module:'order_delivery', type:'export', target:'行李寄送订单', summary:'李四 导出了 行李寄送订单数据（共500条）', detail:{type:'export', module:'行李寄送订单', filter:'时间范围 2026-07-01 至 2026-07-10，订单状态=已完成', count:500}},
+    {id:'L008', time:'2026-07-11 14:08:47', op:'张伟', ip:'192.168.1.1', module:'operation_config', type:'config_change', target:'计费规则', summary:'张伟 修改了 计费规则（短租小柜单价 ¥2/h → ¥2.5/h）', detail:{type:'edit', rows:[{f:'短租小柜单价', b:'¥2/h', a:'¥2.5/h'},{f:'短租大柜单价', b:'¥3/h', a:'¥3.5/h'}]}},
+    {id:'L009', time:'2026-07-11 14:30:12', op:'王五', ip:'10.0.12.55', module:'coupon_manage', type:'issue_coupon', target:'新用户立减5元', summary:'张伟 发放了 优惠券【新用户立减5元】给 50 位用户', detail:{type:'issue_coupon', coupon:'新用户立减5元', method:'手动发放', users:50, perUser:1, remark:'客服补偿'}},
+    {id:'L010', time:'2026-07-11 15:02:38', op:'钱七', ip:'10.0.12.77', module:'role_manage', type:'delete', target:'BD负责人', summary:'钱七 删除了 角色【BD负责人】', detail:{type:'delete', rows:[{f:'角色名称', v:'BD负责人'},{f:'角色描述', v:'负责商务拓展业务'},{f:'成员数', v:'5'},{f:'创建时间', v:'2026-06-15 10:00:00'}]}},
+    {id:'L011', time:'2026-07-11 15:20:55', op:'李四', ip:'10.0.12.33', module:'abnormal_ticket', type:'assign', target:'AW202507100002', summary:'李四 分配了 工单【AW202507100002】给 王五', detail:{type:'edit', rows:[{f:'处理人', b:'赵六', a:'王五'},{f:'工单状态', b:'待分配', a:'处理中'}]}},
+    {id:'L012', time:'2026-07-11 15:45:03', op:'张伟', ip:'192.168.1.1', module:'member_manage', type:'edit', target:'李四（138****8888）', summary:'张伟 编辑了 成员【李四】（修改了角色、所属部门）', detail:{type:'edit', rows:[{f:'角色', b:'普通成员', a:'运营主管'},{f:'所属部门', b:'客服组', a:'运营组'},{f:'手机号', b:'138****8888', a:'139****6666'}]}},
+    {id:'L013', time:'2026-07-11 16:10:28', op:'赵六', ip:'10.0.12.66', module:'cabinet_manage', type:'status_change', target:'湖滨银泰店·柜机#05', summary:'赵六 变更了 柜机【湖滨银泰店·柜机#05】状态（启用 → 停用）', detail:{type:'status_change', before:'启用', after:'停用'}},
+    {id:'L014', time:'2026-07-11 16:30:41', op:'王五', ip:'10.0.12.55', module:'system_setting', type:'config_change', target:'系统参数', summary:'王五 修改了 系统参数（会话超时时间 30min → 60min）', detail:{type:'edit', rows:[{f:'会话超时时间', b:'30min', a:'60min'}]}},
+    {id:'L015', time:'2026-07-11 17:00:15', op:'张伟', ip:'192.168.1.1', module:'coupon_manage', type:'create', target:'夏日满100减20', summary:'张伟 新增了 优惠券【夏日满100减20】', detail:{type:'create', rows:[{f:'券名称', v:'夏日满100减20'},{f:'券种', v:'立减券'},{f:'面额', v:'¥20.00'},{f:'使用门槛', v:'满¥100可用'},{f:'适用范围', v:'通用'},{f:'有效期', v:'领取后30天'},{f:'发放总量', v:'500'},{f:'状态', v:'启用'}]}},
+    {id:'L016', time:'2026-07-11 17:22:36', op:'李四', ip:'10.0.12.33', module:'order_storage', type:'edit', target:'LS202507090088', summary:'李四 编辑了 订单【LS202507090088】（修改了取件时间）', detail:{type:'edit', rows:[{f:'预约取件时间', b:'2026-07-09 18:00', a:'2026-07-09 20:00'},{f:'备注', b:'—', a:'客户要求晚间取件'}]}},
+    {id:'L017', time:'2026-07-11 17:45:52', op:'钱七', ip:'10.0.12.77', module:'member_manage', type:'status_change', target:'孙八（137****2222）', summary:'钱七 变更了 成员【孙八】状态（启用 → 禁用）', detail:{type:'status_change', before:'启用', after:'禁用'}},
+    {id:'L018', time:'2026-07-11 18:00:00', op:'张伟', ip:'192.168.1.1', module:'auth', type:'logout', target:'192.168.1.1 / Chrome 126 / macOS', summary:'张伟 登出了后台管理系统', detail:{type:'login', ip:'192.168.1.1', device:'Chrome 126 / macOS', result:'主动登出'}},
+    {id:'L019', time:'2026-07-10 22:14:33', op:'王五', ip:'10.0.12.55', module:'abnormal_ticket', type:'create', target:'AW202507100003', summary:'王五 新建了 工单【AW202507100003】', detail:{type:'create', rows:[{f:'工单号', v:'AW202507100003'},{f:'工单类型', v:'退款工单'},{f:'关联订单', v:'LS202507090077'},{f:'问题描述', v:'用户反馈柜机无法取件'},{f:'优先级', v:'高'},{f:'状态', v:'待处理'}]}},
+    {id:'L020', time:'2026-07-10 20:30:18', op:'赵六', ip:'10.0.12.66', module:'role_manage', type:'edit', target:'运营主管', summary:'赵六 编辑了 角色【运营主管】（修改了功能权限）', detail:{type:'edit', rows:[{f:'功能权限', b:'订单管理、异常工单', a:'订单管理、异常工单、数据概览'},{f:'数据权限', b:'本部门', a:'本部门及下级部门'}]}},
+    {id:'L021', time:'2026-07-10 19:05:42', op:'李四', ip:'10.0.12.33', module:'order_delivery', type:'status_change', target:'LD202507090055', summary:'李四 变更了 订单【LD202507090055】状态（运输中 → 已送达）', detail:{type:'status_change', before:'运输中', after:'已送达'}},
+    {id:'L022', time:'2026-07-10 18:20:09', op:'张伟', ip:'192.168.1.1', module:'coupon_manage', type:'status_change', target:'夏日满100减20', summary:'张伟 变更了 优惠券【夏日满100减20】状态（启用 → 停用）', detail:{type:'status_change', before:'启用', after:'停用'}},
+    {id:'L023', time:'2026-07-10 17:42:55', op:'钱七', ip:'10.0.12.77', module:'member_manage', type:'delete', target:'周九（136****3333）', summary:'钱七 删除了 成员【周九】', detail:{type:'delete', rows:[{f:'成员姓名', v:'周九'},{f:'手机号', v:'136****3333'},{f:'所属部门', v:'客服组'},{f:'角色', v:'客服专员'},{f:'状态', v:'禁用'}]}},
+    {id:'L024', time:'2026-07-10 16:15:30', op:'王五', ip:'10.0.12.55', module:'cabinet_manage', type:'edit', target:'湖滨银泰店·柜机#01', summary:'王五 编辑了 柜机【湖滨银泰店·柜机#01】（修改了柜机名称）', detail:{type:'edit', rows:[{f:'柜机名称', b:'湖滨银泰#01', a:'湖滨银泰店·柜机#01'}]}},
+    {id:'L025', time:'2026-07-10 15:00:12', op:'张伟', ip:'192.168.1.1', module:'operation_config', type:'config_change', target:'营业时间', summary:'张伟 修改了 营业时间（07:00-22:00 → 06:30-23:00）', detail:{type:'edit', rows:[{f:'开始时间', b:'07:00', a:'06:30'},{f:'结束时间', b:'22:00', a:'23:00'}]}}
+  ];
+
+  /* ===== 状态 ===== */
+  var members = ['张伟','李四','王五','赵六','钱七'];
+  var sortDir = 'desc';           // 'desc' | 'asc'
+  var appliedFilter = {from:'',to:'',op:'',module:'',type:'',target:''};
+  var page = 1, pageSize = 20;
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  /* ===== 初始化下拉 ===== */
+  function initSelects(){
+    // 操作模块
+    var mOpt = MODULES.map(function(m){ return '<option value="'+m.v+'">'+esc(m.n)+'</option>'; }).join('');
+    $('fModule').innerHTML = '<option value="">全部</option>' + mOpt;
+    // 操作类型（初始全部）
+    renderTypeSelect('');
+    // 操作人 datalist
+    $('operatorList').innerHTML = members.map(function(n){ return '<option value="'+esc(n)+'">'; }).join('');
+    // 模块联动
+    $('fModule').addEventListener('change', function(){
+      renderTypeSelect(this.value);
+    });
+  }
+  function renderTypeSelect(moduleVal){
+    var types = OP_TYPES.filter(function(t){
+      if (!moduleVal) return true;
+      if (t.modules === '*') return true;
+      return t.modules.indexOf(moduleVal) > -1;
+    });
+    var html = '<option value="">全部</option>';
+    types.forEach(function(t){ html += '<option value="'+t.v+'">'+esc(t.n)+'</option>'; });
+    var cur = $('fType').value;
+    $('fType').innerHTML = html;
+    // 保留已选值（若仍在新列表中）
+    if (cur && types.some(function(t){ return t.v === cur; })) $('fType').value = cur;
+  }
+
+  /* ===== 默认近 7 天 ===== */
+  function setDefaultDate(){
+    var today = new Date('2026-07-11');
+    var from = new Date(today.getTime() - 6*24*3600*1000);
+    $('fDateFrom').value = fmtDate(from);
+    $('fDateTo').value = fmtDate(today);
+    // 切换为 date 类型以显示值
+    $('fDateFrom').type = 'date'; $('fDateTo').type = 'date';
+  }
+  function fmtDate(d){
+    var y = d.getFullYear(), m = ('0'+(d.getMonth()+1)).slice(-2), day = ('0'+d.getDate()).slice(-2);
+    return y+'-'+m+'-'+day;
+  }
+
+  /* ===== 筛选 ===== */
+  function readFilter(){
+    return {
+      from: $('fDateFrom').value,
+      to:   $('fDateTo').value,
+      op:   $('fOperator').value.trim(),
+      module: $('fModule').value,
+      type: $('fType').value,
+      target: $('fTarget').value.trim()
+    };
+  }
+  function filtered(){
+    var f = appliedFilter;
+    return LOGS.filter(function(l){
+      var d = l.time.slice(0,10);
+      if (f.from && d < f.from) return false;
+      if (f.to && d > f.to) return false;
+      if (f.op && l.op.indexOf(f.op) === -1) return false;
+      if (f.module && l.module !== f.module) return false;
+      if (f.type && l.type !== f.type) return false;
+      if (f.target){
+        var hay = l.target + ' ' + l.summary;
+        if (hay.indexOf(f.target) === -1) return false;
+      }
+      return true;
+    }).sort(function(a,b){
+      return sortDir === 'desc' ? (a.time < b.time ? 1 : -1) : (a.time > b.time ? 1 : -1);
+    });
+  }
+
+  /* ===== 渲染列表 ===== */
+  function render(){
+    var list = filtered();
+    var totalPages = Math.max(1, Math.ceil(list.length / pageSize));
+    if (page > totalPages) page = totalPages;
+    var rows = list.slice((page-1)*pageSize, page*pageSize);
+
+    $('logTbody').innerHTML = rows.map(function(l, i){
+      return '<tr onclick="openLogDetail(\''+l.id+'\')">' +
+        '<td class="font-mono" style="font-size:12px;">'+esc(l.time)+'</td>' +
+        '<td>'+esc(l.op)+'</td>' +
+        '<td>'+esc(MODULE_MAP[l.module]||l.module)+'</td>' +
+        '<td><span class="op-badge '+l.type+'">'+esc(OP_MAP[l.type]||l.type)+'</span></td>' +
+        '<td class="tk-ellipsis" title="'+esc(l.target)+'" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(l.target)+'</td>' +
+        '<td class="summary-cell" data-summary="'+esc(l.summary)+'">'+esc(l.summary)+'</td>' +
+        '<td><span class="action-link" onclick="event.stopPropagation();openLogDetail(\''+l.id+'\')">查看详情</span></td>' +
+      '</tr>';
+    }).join('');
+
+    // 空状态
+    $('logEmpty').style.display = rows.length === 0 ? 'flex' : 'none';
+
+    renderPager(list.length, totalPages);
+    bindSummaryHover();
+    if (window.lucide) lucide.createIcons();
+    if (typeof window.renderAnnoBadges === 'function') setTimeout(window.renderAnnoBadges, 50);
+  }
+
+  /* ===== 分页 ===== */
+  function pageList(totalPages){
+    if (totalPages <= 7){ var a=[]; for (var i=1;i<=totalPages;i++) a.push(i); return a; }
+    var pages = [1];
+    if (page > 3) pages.push('…');
+    for (var p = Math.max(2, page-1); p <= Math.min(totalPages-1, page+1); p++) pages.push(p);
+    if (page < totalPages - 2) pages.push('…');
+    pages.push(totalPages);
+    return pages;
+  }
+  function renderPager(total, totalPages){
+    var html = '<div class="pg-nav">';
+    html += '<button class="pg-btn" '+(page<=1?'disabled':'')+' onclick="logGoPage('+(page-1)+')">‹</button>';
+    pageList(totalPages).forEach(function(p){
+      if (p === '…'){ html += '<span class="pg-ellipsis">…</span>'; return; }
+      html += '<button class="pg-btn'+(p===page?' pg-current':'')+'" onclick="logGoPage('+p+')">'+p+'</button>';
+    });
+    html += '<button class="pg-btn" '+(page>=totalPages?'disabled':'')+' onclick="logGoPage('+(page+1)+')">›</button>';
+    html += '</div>';
+    html += '<span class="pg-select-wrap"><select class="pg-select" onchange="logChangePageSize(this.value)">';
+    [20,50,100].forEach(function(s){ html += '<option value="'+s+'"'+(s===pageSize?' selected':'')+'>'+s+'条/页</option>'; });
+    html += '</select></span>';
+    html += '<span class="flex items-center gap-1">跳至 <input class="pg-jump" id="logPgJump" value="1" onkeydown="if(event.key===\'Enter\')logJumpPage()"> 页</span>';
+    html += '<span class="pg-stats">共'+total+'条记录　第'+page+'/'+totalPages+'页</span>';
+    $('logPager').innerHTML = html;
+  }
+
+  /* ===== 摘要 hover Tooltip ===== */
+  function bindSummaryHover(){
+    var tooltip = $('summaryTooltip');
+    document.querySelectorAll('.summary-cell').forEach(function(td){
+      td.addEventListener('mouseenter', function(){
+        var text = this.getAttribute('data-summary');
+        if (this.scrollWidth > this.clientWidth + 2){  // 仅在省略时展示
+          tooltip.textContent = text;
+          tooltip.style.display = 'block';
+          var rect = this.getBoundingClientRect();
+          tooltip.style.left = rect.left + 'px';
+          tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
+          // 防溢出顶部
+          if (parseInt(tooltip.style.top) < 0) tooltip.style.top = (rect.bottom + 8) + 'px';
+        }
+      });
+      td.addEventListener('mouseleave', function(){ tooltip.style.display = 'none'; });
+    });
+  }
+
+  /* ===== 排序 ===== */
+  window.toggleSort = function(){
+    sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+    var ico = $('sortIco');
+    ico.className = 'sort-ico ' + sortDir;
+    page = 1;
+    render();
+  };
+
+  /* ===== 筛选 / 重置 ===== */
+  window.logFilter = function(){
+    appliedFilter = readFilter();
+    page = 1;
+    render();
+  };
+  window.logReset = function(){
+    setDefaultDate();             // 操作时间恢复近 7 天
+    $('fOperator').value = '';
+    $('fModule').value = '';
+    renderTypeSelect('');
+    $('fType').value = '';
+    $('fTarget').value = '';
+    appliedFilter = readFilter(); // 应用默认值（近7天 + 全部）
+    page = 1;
+    render();
+  };
+
+  /* ===== 分页交互 ===== */
+  window.logGoPage = function(p){
+    var totalPages = Math.max(1, Math.ceil(filtered().length / pageSize));
+    if (p < 1 || p > totalPages) return;
+    page = p; render();
+  };
+  window.logChangePageSize = function(v){
+    pageSize = parseInt(v, 10); page = 1; render();
+  };
+  window.logJumpPage = function(){
+    var v = parseInt($('logPgJump').value, 10);
+    var totalPages = Math.max(1, Math.ceil(filtered().length / pageSize));
+    if (isNaN(v) || v < 1 || v > totalPages){ showToast('请输入有效页码'); return; }
+    page = v; $('logPgJump').value = '1'; render();
+  };
+
+  /* ===== 详情抽屉 ===== */
+  window.openLogDetail = function(id){
+    var l = LOGS.filter(function(x){ return x.id === id; })[0];
+    if (!l) return;
+    $('logDrawerBody').innerHTML = renderDetail(l);
+    $('logDrawerOverlay').classList.add('open');
+    if (window.lucide) lucide.createIcons();
+    // 标注作用域：限定在抽屉面板内
+    if (typeof window.pushAnnoScope === 'function') pushAnnoScope($('logDrawerPanel'));
+    setTimeout(function(){ if (typeof window.renderAnnoBadges === 'function') window.renderAnnoBadges(); }, 50);
+  };
+  window.closeLogDrawer = function(){
+    $('logDrawerOverlay').classList.remove('open');
+    if (typeof window.popAnnoScope === 'function') popAnnoScope($('logDrawerPanel'));
+  };
+
+  function renderDetail(l){
+    var html = '';
+    // 基本信息
+    html += '<div class="log-section-title">基本信息</div>';
+    html += '<div class="log-info-grid" style="margin-bottom:32px;">';
+    html += infoItem('操作时间', '<span class="font-mono">'+esc(l.time)+'</span>');
+    html += infoItem('操作人', esc(l.op));
+    html += infoItem('操作 IP', '<span class="font-mono">'+esc(l.ip)+'</span>');
+    html += infoItem('操作模块', esc(MODULE_MAP[l.module]||l.module));
+    html += infoItem('操作类型', '<span class="op-badge '+l.type+'">'+esc(OP_MAP[l.type]||l.type)+'</span>');
+    html += infoItem('操作对象', esc(l.target));
+    html += '</div>';
+
+    // 变更详情
+    html += '<div class="log-section-title">变更详情</div>';
+    html += '<div>' + renderChangeDetail(l.detail) + '</div>';
+    return html;
+  }
+  function infoItem(label, value){
+    return '<div class="log-info-item"><div class="log-info-label">'+esc(label)+'</div><div class="log-info-value">'+value+'</div></div>';
+  }
+
+  /* 9 种变更详情展示形式（PRD §7.4） */
+  function renderChangeDetail(d){
+    if (!d) return '<div class="text-ink-muted text-[13px]">无变更详情</div>';
+    // ① 编辑 / 配置变更：三列对比表
+    if (d.type === 'edit'){
+      var rows = d.rows.map(function(r){
+        return '<tr><td class="col-field">'+esc(r.f)+'</td>'+
+          '<td>'+(r.b === undefined || r.b === '' ? '—' : esc(r.b))+'</td>'+
+          '<td class="change-after">'+(r.a === undefined || r.a === '' ? '—' : esc(r.a))+'</td></tr>';
+      }).join('');
+      return '<table class="change-table"><thead><tr><th class="col-field">字段名称</th><th>变更前</th><th>变更后</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    }
+    // ② 新增：字段列表
+    if (d.type === 'create'){
+      return kvTable(d.rows);
+    }
+    // ③ 删除：删除前数据快照
+    if (d.type === 'delete'){
+      return kvTable(d.rows);
+    }
+    // ④ 状态变更：前 → 后
+    if (d.type === 'status_change'){
+      return '<div class="change-arrow">'+
+        '<span class="change-state before">变更前：['+esc(d.before)+']</span>'+
+        '<i data-lucide="arrow-right" class="w-[16px] h-[16px] text-ink-muted"></i>'+
+        '<span class="change-state after">变更后：['+esc(d.after)+']</span>'+
+      '</div>';
+    }
+    // ⑤ 登录 / 登出
+    if (d.type === 'login'){
+      return kvList([
+        {l:'登录 IP', v:d.ip, mono:true},
+        {l:'登录设备', v:d.device},
+        {l:'登录结果', v:d.result}
+      ]);
+    }
+    // ⑥ 导入
+    if (d.type === 'import'){
+      return kvList([
+        {l:'导入文件', v:d.file, mono:true},
+        {l:'总记录数', v:d.total+' 条', mono:true},
+        {l:'成功', v:'<span style="color:#0FC060;">'+d.ok+' 条</span>', mono:true},
+        {l:'失败', v:'<span style="color:#D9001B;font-weight:600;">'+d.fail+' 条</span>', mono:true},
+        {l:'失败原因摘要', v:d.failReason}
+      ]);
+    }
+    // ⑦ 导出
+    if (d.type === 'export'){
+      return kvList([
+        {l:'导出模块', v:d.module},
+        {l:'筛选条件', v:d.filter},
+        {l:'导出记录数', v:d.count+' 条', mono:true}
+      ]);
+    }
+    // ⑧ 发放优惠券
+    if (d.type === 'issue_coupon'){
+      return kvList([
+        {l:'券名称', v:d.coupon},
+        {l:'发放方式', v:d.method},
+        {l:'发放用户数', v:d.users+' 人', mono:true},
+        {l:'每人数量', v:d.perUser+' 张', mono:true},
+        {l:'发放备注', v:d.remark}
+      ]);
+    }
+    // ⑨ 审批
+    if (d.type === 'approve'){
+      return kvList([
+        {l:'工单号', v:d.ticketNo, mono:true},
+        {l:'审批动作', v:'<span style="color:#0FC060;font-weight:500;">'+esc(d.action)+'</span>'},
+        {l:'审批意见', v:d.opinion}
+      ]);
+    }
+    return '<div class="text-ink-muted text-[13px]">无变更详情</div>';
+  }
+  // KV 表格形式（新增/删除）
+  function kvTable(rows){
+    var html = '<table class="change-table"><thead><tr><th class="col-field">字段名称</th><th>值</th></tr></thead><tbody>';
+    html += rows.map(function(r){
+      return '<tr><td class="col-field">'+esc(r.f)+'</td><td>'+(r.v === undefined || r.v === '' ? '—' : esc(r.v))+'</td></tr>';
+    }).join('');
+    html += '</tbody></table>';
+    return html;
+  }
+  // KV 列表形式（登录/导入/导出/发放/审批）
+  function kvList(items){
+    var html = '<div class="kv-list">';
+    html += items.map(function(it){
+      return '<div class="kv-row"><div class="kv-label">'+esc(it.l)+'</div><div class="kv-value'+(it.mono?' mono':'')+'">'+it.v+'</div></div>';
+    }).join('');
+    html += '</div>';
+    return html;
+  }
+
+  /* ===== 导出确认弹窗 ===== */
+  window.openExportDialog = function(){
+    var count = filtered().length;
+    var dialog = $('exportDialog');
+    var title = $('exportDialogTitle');
+    var sub = $('exportDialogSub');
+    if (count > 100000){
+      // 大数据量警告（PRD §12）
+      title.textContent = '确认导出大量数据';
+      sub.innerHTML = '当前筛选条件下共 <span class="font-mono font-semibold" style="color:#E7772D;">'+count.toLocaleString()+'</span> 条记录，导出较大可能需要较长时间，确认继续？';
+    } else {
+      title.textContent = '确认导出日志';
+      sub.innerHTML = '将导出当前筛选条件下共 <span class="font-mono font-semibold">'+count.toLocaleString()+'</span> 条日志记录，导出结果可在「任务列表 - 下载任务」中查看。';
+    }
+    dialog.classList.add('open');
+    // 标注作用域
+    if (typeof window.pushAnnoScope === 'function'){
+      var box = dialog.querySelector('.log-dialog-box');
+      pushAnnoScope(box);
+    }
+  };
+  window.closeExportDialog = function(){
+    var dialog = $('exportDialog');
+    dialog.classList.remove('open');
+    if (typeof window.popAnnoScope === 'function'){
+      var box = dialog.querySelector('.log-dialog-box');
+      popAnnoScope(box);
+    }
+  };
+  window.confirmExport = function(){
+    closeExportDialog();
+    showToast('导出任务已提交，请前往任务中心查看', true);
+  };
+
+  /* ===== Toast（支持可点击链接） ===== */
+  var toastTimer = null;
+  function showToast(msg, withLink){
+    var el = $('logToast');
+    if (withLink){
+      el.innerHTML = '<span>'+esc(msg)+'</span><span class="toast-link" onclick="openTaskDrawer(\'download\');hideLogToast();">前往任务中心</span>';
+    } else {
+      el.textContent = msg;
+    }
+    el.style.opacity = '1';
+    el.style.pointerEvents = withLink ? 'auto' : 'none';
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.style.opacity = '0'; el.style.pointerEvents='none'; }, withLink ? 5000 : 2200);
+  }
+  window.hideLogToast = function(){
+    var el = $('logToast');
+    el.style.opacity = '0'; el.style.pointerEvents = 'none';
+    if (toastTimer) clearTimeout(toastTimer);
+  };
+
+  /* ===== ESC 关闭抽屉/弹窗 ===== */
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Escape') return;
+    if ($('exportDialog').classList.contains('open')){ closeExportDialog(); return; }
+    if ($('logDrawerOverlay').classList.contains('open')){ closeLogDrawer(); return; }
+  });
+
+  /* ===== 抽屉滚动时重算标注 ===== */
+  $('logDrawerBody').addEventListener('scroll', function(){
+    if (typeof window.renderAnnoBadges === 'function') window.renderAnnoBadges();
+  });
+
+  /* ===== INIT ===== */
+  window.logInit = function(){
+    initSelects();
+    setDefaultDate();
+    appliedFilter = readFilter();  // 应用默认近7天
+    render();
+  };
+})();
 </script>
 <!-- ================================================================
      GLOBAL COMPONENT: 任务列表抽屉（顶栏入口，全站共享）
@@ -665,7 +1440,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <footer class="tk-footer">
       <div class="tk-pg-nav" id="tkPgNav" data-tk-anno="pager"></div>
       <span class="tk-pg-select-wrap"><select class="tk-pg-select" id="tkPgSize" onchange="tkChangePageSize()"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
-      <span class="flex items-center gap-1">跳至 <input class="tk-pg-jump" id="tkPgJump" onkeydown="if(event.key==='Enter')tkJumpPage()"> 页</span>
+      <span class="flex items-center gap-1">跳至 <input class="tk-pg-jump" id="tkPgJump" value="1" onkeydown="if(event.key==='Enter')tkJumpPage()"> 页</span>
       <span class="tk-pg-stats" id="tkPgStats"></span>
     </footer>
   </aside>
@@ -927,7 +1702,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var v = parseInt($('tkPgJump').value, 10);
     var totalPages = Math.max(1, Math.ceil(tkFiltered().length / tkPageSize));
     if (isNaN(v) || v < 1 || v > totalPages) { tkToast('请输入有效页码'); return; }  // PRD §9
-    tkPage = v; $('tkPgJump').value = ''; tkRender();
+    tkPage = v; $('tkPgJump').value = '1'; tkRender();
   };
 
   /* ===== 下载行为（PRD §12.2） ===== */
@@ -1193,7 +1968,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {key:'edit',    title:'编辑账号信息',            desc:['触发：点击编辑图标打开「修改账号信息」弹窗（与账号信息页弹窗一致）','响应：打开弹窗时气泡卡片自动收起','保存成功后气泡内名称/角色实时同步']},
     {key:'roles',   title:'所属角色标签',            desc:['样式：蓝色文字 + 浅蓝背景标签（primary / primary-bg），居中排列','规则：最多显示前 3 个角色，超过 3 个显示「+n」','「+n」hover 通过 title 提示展示剩余角色名称']},
     {key:'account', title:'账号信息入口',            desc:['结构：图标 + 入口名称（居左）+ >（居右），hover 行高亮','触发：点击跳转 账号信息.html']},
-    {key:'log',     title:'操作日志入口',            desc:['结构：图标 + 入口名称（居左）+ >（居右），hover 行高亮','触发：点击跳转 操作日志.html（暂未开发，当前为建设中占位页）']},
+    {key:'log',     title:'操作日志入口',            desc:['结构：图标 + 入口名称（居左）+ >（居右），hover 行高亮','触发：点击跳转 操作日志.html（记录全员操作流水，支持筛选/导出/详情查看）']},
     {key:'logout',  title:'退出登录',                desc:['结构：图标 + 入口名称（居左）+ >（居右），上方分割线与常规操作区隔','触发：点击跳转 登录.html（原型内直接跳转，不做二次确认）']},
     {key:'modal',   title:'修改账号信息弹窗',        desc:['字段：成员名称（必填 2-30 字）、所属角色（下拉单选）、绑定手机号（11 位校验）','规则：与 账号信息.html 修改弹窗完全一致；手机号修改后原号自动解绑','保存成功 Toast 提示，气泡卡片与账号信息页数据双向同步','标注作用域：弹窗打开时仅显示弹窗内标注（claude.md §7.9）']}
   ];

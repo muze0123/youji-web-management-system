@@ -807,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <footer class="tk-footer">
       <div class="tk-pg-nav" id="tkPgNav" data-tk-anno="pager"></div>
       <span class="tk-pg-select-wrap"><select class="tk-pg-select" id="tkPgSize" onchange="tkChangePageSize()"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
-      <span class="flex items-center gap-1">跳至 <input class="tk-pg-jump" id="tkPgJump" onkeydown="if(event.key==='Enter')tkJumpPage()"> 页</span>
+      <span class="flex items-center gap-1">跳至 <input class="tk-pg-jump" id="tkPgJump" value="1" onkeydown="if(event.key==='Enter')tkJumpPage()"> 页</span>
       <span class="tk-pg-stats" id="tkPgStats"></span>
     </footer>
   </aside>
@@ -1069,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var v = parseInt($('tkPgJump').value, 10);
     var totalPages = Math.max(1, Math.ceil(tkFiltered().length / tkPageSize));
     if (isNaN(v) || v < 1 || v > totalPages) { tkToast('请输入有效页码'); return; }  // PRD §9
-    tkPage = v; $('tkPgJump').value = ''; tkRender();
+    tkPage = v; $('tkPgJump').value = '1'; tkRender();
   };
 
   /* ===== 下载行为（PRD §12.2） ===== */

@@ -214,7 +214,7 @@
           <div class="flex items-center justify-end flex-wrap gap-4 pt-5" id="destPagination">
             <div class="pg-nav" id="destPgNav"></div>
             <span class="pg-select-wrap"><select class="pg-select" id="destPageSize" onchange="destChangePageSize()"><option value="5">5条/页</option><option value="10" selected>10条/页</option><option value="20">20条/页</option></select></span>
-            <span class="flex items-center gap-1 text-[12px] text-ink-body">跳至 <input class="pg-jump" id="destPgJump" onkeydown="if(event.key==='Enter')destJumpPage()"> 页</span>
+            <span class="flex items-center gap-1 text-[12px] text-ink-body">跳至 <input class="pg-jump" id="destPgJump" value="1" onkeydown="if(event.key==='Enter')destJumpPage()"> 页</span>
             <span class="pg-stats" id="destPgStats"></span>
           </div>
         </div>
@@ -359,7 +359,7 @@ function destRenderPagination(total) {
 }
 function destGoPage(p) { var typeF=document.getElementById('destTypeFilter').value,statusF=document.getElementById('destStatusFilter').value,search=document.getElementById('destSearch').value.toLowerCase(); var filtered=destinations.filter(function(d){if(typeF&&d.type!==typeF)return false;if(statusF==='enabled'&&!d.enabled)return false;if(statusF==='disabled'&&d.enabled)return false;if(search&&d.name.toLowerCase().indexOf(search)===-1)return false;return true;}); var t=Math.ceil(filtered.length/destPageSize); if(p<1||p>t)return; destCurrentPage=p; renderDestTable(); }
 function destChangePageSize() { destPageSize = parseInt(document.getElementById('destPageSize').value); destCurrentPage=1; renderDestTable(); }
-function destJumpPage() { var p=parseInt(document.getElementById('destPgJump').value); if(isNaN(p)||p<1){alert('请输入有效页码');return;} var typeF=document.getElementById('destTypeFilter').value,statusF=document.getElementById('destStatusFilter').value,search=document.getElementById('destSearch').value.toLowerCase(); var filtered=destinations.filter(function(d){if(typeF&&d.type!==typeF)return false;if(statusF==='enabled'&&!d.enabled)return false;if(statusF==='disabled'&&d.enabled)return false;if(search&&d.name.toLowerCase().indexOf(search)===-1)return false;return true;}); var t=Math.ceil(filtered.length/destPageSize); if(p>t){alert('请输入有效页码（最大'+t+'）');return;} destCurrentPage=p; renderDestTable(); document.getElementById('destPgJump').value=''; }
+function destJumpPage() { var p=parseInt(document.getElementById('destPgJump').value); if(isNaN(p)||p<1){alert('请输入有效页码');return;} var typeF=document.getElementById('destTypeFilter').value,statusF=document.getElementById('destStatusFilter').value,search=document.getElementById('destSearch').value.toLowerCase(); var filtered=destinations.filter(function(d){if(typeF&&d.type!==typeF)return false;if(statusF==='enabled'&&!d.enabled)return false;if(statusF==='disabled'&&d.enabled)return false;if(search&&d.name.toLowerCase().indexOf(search)===-1)return false;return true;}); var t=Math.ceil(filtered.length/destPageSize); if(p>t){alert('请输入有效页码（最大'+t+'）');return;} destCurrentPage=p; renderDestTable(); document.getElementById('destPgJump').value='1'; }
 
 function resetDestFilters() {
   document.getElementById('destTypeFilter').value = '';
@@ -658,7 +658,7 @@ document.addEventListener('DOMContentLoaded',function(){
     <footer class="tk-footer">
       <div class="tk-pg-nav" id="tkPgNav" data-tk-anno="pager"></div>
       <span class="tk-pg-select-wrap"><select class="tk-pg-select" id="tkPgSize" onchange="tkChangePageSize()"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option></select></span>
-      <span class="flex items-center gap-1">跳至 <input class="tk-pg-jump" id="tkPgJump" onkeydown="if(event.key==='Enter')tkJumpPage()"> 页</span>
+      <span class="flex items-center gap-1">跳至 <input class="tk-pg-jump" id="tkPgJump" value="1" onkeydown="if(event.key==='Enter')tkJumpPage()"> 页</span>
       <span class="tk-pg-stats" id="tkPgStats"></span>
     </footer>
   </aside>
@@ -920,7 +920,7 @@ document.addEventListener('DOMContentLoaded',function(){
     var v = parseInt($('tkPgJump').value, 10);
     var totalPages = Math.max(1, Math.ceil(tkFiltered().length / tkPageSize));
     if (isNaN(v) || v < 1 || v > totalPages) { tkToast('请输入有效页码'); return; }  // PRD §9
-    tkPage = v; $('tkPgJump').value = ''; tkRender();
+    tkPage = v; $('tkPgJump').value = '1'; tkRender();
   };
 
   /* ===== 下载行为（PRD §12.2） ===== */

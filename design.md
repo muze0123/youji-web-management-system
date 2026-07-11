@@ -271,7 +271,7 @@
 |------|------|------|
 | 左 | 页码导航 `#pg-nav` | `display:flex;gap:4px` — `‹` + 页码按钮 + 省略号 `…` + `›` |
 | 中 | 条/页选择 | `.pg-select-wrap` 包裹 `<select>`，`::after` 自定义下拉箭头 |
-| 右 | 跳页 + 统计 | 跳至 `[input]` 页 + `共 N 条记录　第 a/b 页` |
+| 右 | 跳页 + 统计 | 跳至 `[input(value=1)]` 页 + `共 N 条记录　第 a/b 页` |
 
 **页码按钮 `.pg-btn`**：`min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center`
 - hover（非当前页、非禁用）：`color:primary;border-color:primary`
@@ -286,6 +286,7 @@
 
 **跳页输入框 `.pg-jump-input`**：`font:12px inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none`
 - focus：`border-color:primary;box-shadow:0 0 0 2px rgba(0,102,255,.12)`
+- **默认值**：`value="1"`，输入框始终不为空；跳页成功后重置为 `1`（不清空）
 
 **统计文字 `.pg-stats`**：`color:#9DA2AC;white-space:nowrap`
 
