@@ -224,14 +224,11 @@
       <div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览
     </div>
 
-    <!-- 订单管理 -->
-    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理
-    </div>
-
-    <!-- 异常工单 -->
-    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单
+    <!-- 订单管理（含二级菜单：订单列表 / 售后列表） -->
+    <div class="menu-item l1" data-sub="sub-order" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理<span class="menu-arrow">▼</span></div>
+    <div class="submenu collapsed" id="sub-order" style="max-height:400px;">
+      <div class="menu-item l2" data-page="订单列表.html" onclick="menuSelect(this)">订单列表</div>
+      <div class="menu-item l2" data-page="售后列表.html" onclick="menuSelect(this)">售后列表</div>
     </div>
 
     <!-- 柜机监控 -->
@@ -601,7 +598,7 @@ var annotations = {
   1: { title: '筛选区 - 操作时间/操作人/操作模块/操作类型/操作对象 + 查询/重置', desc: [
     '操作时间：日期区间选择器，默认近 7 天，精确到年月日，最大查询范围不限',
     '操作人：下拉单选 + 模糊搜索（input + datalist），下拉仅展示当前数据权限范围内成员',
-    '操作模块：下拉单选，含 10 个模块（账号登录/行李寄存订单/行李寄送订单/异常工单/柜机管理/运营配置/优惠券管理/成员管理/角色管理/系统设置）',
+    '操作模块：下拉单选，含 10 个模块（账号登录/行李寄存订单/行李寄送订单/售后单/柜机管理/运营配置/优惠券管理/成员管理/角色管理/系统设置）',
     '操作类型：下拉单选，选择操作模块后自动联动过滤为该模块支持的类型',
     '操作对象：输入框，支持订单号/手机号/券名称等关键词模糊搜索',
     '查询/重置按钮放在筛选区末列（隐藏占位标签对齐），与最后一个筛选项同一行',
@@ -837,7 +834,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {v:'auth',           n:'账号登录'},
     {v:'order_storage',  n:'行李寄存订单'},
     {v:'order_delivery', n:'行李寄送订单'},
-    {v:'abnormal_ticket',n:'异常工单'},
+    {v:'abnormal_ticket',n:'售后单'},
     {v:'cabinet_manage', n:'柜机管理'},
     {v:'operation_config',n:'运营配置'},
     {v:'coupon_manage',  n:'优惠券管理'},
@@ -886,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {id:'L017', time:'2026-07-11 17:45:52', op:'钱七', ip:'10.0.12.77', module:'member_manage', type:'status_change', target:'孙八（137****2222）', summary:'钱七 变更了 成员【孙八】状态（启用 → 禁用）', detail:{type:'status_change', before:'启用', after:'禁用'}},
     {id:'L018', time:'2026-07-11 18:00:00', op:'张伟', ip:'192.168.1.1', module:'auth', type:'logout', target:'192.168.1.1 / Chrome 126 / macOS', summary:'张伟 登出了后台管理系统', detail:{type:'login', ip:'192.168.1.1', device:'Chrome 126 / macOS', result:'主动登出'}},
     {id:'L019', time:'2026-07-10 22:14:33', op:'王五', ip:'10.0.12.55', module:'abnormal_ticket', type:'create', target:'AW202507100003', summary:'王五 新建了 工单【AW202507100003】', detail:{type:'create', rows:[{f:'工单号', v:'AW202507100003'},{f:'工单类型', v:'退款工单'},{f:'关联订单', v:'LS202507090077'},{f:'问题描述', v:'用户反馈柜机无法取件'},{f:'优先级', v:'高'},{f:'状态', v:'待处理'}]}},
-    {id:'L020', time:'2026-07-10 20:30:18', op:'赵六', ip:'10.0.12.66', module:'role_manage', type:'edit', target:'运营主管', summary:'赵六 编辑了 角色【运营主管】（修改了功能权限）', detail:{type:'edit', rows:[{f:'功能权限', b:'订单管理、异常工单', a:'订单管理、异常工单、数据概览'},{f:'数据权限', b:'本部门', a:'本部门及下级部门'}]}},
+    {id:'L020', time:'2026-07-10 20:30:18', op:'赵六', ip:'10.0.12.66', module:'role_manage', type:'edit', target:'运营主管', summary:'赵六 编辑了 角色【运营主管】（修改了功能权限）', detail:{type:'edit', rows:[{f:'功能权限', b:'订单管理、售后单', a:'订单管理、售后单、数据概览'},{f:'数据权限', b:'本部门', a:'本部门及下级部门'}]}},
     {id:'L021', time:'2026-07-10 19:05:42', op:'李四', ip:'10.0.12.33', module:'order_delivery', type:'status_change', target:'LD202507090055', summary:'李四 变更了 订单【LD202507090055】状态（运输中 → 已送达）', detail:{type:'status_change', before:'运输中', after:'已送达'}},
     {id:'L022', time:'2026-07-10 18:20:09', op:'张伟', ip:'192.168.1.1', module:'coupon_manage', type:'status_change', target:'夏日满100减20', summary:'张伟 变更了 优惠券【夏日满100减20】状态（启用 → 停用）', detail:{type:'status_change', before:'启用', after:'停用'}},
     {id:'L023', time:'2026-07-10 17:42:55', op:'钱七', ip:'10.0.12.77', module:'member_manage', type:'delete', target:'周九（136****3333）', summary:'钱七 删除了 成员【周九】', detail:{type:'delete', rows:[{f:'成员姓名', v:'周九'},{f:'手机号', v:'136****3333'},{f:'所属部门', v:'客服组'},{f:'角色', v:'客服专员'},{f:'状态', v:'禁用'}]}},
@@ -1392,7 +1389,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="tk-filters">
       <div class="tk-filter-item">
         <label class="tk-filter-label">任务模块</label>
-        <div class="tk-ctrl"><select class="tk-select" id="tkFilterModule"><option value="">全部</option><option value="订单管理">订单管理</option><option value="异常工单">异常工单</option></select></div>
+        <div class="tk-ctrl"><select class="tk-select" id="tkFilterModule"><option value="">全部</option><option value="订单管理">订单管理</option><option value="售后单">售后单</option></select></div>
       </div>
       <div class="tk-filter-item">
         <label class="tk-filter-label">操作人</label>
@@ -1456,29 +1453,29 @@ document.addEventListener('DOMContentLoaded', function() {
   /* ===== MOCK DATA（PRD §6/§7，按操作时间倒序） ===== */
   var TK_NOW = new Date('2026-07-05T15:30:00');
   var tkImport = [
-    {module:'异常工单', file:'异常工单导入_20260705.xlsx',   op:'张三', time:'2026-07-05 09:15:30', status:'processing', progress:66},
+    {module:'售后列表', file:'售后单导入_20260705.xlsx',   op:'张三', time:'2026-07-05 09:15:30', status:'processing', progress:66},
     {module:'订单管理', file:'订单批量导入_20260704.xlsx',   op:'李四', time:'2026-07-04 15:42:18', status:'processing', progress:32},
     {module:'订单管理', file:'订单批量导入_20260701.xlsx',   op:'张三', time:'2026-07-01 10:23:45', status:'partial_fail', total:100, ok:98, fail:2},
     {module:'订单管理', file:'订单批量导入_20260630.xlsx',   op:'李四', time:'2026-06-30 16:08:12', status:'success', total:50, ok:50, fail:0},
-    {module:'异常工单', file:'异常工单导入_20260629.xlsx',   op:'王五', time:'2026-06-29 11:05:27', status:'partial_fail', total:36, ok:30, fail:6},
+    {module:'售后列表', file:'售后单导入_20260629.xlsx',   op:'王五', time:'2026-06-29 11:05:27', status:'partial_fail', total:36, ok:30, fail:6},
     {module:'订单管理', file:'订单补录导入_20260628.xlsx',   op:'赵六', time:'2026-06-28 14:37:56', status:'success', total:220, ok:220, fail:0},
-    {module:'异常工单', file:'异常工单导入_20260626.xlsx',   op:'张三', time:'2026-06-26 09:48:03', status:'fail'},
+    {module:'售后列表', file:'售后单导入_20260626.xlsx',   op:'张三', time:'2026-06-26 09:48:03', status:'fail'},
     {module:'订单管理', file:'订单批量导入_20260624.xlsx',   op:'王五', time:'2026-06-24 17:22:41', status:'success', total:78, ok:78, fail:0},
     {module:'订单管理', file:'订单批量导入_20260620.xlsx',   op:'李四', time:'2026-06-20 10:11:09', status:'partial_fail', total:150, ok:141, fail:9},
-    {module:'异常工单', file:'异常工单导入_20260618.xlsx',   op:'钱七', time:'2026-06-18 13:59:34', status:'success', total:12, ok:12, fail:0},
+    {module:'售后列表', file:'售后单导入_20260618.xlsx',   op:'钱七', time:'2026-06-18 13:59:34', status:'success', total:12, ok:12, fail:0},
     {module:'订单管理', file:'订单批量导入_20260615.xlsx',   op:'张三', time:'2026-06-15 08:30:22', status:'fail'}
   ];
   var tkDownload = [
-    {module:'异常工单', file:'异常工单导出_20260705100812.xlsx', op:'王五', time:'2026-07-05 10:08:12', status:'processing', progress:40},
+    {module:'售后列表', file:'售后单导出_20260705100812.xlsx', op:'王五', time:'2026-07-05 10:08:12', status:'processing', progress:40},
     {module:'订单管理', file:'订单管理导出_20260704161530.xlsx', op:'张三', time:'2026-07-04 16:15:30', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260701131516.xlsx', op:'张三', time:'2026-07-01 13:15:16', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260630095820.xlsx', op:'李四', time:'2026-06-30 09:58:20', status:'success'},
-    {module:'异常工单', file:'异常工单导出_20260628143022.xlsx', op:'王五', time:'2026-06-28 14:30:22', status:'fail'},
+    {module:'售后列表', file:'售后单导出_20260628143022.xlsx', op:'王五', time:'2026-06-28 14:30:22', status:'fail'},
     {module:'订单管理', file:'订单管理导出_20260625174455.xlsx', op:'赵六', time:'2026-06-25 17:44:55', status:'success'},
-    {module:'异常工单', file:'异常工单导出_20260622112748.xlsx', op:'张三', time:'2026-06-22 11:27:48', status:'success'},
+    {module:'售后列表', file:'售后单导出_20260622112748.xlsx', op:'张三', time:'2026-06-22 11:27:48', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260618150233.xlsx', op:'李四', time:'2026-06-18 15:02:33', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260604093015.xlsx', op:'钱七', time:'2026-06-04 09:30:15', status:'success'},
-    {module:'异常工单', file:'异常工单导出_20260601082247.xlsx', op:'王五', time:'2026-06-01 08:22:47', status:'success'},
+    {module:'售后列表', file:'售后单导出_20260601082247.xlsx', op:'王五', time:'2026-06-01 08:22:47', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260530164109.xlsx', op:'张三', time:'2026-05-30 16:41:09', status:'success'}
   ];
   var tkMembers = ['张三','李四','王五','赵六','钱七'];
@@ -1621,7 +1618,7 @@ document.addEventListener('DOMContentLoaded', function() {
   /* ===== 交互标注接入：沿用页面 Portal 标注系统，编号接在现有最大号之后 ===== */
   var tkAnnoDefs = [
     {key:'tabs',    title:'任务列表 Tab 切换',   desc:['导入任务：Excel 批量导入记录；下载任务：导出文件记录','切换 Tab 时筛选条件重置为默认值，列表回到第 1 页','关闭抽屉后记住最后访问的 Tab（会话内有效，刷新重置）','从导入/导出 Toast「点击查看」跳转时自动定位对应 Tab']},
-    {key:'filters', title:'筛选区',              desc:['任务模块：全部/订单管理/异常工单（后续随模块迭代补充）','操作人：全部成员，支持输入姓名关键词模糊搜索','操作时间：日期区间（开始时间 ~ 结束时间），精确到日','点击【搜索】应用条件回第 1 页；【重置】恢复默认；条件间 AND 关系']},
+    {key:'filters', title:'筛选区',              desc:['任务模块：全部/订单管理/售后单（后续随模块迭代补充）','操作人：全部成员，支持输入姓名关键词模糊搜索','操作时间：日期区间（开始时间 ~ 结束时间），精确到日','点击【搜索】应用条件回第 1 页；【重置】恢复默认；条件间 AND 关系']},
     {key:'note',    title:'下载任务保留说明',    desc:['仅下载任务 Tab 展示','导出数据在平台内记录最多保留 30 天，30 天后自动清除']},
     {key:'stage',   title:'任务阶段',            desc:['处理中：蓝色「处理中 N%」+ 线形进度条，每 10 秒轮询刷新进度，完成自动转终态','导入-全部成功：绿色「总数N条，成功N条，失败0条」','导入-部分失败：失败数量红色加粗；导入-处理失败：红色「导入失败」','下载：导出成功（绿）/ 导出失败（红）']},
     {key:'ops',     title:'操作列',              desc:['导入-部分失败：【下载错误数据】蓝色链接，命名 {模块名}导入错误数据_{YYYYMMDDHHMMSS}.xlsx','下载-导出成功（30 天内）：【下载文件】可重复点击，点击 Toast「开始下载」','下载-导出成功（已过期）：链接置灰不可点，hover 提示「文件已过期，无法下载」','处理中 / 全部成功 / 失败：显示 ——（无操作）']},

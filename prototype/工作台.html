@@ -133,14 +133,11 @@
       <div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览
     </div>
 
-    <!-- 订单管理 -->
-    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理
-    </div>
-
-    <!-- 异常工单 -->
-    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单
+    <!-- 订单管理（含二级菜单：订单列表 / 售后列表） -->
+    <div class="menu-item l1" data-sub="sub-order" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理<span class="menu-arrow">▼</span></div>
+    <div class="submenu collapsed" id="sub-order" style="max-height:400px;">
+      <div class="menu-item l2" data-page="订单列表.html" onclick="menuSelect(this)">订单列表</div>
+      <div class="menu-item l2" data-page="售后列表.html" onclick="menuSelect(this)">售后列表</div>
     </div>
 
     <!-- 柜机监控 -->
@@ -360,21 +357,21 @@ var mockData = {
   },
   updateMinutes: 3,
   todos: [
-    { id:'t1', title:'待处理工单', desc:'需立即处理的异常工单', count:8, priority:'P0', badgeColor:'danger-badge', target:'异常工单.html', filter:'待处理' },
-    { id:'t2', title:'锁柜失败待处理', desc:'支付成功但锁柜失败，待核查处理', count:3, priority:'P0', badgeColor:'danger-badge', target:'异常工单.html', filter:'锁柜失败' },
-    { id:'t3', title:'待支付订单', desc:'用户已选柜但未完成支付', count:4, priority:'P1', badgeColor:'warning-badge', target:'订单管理.html', filter:'待支付' },
-    { id:'t4', title:'超时未取订单', desc:'超过预计取件时间未取的寄存订单', count:2, priority:'P1', badgeColor:'warning-badge', target:'订单管理.html', filter:'超时寄存中' },
-    { id:'t5', title:'退款处理中', desc:'用户申请退款待审核处理', count:1, priority:'P1', badgeColor:'info-badge', target:'订单管理.html', filter:'退款中' },
-    { id:'t6', title:'用户售后待处理', desc:'用户提交的售后工单待处理', count:0, priority:'P1', badgeColor:'zero-badge', target:'异常工单.html', filter:'用户售后' }
+    { id:'t1', title:'待处理工单', desc:'需立即处理的售后单', count:8, priority:'P0', badgeColor:'danger-badge', target:'售后列表.html', filter:'待处理' },
+    { id:'t2', title:'锁柜失败待处理', desc:'支付成功但锁柜失败，待核查处理', count:3, priority:'P0', badgeColor:'danger-badge', target:'售后列表.html', filter:'锁柜失败' },
+    { id:'t3', title:'待支付订单', desc:'用户已选柜但未完成支付', count:4, priority:'P1', badgeColor:'warning-badge', target:'订单列表.html', filter:'待支付' },
+    { id:'t4', title:'超时未取订单', desc:'超过预计取件时间未取的寄存订单', count:2, priority:'P1', badgeColor:'warning-badge', target:'订单列表.html', filter:'超时寄存中' },
+    { id:'t5', title:'退款处理中', desc:'用户申请退款待审核处理', count:1, priority:'P1', badgeColor:'info-badge', target:'订单列表.html', filter:'退款中' },
+    { id:'t6', title:'用户售后待处理', desc:'用户提交的售后工单待处理', count:0, priority:'P1', badgeColor:'zero-badge', target:'售后列表.html', filter:'用户售后' }
   ],
   alerts: [
     { id:'a1', title:'柜机离线', detail:'3 台柜机离线，需立即处理', level:'danger', target:'柜机监控' },
-    { id:'a2', title:'异常率偏高', detail:'今日异常率 5.2%，超过阈值 3%', level:'warning', target:'异常工单.html' },
+    { id:'a2', title:'异常率偏高', detail:'今日异常率 5.2%，超过阈值 3%', level:'warning', target:'售后列表.html' },
     { id:'a3', title:'数据同步', detail:'最近同步正常', level:'success', target:null }
   ],
   quickEntries: [
-    { id:'q1', label:'订单看板', icon:'package', target:'订单管理.html', permission:'all' },
-    { id:'q2', label:'异常工单', icon:'alert-triangle', target:'异常工单.html', permission:'all' },
+    { id:'q1', label:'订单看板', icon:'package', target:'订单列表.html', permission:'all' },
+    { id:'q2', label:'售后单', icon:'alert-triangle', target:'售后列表.html', permission:'all' },
     { id:'q3', label:'对账中心', icon:'file-text', target:'对账中心', permission:'all' },
     { id:'q4', label:'数据概览', icon:'bar-chart-3', target:'数据概览.html', permission:'all' },
     { id:'q5', label:'运营配置', icon:'sliders-horizontal', target:'运营配置', permission:'admin' }
@@ -851,15 +848,15 @@ var annotations = {
     '跳转：点击 → 跳转目标模块并带筛选条件'
   ]},
   5: { title: '待处理工单', desc: [
-    '统计口径：状态 = 待处理 的异常工单数量',
+    '统计口径：状态 = 待处理 的售后单数量',
     '优先级：P0，运营每日必处理项',
-    '跳转：点击"去处理" → 异常工单页，筛选 = 待处理',
+    '跳转：点击"去处理" → 售后单页，筛选 = 待处理',
     '强调：数量 > 0 时 danger 色左边框 + 红色角标'
   ]},
   6: { title: '锁柜失败待处理', desc: [
     '统计口径：支付成功但锁柜失败 的待处理订单/工单',
     '优先级：P0，运营每日必处理项',
-    '跳转：点击"去处理" → 异常工单页，类型 = 锁柜失败/开柜异常',
+    '跳转：点击"去处理" → 售后单页，类型 = 锁柜失败/开柜异常',
     '强调：数量 > 0 时 danger 色左边框 + 红色角标',
     '说明：用户已付款但柜门未锁闭，需立即核查处理'
   ]},
@@ -874,11 +871,11 @@ var annotations = {
     '触发条件：当日异常率超阈值（默认 3%）触发 warning 告警',
     '触发条件：小铁同步失败/延迟过大触发 warning 告警',
     '响应：有告警时列表展示，无告警时收起为"系统运行正常"成功态',
-    '跳转：点击"查看" → 跳对应模块（柜机监控/异常工单）'
+    '跳转：点击"查看" → 跳对应模块（柜机监控/售后单）'
   ]},
   9: { title: '快捷入口区', desc: [
     '触发：页面加载按当前角色权限渲染入口宫格',
-    '入口：订单看板、异常工单、对账中心、数据概览（全员可见）',
+    '入口：订单看板、售后单、对账中心、数据概览（全员可见）',
     '入口：运营配置（仅管理员可见）',
     '规则：运营员不展示运营配置入口，展示"需管理员权限"占位',
     '跳转：点击入口卡片 → 跳转对应模块页面'
@@ -1144,7 +1141,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="tk-filters">
       <div class="tk-filter-item">
         <label class="tk-filter-label">任务模块</label>
-        <div class="tk-ctrl"><select class="tk-select" id="tkFilterModule"><option value="">全部</option><option value="订单管理">订单管理</option><option value="异常工单">异常工单</option></select></div>
+        <div class="tk-ctrl"><select class="tk-select" id="tkFilterModule"><option value="">全部</option><option value="订单管理">订单管理</option><option value="售后单">售后单</option></select></div>
       </div>
       <div class="tk-filter-item">
         <label class="tk-filter-label">操作人</label>
@@ -1208,29 +1205,29 @@ document.addEventListener('DOMContentLoaded', function() {
   /* ===== MOCK DATA（PRD §6/§7，按操作时间倒序） ===== */
   var TK_NOW = new Date('2026-07-05T15:30:00');
   var tkImport = [
-    {module:'异常工单', file:'异常工单导入_20260705.xlsx',   op:'张三', time:'2026-07-05 09:15:30', status:'processing', progress:66},
+    {module:'售后列表', file:'售后单导入_20260705.xlsx',   op:'张三', time:'2026-07-05 09:15:30', status:'processing', progress:66},
     {module:'订单管理', file:'订单批量导入_20260704.xlsx',   op:'李四', time:'2026-07-04 15:42:18', status:'processing', progress:32},
     {module:'订单管理', file:'订单批量导入_20260701.xlsx',   op:'张三', time:'2026-07-01 10:23:45', status:'partial_fail', total:100, ok:98, fail:2},
     {module:'订单管理', file:'订单批量导入_20260630.xlsx',   op:'李四', time:'2026-06-30 16:08:12', status:'success', total:50, ok:50, fail:0},
-    {module:'异常工单', file:'异常工单导入_20260629.xlsx',   op:'王五', time:'2026-06-29 11:05:27', status:'partial_fail', total:36, ok:30, fail:6},
+    {module:'售后列表', file:'售后单导入_20260629.xlsx',   op:'王五', time:'2026-06-29 11:05:27', status:'partial_fail', total:36, ok:30, fail:6},
     {module:'订单管理', file:'订单补录导入_20260628.xlsx',   op:'赵六', time:'2026-06-28 14:37:56', status:'success', total:220, ok:220, fail:0},
-    {module:'异常工单', file:'异常工单导入_20260626.xlsx',   op:'张三', time:'2026-06-26 09:48:03', status:'fail'},
+    {module:'售后列表', file:'售后单导入_20260626.xlsx',   op:'张三', time:'2026-06-26 09:48:03', status:'fail'},
     {module:'订单管理', file:'订单批量导入_20260624.xlsx',   op:'王五', time:'2026-06-24 17:22:41', status:'success', total:78, ok:78, fail:0},
     {module:'订单管理', file:'订单批量导入_20260620.xlsx',   op:'李四', time:'2026-06-20 10:11:09', status:'partial_fail', total:150, ok:141, fail:9},
-    {module:'异常工单', file:'异常工单导入_20260618.xlsx',   op:'钱七', time:'2026-06-18 13:59:34', status:'success', total:12, ok:12, fail:0},
+    {module:'售后列表', file:'售后单导入_20260618.xlsx',   op:'钱七', time:'2026-06-18 13:59:34', status:'success', total:12, ok:12, fail:0},
     {module:'订单管理', file:'订单批量导入_20260615.xlsx',   op:'张三', time:'2026-06-15 08:30:22', status:'fail'}
   ];
   var tkDownload = [
-    {module:'异常工单', file:'异常工单导出_20260705100812.xlsx', op:'王五', time:'2026-07-05 10:08:12', status:'processing', progress:40},
+    {module:'售后列表', file:'售后单导出_20260705100812.xlsx', op:'王五', time:'2026-07-05 10:08:12', status:'processing', progress:40},
     {module:'订单管理', file:'订单管理导出_20260704161530.xlsx', op:'张三', time:'2026-07-04 16:15:30', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260701131516.xlsx', op:'张三', time:'2026-07-01 13:15:16', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260630095820.xlsx', op:'李四', time:'2026-06-30 09:58:20', status:'success'},
-    {module:'异常工单', file:'异常工单导出_20260628143022.xlsx', op:'王五', time:'2026-06-28 14:30:22', status:'fail'},
+    {module:'售后列表', file:'售后单导出_20260628143022.xlsx', op:'王五', time:'2026-06-28 14:30:22', status:'fail'},
     {module:'订单管理', file:'订单管理导出_20260625174455.xlsx', op:'赵六', time:'2026-06-25 17:44:55', status:'success'},
-    {module:'异常工单', file:'异常工单导出_20260622112748.xlsx', op:'张三', time:'2026-06-22 11:27:48', status:'success'},
+    {module:'售后列表', file:'售后单导出_20260622112748.xlsx', op:'张三', time:'2026-06-22 11:27:48', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260618150233.xlsx', op:'李四', time:'2026-06-18 15:02:33', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260604093015.xlsx', op:'钱七', time:'2026-06-04 09:30:15', status:'success'},
-    {module:'异常工单', file:'异常工单导出_20260601082247.xlsx', op:'王五', time:'2026-06-01 08:22:47', status:'success'},
+    {module:'售后列表', file:'售后单导出_20260601082247.xlsx', op:'王五', time:'2026-06-01 08:22:47', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260530164109.xlsx', op:'张三', time:'2026-05-30 16:41:09', status:'success'}
   ];
   var tkMembers = ['张三','李四','王五','赵六','钱七'];
@@ -1373,7 +1370,7 @@ document.addEventListener('DOMContentLoaded', function() {
   /* ===== 交互标注接入：沿用页面 Portal 标注系统，编号接在现有最大号之后 ===== */
   var tkAnnoDefs = [
     {key:'tabs',    title:'任务列表 Tab 切换',   desc:['导入任务：Excel 批量导入记录；下载任务：导出文件记录','切换 Tab 时筛选条件重置为默认值，列表回到第 1 页','关闭抽屉后记住最后访问的 Tab（会话内有效，刷新重置）','从导入/导出 Toast「点击查看」跳转时自动定位对应 Tab']},
-    {key:'filters', title:'筛选区',              desc:['任务模块：全部/订单管理/异常工单（后续随模块迭代补充）','操作人：全部成员，支持输入姓名关键词模糊搜索','操作时间：日期区间（开始时间 ~ 结束时间），精确到日','点击【搜索】应用条件回第 1 页；【重置】恢复默认；条件间 AND 关系']},
+    {key:'filters', title:'筛选区',              desc:['任务模块：全部/订单管理/售后单（后续随模块迭代补充）','操作人：全部成员，支持输入姓名关键词模糊搜索','操作时间：日期区间（开始时间 ~ 结束时间），精确到日','点击【搜索】应用条件回第 1 页；【重置】恢复默认；条件间 AND 关系']},
     {key:'note',    title:'下载任务保留说明',    desc:['仅下载任务 Tab 展示','导出数据在平台内记录最多保留 30 天，30 天后自动清除']},
     {key:'stage',   title:'任务阶段',            desc:['处理中：蓝色「处理中 N%」+ 线形进度条，每 10 秒轮询刷新进度，完成自动转终态','导入-全部成功：绿色「总数N条，成功N条，失败0条」','导入-部分失败：失败数量红色加粗；导入-处理失败：红色「导入失败」','下载：导出成功（绿）/ 导出失败（红）']},
     {key:'ops',     title:'操作列',              desc:['导入-部分失败：【下载错误数据】蓝色链接，命名 {模块名}导入错误数据_{YYYYMMDDHHMMSS}.xlsx','下载-导出成功（30 天内）：【下载文件】可重复点击，点击 Toast「开始下载」','下载-导出成功（已过期）：链接置灰不可点，hover 提示「文件已过期，无法下载」','处理中 / 全部成功 / 失败：显示 ——（无操作）']},

@@ -215,8 +215,12 @@
   <aside id="sidebar" class="sidebar w-[220px] bg-white border-r border-line flex flex-col flex-shrink-0 overflow-y-auto py-2">
     <div class="menu-item l1" data-page="工作台.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="layout-dashboard" class="w-[15px] h-[15px]"></i></div>工作台</div>
     <div class="menu-item l1" data-page="数据概览.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览</div>
-    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理</div>
-    <div class="menu-item l1" data-page="异常工单.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单</div>
+    <!-- 订单管理（含二级菜单：订单列表 / 售后列表） -->
+    <div class="menu-item l1" data-sub="sub-order" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理<span class="menu-arrow">▼</span></div>
+    <div class="submenu collapsed" id="sub-order" style="max-height:400px;">
+      <div class="menu-item l2" data-page="订单列表.html" onclick="menuSelect(this)">订单列表</div>
+      <div class="menu-item l2" data-page="售后列表.html" onclick="menuSelect(this)">售后列表</div>
+    </div>
     <div class="menu-item l1" data-page="柜机监控.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="monitor" class="w-[15px] h-[15px]"></i></div>柜机监控</div>
     <div class="menu-item l1" data-page="对账中心.html" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="file-text" class="w-[15px] h-[15px]"></i></div>对账中心</div>
     <div class="menu-item l1 active-l1" data-sub="sub-ops" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="sliders-horizontal" class="w-[15px] h-[15px]"></i></div>运营配置<span class="menu-arrow open">▼</span></div>
@@ -909,7 +913,7 @@
       <div class="tk-tab" id="tkTabDownload">下载任务</div>
     </nav>
     <div class="tk-filters">
-      <div class="tk-filter-item"><label class="tk-filter-label">任务模块</label><div class="tk-ctrl"><select class="tk-select" id="tkFilterModule"><option value="">全部</option><option value="订单管理">订单管理</option><option value="异常工单">异常工单</option></select></div></div>
+      <div class="tk-filter-item"><label class="tk-filter-label">任务模块</label><div class="tk-ctrl"><select class="tk-select" id="tkFilterModule"><option value="">全部</option><option value="订单管理">订单管理</option><option value="售后单">售后单</option></select></div></div>
       <div class="tk-filter-item"><label class="tk-filter-label">操作人</label><div class="tk-ctrl"><input class="tk-input" id="tkFilterOp" list="tkOpsList" placeholder="全部（输入姓名模糊搜索）"><datalist id="tkOpsList"></datalist></div></div>
       <div class="tk-filter-item"><label class="tk-filter-label">操作时间</label><div class="tk-ctrl"><input type="date" class="tk-input" id="tkDateFrom" title="开始时间"><span class="tk-date-sep">~</span><input type="date" class="tk-input" id="tkDateTo" title="结束时间"></div></div>
       <div class="tk-filter-item"><label class="tk-filter-label" style="visibility:hidden;">占位</label><div class="tk-ctrl"><button class="tk-btn tk-btn-primary" onclick="tkSearch()">搜索</button><button class="tk-btn tk-btn-default" style="margin-left:8px;" onclick="tkReset()">重置</button></div></div>
@@ -2400,17 +2404,17 @@ function stopDragToggle() { document.removeEventListener('mousemove', onDragTogg
 (function(){
   var TK_NOW = new Date('2026-07-09T15:30:00');
   var tkImport = [
-    {module:'异常工单',file:'异常工单导入_20260705.xlsx',op:'张三',time:'2026-07-05 09:15:30',status:'processing',progress:66},
+    {module:'售后列表',file:'售后单导入_20260705.xlsx',op:'张三',time:'2026-07-05 09:15:30',status:'processing',progress:66},
     {module:'订单管理',file:'订单批量导入_20260704.xlsx',op:'李四',time:'2026-07-04 15:42:18',status:'processing',progress:32},
     {module:'订单管理',file:'订单批量导入_20260701.xlsx',op:'张三',time:'2026-07-01 10:23:45',status:'partial_fail',total:100,ok:98,fail:2},
     {module:'订单管理',file:'订单批量导入_20260630.xlsx',op:'李四',time:'2026-06-30 16:08:12',status:'success',total:50,ok:50,fail:0},
-    {module:'异常工单',file:'异常工单导入_20260629.xlsx',op:'王五',time:'2026-06-29 11:05:27',status:'partial_fail',total:36,ok:30,fail:6},
+    {module:'售后列表',file:'售后单导入_20260629.xlsx',op:'王五',time:'2026-06-29 11:05:27',status:'partial_fail',total:36,ok:30,fail:6},
     {module:'订单管理',file:'订单补录导入_20260628.xlsx',op:'赵六',time:'2026-06-28 14:37:56',status:'success',total:220,ok:220,fail:0},
-    {module:'异常工单',file:'异常工单导入_20260626.xlsx',op:'张三',time:'2026-06-26 09:48:03',status:'fail'},
+    {module:'售后列表',file:'售后单导入_20260626.xlsx',op:'张三',time:'2026-06-26 09:48:03',status:'fail'},
     {module:'订单管理',file:'订单批量导入_20260624.xlsx',op:'王五',time:'2026-06-24 17:22:41',status:'success',total:78,ok:78,fail:0}
   ];
   var tkDownload = [
-    {module:'异常工单',file:'异常工单导出_20260705100812.xlsx',op:'王五',time:'2026-07-05 10:08:12',status:'processing',progress:40},
+    {module:'售后列表',file:'售后单导出_20260705100812.xlsx',op:'王五',time:'2026-07-05 10:08:12',status:'processing',progress:40},
     {module:'订单管理',file:'订单管理导出_20260704161530.xlsx',op:'张三',time:'2026-07-04 16:15:30',status:'success'},
     {module:'订单管理',file:'订单管理导出_20260701131516.xlsx',op:'张三',time:'2026-07-01 13:15:16',status:'success'}
   ];

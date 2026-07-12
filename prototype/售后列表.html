@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>异常工单 - 游寄后台管理系统</title>
+  <title>售后列表 - 游寄后台管理系统</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -45,6 +45,11 @@
     .badge-info{color:#0091D5;background:#E4F4FB;}
     .badge-success{color:#0FC060;background:#E7F9F0;}
     .badge-muted{color:#9DA2AC;background:#F0F1F3;}
+    .badge-primary{color:#0066FF;background:#E6F0FF;}/* 待用户确认（售后列表PRD §2.1） */
+    .badge-danger{color:#D9001B;background:#FFE8EB;}/* 已驳回 */
+    /* 状态 Tab 计数角标 */
+    .tab-count{display:inline-block;min-width:16px;padding:0 4px;margin-left:4px;border-radius:8px;font-size:11px;line-height:16px;text-align:center;background:#F0F1F3;color:#6E7685;}
+    .filter-tab.active .tab-count{background:rgba(255,255,255,.25);color:#fff;}
     /* Filter tabs */
     .filter-tab{padding:6px 16px;font-size:13px;color:#6E7685;cursor:pointer;border-radius:4px;transition:all .15s;white-space:nowrap;border:1px solid transparent;}
     .filter-tab:hover{color:#0066FF;background:#E6F0FF;}
@@ -203,14 +208,11 @@
       <div class="menu-ico"><i data-lucide="bar-chart-3" class="w-[15px] h-[15px]"></i></div>数据概览
     </div>
 
-    <!-- 订单管理 -->
-    <div class="menu-item l1" data-page="订单管理.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理
-    </div>
-
-    <!-- 异常工单 -->
-    <div class="menu-item l1 active-l1" data-page="异常工单.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="alert-triangle" class="w-[15px] h-[15px]"></i></div>异常工单
+    <!-- 订单管理（含二级菜单：订单列表 / 售后列表） -->
+    <div class="menu-item l1 active-l1" data-sub="sub-order" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="package" class="w-[15px] h-[15px]"></i></div>订单管理<span class="menu-arrow open">▼</span></div>
+    <div class="submenu" id="sub-order" style="max-height:400px;">
+      <div class="menu-item l2" data-page="订单列表.html" onclick="menuSelect(this)">订单列表</div>
+      <div class="menu-item l2 active-l2" data-page="售后列表.html" onclick="menuSelect(this)">售后列表</div>
     </div>
 
     <!-- 柜机监控 -->
@@ -257,15 +259,17 @@
 
       <!-- ===== 区块1：筛选区 ===== -->
       <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-        <!-- 状态 Tab -->
+        <!-- 状态 Tab（售后列表PRD §2.1：6种状态 + 全部，含待用户确认） -->
         <div class="flex items-center gap-2 mb-4 flex-wrap" data-anno="1">
-          <span class="text-[13px] text-ink-sub mr-1">工单状态：</span>
+          <span class="text-[13px] text-ink-sub mr-1">售后状态：</span>
           <div class="flex items-center gap-1 flex-wrap" id="statusTabs">
-            <span class="filter-tab active" data-status="all" onclick="filterByStatus(this)">全部</span>
-            <span class="filter-tab" data-status="pending" onclick="filterByStatus(this)">待处理</span>
-            <span class="filter-tab" data-status="processing" onclick="filterByStatus(this)">处理中</span>
-            <span class="filter-tab" data-status="resolved" onclick="filterByStatus(this)">已处理</span>
-            <span class="filter-tab" data-status="closed" onclick="filterByStatus(this)">已关闭</span>
+            <span class="filter-tab active" data-status="all" onclick="filterByStatus(this)">全部<span class="tab-count" data-count="all">0</span></span>
+            <span class="filter-tab" data-status="pending" onclick="filterByStatus(this)">待处理<span class="tab-count" data-count="pending">0</span></span>
+            <span class="filter-tab" data-status="processing" onclick="filterByStatus(this)">处理中<span class="tab-count" data-count="processing">0</span></span>
+            <span class="filter-tab" data-status="await_confirm" onclick="filterByStatus(this)">待用户确认<span class="tab-count" data-count="await_confirm">0</span></span>
+            <span class="filter-tab" data-status="resolved" onclick="filterByStatus(this)">已完成<span class="tab-count" data-count="resolved">0</span></span>
+            <span class="filter-tab" data-status="rejected" onclick="filterByStatus(this)">已驳回<span class="tab-count" data-count="rejected">0</span></span>
+            <span class="filter-tab" data-status="closed" onclick="filterByStatus(this)">已关闭<span class="tab-count" data-count="closed">0</span></span>
           </div>
         </div>
         <!-- 筛选字段（design.md §5.4 4列栅格） -->
@@ -273,23 +277,32 @@
           <div class="filter-item" data-anno="2">
             <span class="filter-label">关键词搜索</span>
             <div class="filter-ctrl search-wrap">
-              <input type="text" id="filterKeyword" placeholder="工单号 / 关联订单号" oninput="toggleSearchClear()" onkeydown="if(event.key==='Enter')applyFilters()">
+              <input type="text" id="filterKeyword" placeholder="单号 / 关联订单号 / 手机号" oninput="toggleSearchClear()" onkeydown="if(event.key==='Enter')applyFilters()">
               <span class="search-clear" id="searchClear" onclick="clearSearch()">✕</span>
             </div>
           </div>
           <div class="filter-item" data-anno="3">
-            <span class="filter-label">异常类型</span>
+            <span class="filter-label">类型</span>
             <div class="filter-ctrl">
               <select id="filterType" onchange="applyFilters()">
                 <option value="all">全部</option>
-                <option value="延误">延误</option>
-                <option value="损坏">损坏</option>
-                <option value="遗失">遗失</option>
-                <option value="取件码/存储码错误">取件码/存储码错误</option>
-                <option value="支付异常">支付异常</option>
-                <option value="锁柜失败">锁柜失败</option>
-                <option value="开柜异常">开柜异常</option>
-                <option value="其他">其他</option>
+                <optgroup label="售后类型（用户售后来源）">
+                  <option value="退款申请">退款申请（含费用争议）</option>
+                  <option value="物品损坏/丢失">物品损坏/丢失</option>
+                  <option value="开柜/取件问题">开柜/取件问题</option>
+                  <option value="寄送问题">寄送问题</option>
+                  <option value="其他售后">其他（售后）</option>
+                </optgroup>
+                <optgroup label="异常类型（运营/系统来源）">
+                  <option value="延误">延误</option>
+                  <option value="损坏">损坏</option>
+                  <option value="遗失">遗失</option>
+                  <option value="取件码/存储码错误">取件码/存储码错误</option>
+                  <option value="支付异常">支付异常</option>
+                  <option value="锁柜失败">锁柜失败（P0）</option>
+                  <option value="开柜异常">开柜异常（P0）</option>
+                  <option value="其他">其他（异常）</option>
+                </optgroup>
               </select>
             </div>
           </div>
@@ -321,24 +334,24 @@
         </div>
       </div>
 
-      <!-- ===== 区块2：工单列表 ===== -->
+      <!-- ===== 区块2：售后单列表 ===== -->
       <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
         <!-- 标题行 -->
         <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
-          <h2 class="text-[18px] font-semibold text-ink-title inline-block" data-anno="6">工单列表</h2>
+          <h2 class="text-[18px] font-semibold text-ink-title inline-block" data-anno="6">售后单列表</h2>
           <button class="btn btn-primary" onclick="openMarkModal()" data-anno="7">
             <i data-lucide="alert-triangle" class="w-[14px] h-[14px]"></i> 标记异常
           </button>
         </div>
         <!-- 统计卡片 -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4" data-anno="8">
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4" data-anno="8">
           <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-primary-bg flex items-center justify-center flex-shrink-0">
               <i data-lucide="ticket" class="w-[18px] h-[18px] text-primary"></i>
             </div>
             <div>
-              <div class="text-[12px] text-ink-sub">全部工单</div>
-              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statTotal">15</div>
+              <div class="text-[12px] text-ink-sub">全部售后单</div>
+              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statTotal">0</div>
             </div>
           </div>
           <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
@@ -347,7 +360,7 @@
             </div>
             <div>
               <div class="text-[12px] text-ink-sub">待处理</div>
-              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statPending">5</div>
+              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statPending">0</div>
             </div>
           </div>
           <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
@@ -356,7 +369,16 @@
             </div>
             <div>
               <div class="text-[12px] text-ink-sub">处理中</div>
-              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statProcessing">4</div>
+              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statProcessing">0</div>
+            </div>
+          </div>
+          <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-primary-bg flex items-center justify-center flex-shrink-0">
+              <i data-lucide="user-check" class="w-[18px] h-[18px] text-primary"></i>
+            </div>
+            <div>
+              <div class="text-[12px] text-ink-sub">待用户确认</div>
+              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statAwait">0</div>
             </div>
           </div>
           <div class="p-3 rounded-md border border-line bg-bg-page flex items-center gap-3">
@@ -364,21 +386,22 @@
               <i data-lucide="alert-circle" class="w-[18px] h-[18px] text-danger"></i>
             </div>
             <div>
-              <div class="text-[12px] text-ink-sub">P0 紧急</div>
-              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statP0">3</div>
+              <div class="text-[12px] text-ink-sub">P0 / 紧急</div>
+              <div class="text-[20px] font-semibold text-ink-title font-mono" id="statP0">0</div>
             </div>
           </div>
         </div>
-        <!-- 工单表格 -->
+        <!-- 售后单表格 -->
         <div class="overflow-x-auto">
           <table class="data-table" data-anno="9">
             <thead>
               <tr>
-                <th>工单号</th>
+                <th>单号</th>
                 <th>关联订单</th>
-                <th>异常类型</th>
+                <th>类型</th>
                 <th>来源</th>
-                <th>工单状态</th>
+                <th>状态</th>
+                <th>处理结果</th>
                 <th>处理人</th>
                 <th>创建时间 <i data-lucide="arrow-up-down" class="w-[12px] h-[12px] inline-block ml-1 cursor-pointer text-ink-muted" onclick="sortTable('createdAt')"></i></th>
                 <th>更新时间 <i data-lucide="arrow-up-down" class="w-[12px] h-[12px] inline-block ml-1 cursor-pointer text-ink-muted" onclick="sortTable('updatedAt')"></i></th>
@@ -389,7 +412,7 @@
           </table>
           <div id="emptyState" class="hidden text-center py-16">
             <i data-lucide="inbox" class="w-[48px] h-[48px] text-ink-muted mx-auto mb-3"></i>
-            <p class="text-[14px] text-ink-muted">暂无匹配的工单记录</p>
+            <p class="text-[14px] text-ink-muted">暂无匹配的售后单记录</p>
             <p class="text-[12px] text-ink-muted mt-1">请调整筛选条件后重试</p>
           </div>
         </div>
@@ -400,21 +423,21 @@
   </main>
 </div>
 
-<!-- ===== DRAWER：工单详情/处理面板 ===== -->
+<!-- ===== DRAWER：售后单详情/处理面板 ===== -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-header">
     <h2 class="text-[16px] font-semibold text-ink-title flex items-center gap-2">
-      <i data-lucide="file-text" class="w-[18px] h-[18px] text-primary"></i> 工单详情
+      <i data-lucide="file-text" class="w-[18px] h-[18px] text-primary"></i> 售后单详情
     </h2>
     <button class="w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-muted" onclick="closeDrawer()">
       <i data-lucide="x" class="w-[20px] h-[20px]"></i>
     </button>
   </div>
   <div class="drawer-body">
-    <!-- 工单信息 -->
+    <!-- 单据信息 -->
     <div class="mb-6">
-      <div class="section-title" data-anno="11"><i data-lucide="info" class="w-[14px] h-[14px]"></i> 工单信息</div>
+      <div class="section-title" data-anno="11"><i data-lucide="info" class="w-[14px] h-[14px]"></i> 单据信息</div>
       <div class="info-grid" id="drawerTicketInfo"></div>
     </div>
     <!-- 关联订单摘要 -->
@@ -422,28 +445,75 @@
       <div class="section-title" data-anno="12"><i data-lucide="package" class="w-[14px] h-[14px]"></i> 关联订单摘要</div>
       <div class="info-grid" id="drawerOrderInfo"></div>
     </div>
-    <!-- 用户诉求 -->
+    <!-- 用户诉求（用户售后来源） -->
     <div class="mb-6 hidden" id="drawerUserAppeal">
       <div class="section-title" data-anno="13"><i data-lucide="message-square" class="w-[14px] h-[14px]"></i> 用户诉求</div>
       <div id="drawerAppealContent" class="text-[13px] text-ink-body leading-relaxed"></div>
       <div class="flex gap-2 mt-2" id="drawerAppealImages"></div>
     </div>
-    <!-- 处理记录 -->
+    <!-- 处理记录（留痕，仅可追加） -->
     <div class="mb-6">
       <div class="section-title" data-anno="14"><i data-lucide="clock" class="w-[14px] h-[14px]"></i> 处理记录</div>
       <div id="drawerRecords" class="text-[13px]"></div>
     </div>
+    <!-- 处理结果登记（升级核心：一期线下退款/赔付 + 系统记录） -->
+    <div class="mb-6 hidden" id="drawerResultReg">
+      <div class="section-title" data-anno="15"><i data-lucide="clipboard-check" class="w-[14px] h-[14px]"></i> 处理结果登记</div>
+      <div class="bg-bg-page rounded-md p-4">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="text-[13px] text-ink-sub flex-shrink-0">处理结果：</span>
+          <div class="select-wrap">
+            <select class="inline-select" id="resultSelect" onchange="onResultTypeChange()">
+              <option value="">-- 选择处理结果 --</option>
+              <option value="同意退款">同意退款</option>
+              <option value="部分退款">部分退款</option>
+              <option value="赔付">赔付</option>
+              <option value="协助开柜">协助开柜</option>
+              <option value="驳回">驳回</option>
+              <option value="已解决">已解决</option>
+            </select>
+          </div>
+        </div>
+        <!-- 金额与方式（退款/部分退款/赔付时显示） -->
+        <div class="hidden" id="resultAmountFields">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="text-[13px] text-ink-sub flex-shrink-0">金额（元）：</span>
+            <input type="number" min="0" step="0.01" class="form-input font-mono" style="width:140px;" id="resultAmount" placeholder="0.00">
+            <span class="text-[13px] text-ink-sub flex-shrink-0 ml-2">方式：</span>
+            <div class="select-wrap">
+              <select class="inline-select" id="resultMethod">
+                <option value="线下-微信转账">线下-微信转账</option>
+                <option value="线下-支付宝转账">线下-支付宝转账</option>
+                <option value="线下-银行转账">线下-银行转账</option>
+                <option value="线下-现金">线下-现金</option>
+              </select>
+            </div>
+          </div>
+          <p class="text-[12px] text-warning mb-3 flex items-start gap-1"><i data-lucide="info" class="w-[13px] h-[13px] flex-shrink-0 mt-0.5"></i>一期口径：退款/赔付走人工线下打款，系统仅记录金额、方式、时间、操作人，纳入对账与审计。线上自动退款为 V2。</p>
+        </div>
+        <!-- 开柜方式（协助开柜时显示） -->
+        <div class="hidden" id="resultUnlockFields">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="text-[13px] text-ink-sub flex-shrink-0">处理方式：</span>
+            <div class="select-wrap">
+              <select class="inline-select" id="resultUnlockMethod">
+                <option value="远程开柜">远程开柜（依赖柜控接口）</option>
+                <option value="线下运维协助">线下运维协助</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- 说明/原因 -->
+        <div class="mb-3" id="resultNoteField">
+          <textarea class="form-textarea" id="resultNote" placeholder="处理说明 / 备注" rows="2"></textarea>
+          <span class="form-error" id="resultNoteError" style="display:none;">驳回时必须填写驳回原因</span>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="submitResult()"><i data-lucide="check" class="w-[13px] h-[13px]"></i> 提交登记</button>
+      </div>
+    </div>
     <!-- 处理操作 -->
     <div class="mb-6 hidden" id="drawerOps">
       <div class="section-title"><i data-lucide="settings" class="w-[14px] h-[14px]"></i> 处理操作</div>
-      <div class="flex items-center gap-3 mb-4" data-anno="15">
-        <span class="text-[13px] text-ink-sub">变更状态：</span>
-        <div class="select-wrap">
-          <select class="inline-select" id="drawerStatusSelect" onchange="onStatusChange()">
-            <option value="">-- 选择目标状态 --</option>
-          </select>
-        </div>
-      </div>
       <div class="flex items-center gap-3 mb-4" data-anno="16">
         <span class="text-[13px] text-ink-sub">指派处理人：</span>
         <div class="select-wrap">
@@ -465,13 +535,26 @@
         </div>
       </div>
     </div>
+    <!-- 待用户确认提示（用户端同步模拟） -->
+    <div class="mb-6 hidden" id="drawerAwaitTip">
+      <div class="bg-primary-bg rounded-md p-4 text-[13px] text-ink-body flex items-start gap-2" data-anno="18">
+        <i data-lucide="user-check" class="w-[15px] h-[15px] text-primary flex-shrink-0 mt-0.5"></i>
+        <div>
+          <p class="font-medium text-ink-title mb-1">等待用户确认处理方案</p>
+          <p>已同步至用户端售后单详情，用户可确认接受（转已完成）或不接受（退回处理中）。下方按钮为原型模拟用户端行为。</p>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="drawer-footer">
     <button class="btn btn-default" onclick="closeDrawer()">关闭</button>
-    <button class="btn btn-primary hidden" id="drawerBtnProcess" onclick="startProcess()">受理工单</button>
-    <button class="btn btn-primary hidden" id="drawerBtnResolve" onclick="resolveTicket()">标记已处理</button>
-    <button class="btn btn-default hidden" id="drawerBtnClose" onclick="closeTicket()">关闭工单</button>
-    <button class="btn btn-default hidden" id="drawerBtnReopen" onclick="reopenTicket()">重开工单</button>
+    <button class="btn btn-primary hidden" id="drawerBtnProcess" onclick="startProcess()">受理售后单</button>
+    <button class="btn btn-primary hidden" id="drawerBtnAwait" onclick="toAwaitConfirm()">转待用户确认</button>
+    <button class="btn btn-primary hidden" id="drawerBtnResolve" onclick="resolveTicket()">标记完成</button>
+    <button class="btn btn-default hidden" id="drawerBtnClose" onclick="closeTicket()">关闭售后单</button>
+    <button class="btn btn-default hidden" id="drawerBtnReopen" onclick="reopenTicket()">重开售后单</button>
+    <button class="btn btn-primary hidden" id="drawerBtnUserAccept" onclick="simulateUserConfirm(true)">模拟：用户确认接受</button>
+    <button class="btn btn-default hidden" id="drawerBtnUserReject" onclick="simulateUserConfirm(false)">模拟：用户不接受</button>
   </div>
 </div>
 
@@ -487,14 +570,14 @@
       </button>
     </div>
     <div class="modal-body">
-      <p class="text-[13px] text-ink-sub mb-4">对订单标记异常，将自动生成一条待处理的异常工单。</p>
-      <div class="form-group" data-anno="18">
+      <p class="text-[13px] text-ink-sub mb-4">对订单标记异常，将自动生成一条待处理的售后单（来源=运营标记）。</p>
+      <div class="form-group" data-anno="19">
         <label class="form-label">关联订单：</label>
         <div class="form-control">
           <input type="text" class="form-input font-mono" id="modalOrderNo" placeholder="请输入关联订单号">
         </div>
       </div>
-      <div class="form-group" id="fgModalType" data-anno="19">
+      <div class="form-group" id="fgModalType" data-anno="20">
         <label class="form-label required">异常类型：</label>
         <div class="form-control">
           <div class="select-wrap">
@@ -513,14 +596,14 @@
           <span class="form-error">请选择异常类型</span>
         </div>
       </div>
-      <div class="form-group" id="fgModalNote" data-anno="20">
+      <div class="form-group" id="fgModalNote" data-anno="21">
         <label class="form-label required">处理备注：</label>
         <div class="form-control">
           <textarea class="form-textarea" id="modalNote" placeholder="请描述异常问题，将作为工单首条处理记录"></textarea>
           <span class="form-error">请输入处理备注</span>
         </div>
       </div>
-      <div class="form-group" data-anno="21">
+      <div class="form-group" data-anno="22">
         <label class="form-label">指派处理人：</label>
         <div class="form-control">
           <div class="select-wrap">
@@ -537,7 +620,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeMarkModal()">取消</button>
-      <button class="btn btn-primary" onclick="submitMarkException()"><i data-lucide="check" class="w-[14px] h-[14px]"></i> 提交生成工单</button>
+      <button class="btn btn-primary" onclick="submitMarkException()"><i data-lucide="check" class="w-[14px] h-[14px]"></i> 提交生成售后单</button>
     </div>
   </div>
 </div>
@@ -586,30 +669,97 @@
 
 <script>
 /* ================================================================
-   MOCK DATA — 15条工单，覆盖4状态×8类型×3来源
+   MOCK DATA — 16条售后单，覆盖6状态×3来源×售后/异常类型（售后列表PRD §2）
+   原型当前日锚定 2026-07-05；一期退款/赔付为线下人工+系统记录
    ================================================================ */
 var mockTickets = [
-  { id:'TK20260701001', orderNo:'YK20260701001', type:'锁柜失败', source:'系统生成', status:'pending', assignee:'--', createdAt:'2026-07-01 09:15:22', updatedAt:'2026-07-01 09:15:22', p0:true, appeal:null, orderSummary:{bizType:'寄存',locker:'西湖景区A-03',orderStatus:'异常'}, records:[{op:'系统',time:'2026-07-01 09:15:22',content:'系统检测到支付成功后锁柜失败，自动生成异常工单'}] },
-  { id:'TK20260701002', orderNo:'YK20260701002', type:'开柜异常', source:'用户售后', status:'pending', assignee:'--', createdAt:'2026-07-01 10:30:45', updatedAt:'2026-07-01 10:30:45', p0:true, appeal:{desc:'扫码后柜门没有打开，但已经计时了，请帮忙处理！',images:['locker-fail-1','locker-fail-2']}, orderSummary:{bizType:'寄送',locker:'湖滨银泰B-12',orderStatus:'进行中'}, records:[{op:'用户',time:'2026-07-01 10:30:45',content:'用户在售后提交：扫码后柜门没有打开，但已经计时了'}] },
-  { id:'TK20260701003', orderNo:'YK20260701003', type:'延误', source:'运营标记', status:'processing', assignee:'李运营', createdAt:'2026-07-01 11:42:18', updatedAt:'2026-07-03 14:20:05', p0:false, appeal:null, orderSummary:{bizType:'寄送',locker:'灵隐寺C-07',orderStatus:'进行中'}, records:[{op:'张管理',time:'2026-07-01 11:42:18',content:'订单寄送超时，标记为延误异常'},{op:'李运营',time:'2026-07-02 09:15:30',content:'已联系物流确认，预计延迟1天送达'}] },
-  { id:'TK20260701004', orderNo:'YK20260701004', type:'损坏', source:'用户售后', status:'processing', assignee:'张管理', createdAt:'2026-07-01 14:08:33', updatedAt:'2026-07-04 10:12:45', p0:false, appeal:{desc:'取件时发现行李箱的轮子掉了，应该是运输过程中损坏的，要求赔偿',images:['damage-1']}, orderSummary:{bizType:'寄送',locker:'西湖景区A-05',orderStatus:'已完成'}, records:[{op:'用户',time:'2026-07-01 14:08:33',content:'用户反馈：行李箱轮子掉落，要求赔偿处理'},{op:'张管理',time:'2026-07-02 16:30:00',content:'已受理，联系用户核实损失情况，待定损'}] },
-  { id:'TK20260702001', orderNo:'YK20260702001', type:'支付异常', source:'用户售后', status:'pending', assignee:'--', createdAt:'2026-07-02 08:55:10', updatedAt:'2026-07-02 08:55:10', p0:false, appeal:{desc:'已经扣了钱但订单还是显示待支付，余额少了28块',images:['pay-error-1']}, orderSummary:{bizType:'寄存',locker:'雷峰塔D-02',orderStatus:'待支付'}, records:[{op:'用户',time:'2026-07-02 08:55:10',content:'用户反馈：已扣款但订单状态未更新，金额¥28.00'}] },
-  { id:'TK20260702002', orderNo:'YK20260702002', type:'锁柜失败', source:'系统生成', status:'processing', assignee:'王运营', createdAt:'2026-07-02 12:20:00', updatedAt:'2026-07-03 09:45:00', p0:true, appeal:null, orderSummary:{bizType:'寄存',locker:'湖滨银泰B-08',orderStatus:'异常'}, records:[{op:'系统',time:'2026-07-02 12:20:00',content:'系统检测到支付成功但锁柜指令执行失败，自动生成工单'},{op:'王运营',time:'2026-07-02 12:35:00',content:'手动远程锁柜成功，用户行李已安全存放'}] },
-  { id:'TK20260702003', orderNo:'YK20260702003', type:'取件码/存储码错误', source:'用户售后', status:'processing', assignee:'李运营', createdAt:'2026-07-02 15:40:22', updatedAt:'2026-07-04 08:20:11', p0:false, appeal:{desc:'取件码一直提示错误，试了5次了，怕被锁住',images:[]}, orderSummary:{bizType:'寄存',locker:'西湖景区A-11',orderStatus:'进行中'}, records:[{op:'用户',time:'2026-07-02 15:40:22',content:'用户反馈取件码无效，已尝试5次'},{op:'李运营',time:'2026-07-02 15:50:00',content:'已核实，为用户端显示缓存问题，已重新推码'}] },
-  { id:'TK20260703001', orderNo:'YK20260703001', type:'遗失', source:'用户售后', status:'resolved', assignee:'张管理', createdAt:'2026-07-03 09:10:00', updatedAt:'2026-07-04 17:30:00', p0:false, appeal:{desc:'在柜子里存了一个包，取的时候发现包不见了',images:['lost-1','lost-2']}, orderSummary:{bizType:'寄存',locker:'灵隐寺C-03',orderStatus:'已完成'}, records:[{op:'用户',time:'2026-07-03 09:10:00',content:'用户反馈物品遗失，背包'},{op:'张管理',time:'2026-07-03 10:00:00',content:'已调取监控核实，确认被其他用户误取'},{op:'张管理',time:'2026-07-04 14:00:00',content:'已联系误取用户归还，物品已归还原主'},{op:'张管理',time:'2026-07-04 17:30:00',content:'用户确认物品完好，协商补偿¥200已达成'}] },
-  { id:'TK20260703002', orderNo:'YK20260703002', type:'开柜异常', source:'运营标记', status:'resolved', assignee:'王运营', createdAt:'2026-07-03 11:25:40', updatedAt:'2026-07-04 09:15:00', p0:true, appeal:null, orderSummary:{bizType:'寄送',locker:'雷峰塔D-08',orderStatus:'已完成'}, records:[{op:'王运营',time:'2026-07-03 11:25:40',content:'巡检发现D-08柜门卡住无法正常开启'},{op:'王运营',time:'2026-07-03 13:00:00',content:'已报修，维修人员现场处理中'},{op:'王运营',time:'2026-07-04 09:15:00',content:'维修完成，柜门恢复正常，测试通过'}] },
-  { id:'TK20260703003', orderNo:'YK20260703003', type:'其他', source:'运营标记', status:'resolved', assignee:'赵运营', createdAt:'2026-07-03 14:50:00', updatedAt:'2026-07-03 16:20:00', p0:false, appeal:null, orderSummary:{bizType:'寄存',locker:'湖滨银泰B-15',orderStatus:'已完成'}, records:[{op:'赵运营',time:'2026-07-03 14:50:00',content:'用户反馈柜内有异味，怀疑之前存放过食品'},{op:'赵运营',time:'2026-07-03 16:20:00',content:'已安排清洁消毒处理，用户满意'}] },
-  { id:'TK20260704001', orderNo:'YK20260704001', type:'延误', source:'系统生成', status:'pending', assignee:'--', createdAt:'2026-07-04 08:30:00', updatedAt:'2026-07-04 08:30:00', p0:false, appeal:null, orderSummary:{bizType:'寄送',locker:'西湖景区A-02',orderStatus:'进行中'}, records:[{op:'系统',time:'2026-07-04 08:30:00',content:'系统检测寄送订单超过预估时效，自动生成延误工单'}] },
-  { id:'TK20260704002', orderNo:'YK20260704002', type:'损坏', source:'运营标记', status:'pending', assignee:'--', createdAt:'2026-07-04 10:12:00', updatedAt:'2026-07-04 10:12:00', p0:false, appeal:null, orderSummary:{bizType:'寄送',locker:'灵隐寺C-09',orderStatus:'已完成'}, records:[{op:'李运营',time:'2026-07-04 10:12:00',content:'用户到店反馈包裹外包装破损，内部物品有挤压痕迹'}] },
-  { id:'TK20260704003', orderNo:'YK20260704003', type:'支付异常', source:'系统生成', status:'closed', assignee:'张管理', createdAt:'2026-07-04 13:00:00', updatedAt:'2026-07-05 10:00:00', p0:false, appeal:null, orderSummary:{bizType:'寄存',locker:'雷峰塔D-05',orderStatus:'已完成'}, records:[{op:'系统',time:'2026-07-04 13:00:00',content:'系统检测到重复扣款，自动生成工单'},{op:'张管理',time:'2026-07-04 14:30:00',content:'确认重复扣款¥45.00，已发起退款'},{op:'张管理',time:'2026-07-05 09:45:00',content:'退款到账，用户确认已收到'},{op:'张管理',time:'2026-07-05 10:00:00',content:'工单关闭归档'}] },
-  { id:'TK20260705001', orderNo:'YK20260705001', type:'取件码/存储码错误', source:'运营标记', status:'closed', assignee:'李运营', createdAt:'2026-07-05 09:20:00', updatedAt:'2026-07-05 15:00:00', p0:false, appeal:null, orderSummary:{bizType:'寄存',locker:'湖滨银泰B-03',orderStatus:'已完成'}, records:[{op:'李运营',time:'2026-07-05 09:20:00',content:'运维巡检发现B-03存储码扫描设备故障'},{op:'李运营',time:'2026-07-05 11:00:00',content:'设备已更换，恢复正常'},{op:'李运营',time:'2026-07-05 15:00:00',content:'工单关闭'}] },
-  { id:'TK20260705002', orderNo:'YK20260705002', type:'开柜异常', source:'用户售后', status:'resolved', assignee:'赵运营', createdAt:'2026-07-05 10:45:00', updatedAt:'2026-07-05 16:30:00', p0:true, appeal:{desc:'柜门打开了但里面是空的，我确定没有取走过',images:['empty-1']}, orderSummary:{bizType:'寄存',locker:'西湖景区A-09',orderStatus:'已完成'}, records:[{op:'用户',time:'2026-07-05 10:45:00',content:'用户反馈柜门打开后为空'},{op:'赵运营',time:'2026-07-05 11:20:00',content:'调取监控核实，用户之前已取走物品后再次扫码'},{op:'赵运营',time:'2026-07-05 16:30:00',content:'向用户出示监控记录，用户确认是自己遗忘，工单处理完毕'}] }
+  { id:'AS20260705001', orderNo:'YK20260705004', type:'开柜/取件问题', source:'用户售后', status:'pending', assignee:'--', phone:'186****3456', p0:true, result:null, resultAmount:null, resultMethod:null,
+    appeal:{desc:'取件时存储码一直提示失效，柜门打不开，行李急用，请尽快处理！', expect:'协助开柜取件', images:['unlock-1']},
+    orderSummary:{bizType:'寄存', locker:'西湖天地1号柜 XT1-S03', orderStatus:'超时寄存中', amount:32.00},
+    records:[{op:'用户', time:'2026-07-05 15:10:22', content:'用户提交售后：存储码失效无法开柜，期望协助开柜取件'}],
+    createdAt:'2026-07-05 15:10:22', updatedAt:'2026-07-05 15:10:22' },
+  { id:'AS20260705002', orderNo:'YK20260705016', type:'锁柜失败', source:'系统生成', status:'pending', assignee:'--', phone:'135****6789', p0:true, result:null, resultAmount:null, resultMethod:null, appeal:null,
+    orderSummary:{bizType:'寄存', locker:'湖滨A区1号柜 A01-S03', orderStatus:'异常', amount:15.00},
+    records:[{op:'系统', time:'2026-07-05 15:05:40', content:'系统检测到支付成功后锁柜指令执行失败，自动生成异常单，触发系统退款流程'}],
+    createdAt:'2026-07-05 15:05:40', updatedAt:'2026-07-05 15:05:40' },
+  { id:'AS20260705003', orderNo:'YK20260703012', type:'退款申请', source:'用户售后', status:'pending', assignee:'--', phone:'137****7777', p0:false, result:null, resultAmount:null, resultMethod:null,
+    appeal:{desc:'取件结算时多收了超时费，我明明在计费周期内取的件，要求退还差价8元。', expect:'退还多收费用', images:[]},
+    orderSummary:{bizType:'寄存', locker:'杭州东站1号柜 DZ1-M04', orderStatus:'待取件结算', amount:55.00},
+    records:[{op:'用户', time:'2026-07-05 11:32:08', content:'用户提交售后：超时费争议，要求退差价 ¥8.00'}],
+    createdAt:'2026-07-05 11:32:08', updatedAt:'2026-07-05 11:32:08' },
+  { id:'AS20260705004', orderNo:'YK20260705018', type:'延误', source:'运营标记', status:'processing', assignee:'李运营', phone:'187****5566', p0:false, result:null, resultAmount:null, resultMethod:null, appeal:null,
+    orderSummary:{bizType:'寄送', locker:'杭州东站1号柜 DZ1-L02', orderStatus:'待转运', amount:52.00},
+    records:[{op:'张管理', time:'2026-07-05 09:40:15', content:'订单待转运超过预估时效，标记延误异常'},{op:'李运营', time:'2026-07-05 10:20:00', content:'已受理，联系转运方确认，预计今日16:00前发出'}],
+    createdAt:'2026-07-05 09:40:15', updatedAt:'2026-07-05 10:20:00' },
+  { id:'AS20260704005', orderNo:'YK20260702014', type:'物品损坏/丢失', source:'用户售后', status:'processing', assignee:'张管理', phone:'176****9999', p0:false, result:null, resultAmount:null, resultMethod:null,
+    appeal:{desc:'取件时发现行李箱轮子掉了一个，应该是转运过程中损坏的，要求赔偿。', expect:'赔偿维修费用', images:['damage-1','damage-2']},
+    orderSummary:{bizType:'寄送', locker:'杭州大厦1号柜 DS1-M01', orderStatus:'已完成', amount:48.00},
+    records:[{op:'用户', time:'2026-07-04 14:08:33', content:'用户提交售后：行李箱轮子损坏，要求赔偿'},{op:'张管理', time:'2026-07-04 16:30:00', content:'已受理，联系用户核实损失情况，待定损'}],
+    createdAt:'2026-07-04 14:08:33', updatedAt:'2026-07-04 16:30:00' },
+  { id:'AS20260704006', orderNo:'YK20260705001', type:'开柜异常', source:'系统生成', status:'processing', assignee:'王运营', phone:'138****8888', p0:true, result:null, resultAmount:null, resultMethod:null, appeal:null,
+    orderSummary:{bizType:'寄存', locker:'湖滨A区1号柜 A01-S01', orderStatus:'寄存中', amount:28.00},
+    records:[{op:'系统', time:'2026-07-04 12:20:00', content:'柜控上报 A01-S01 开柜指令超时，自动生成异常单'},{op:'王运营', time:'2026-07-04 12:35:00', content:'远程复位柜控成功，持续观察中'}],
+    createdAt:'2026-07-04 12:20:00', updatedAt:'2026-07-04 12:35:00' },
+  { id:'AS20260704007', orderNo:'YK20260705004', type:'退款申请', source:'用户售后', status:'await_confirm', assignee:'张管理', phone:'186****3456', p0:false, result:'部分退款', resultAmount:12.00, resultMethod:'线下-微信转账',
+    appeal:{desc:'超时费计了两个周期，实际只超了半小时，费用不合理。', expect:'退还部分超时费', images:[]},
+    orderSummary:{bizType:'寄存', locker:'西湖天地1号柜 XT1-S03', orderStatus:'超时寄存中', amount:32.00},
+    records:[{op:'用户', time:'2026-07-04 10:15:00', content:'用户提交售后：超时费争议'},{op:'张管理', time:'2026-07-04 11:00:00', content:'受理，核实计费记录'},{op:'张管理', time:'2026-07-04 15:40:00', content:'登记处理结果：部分退款，金额 ¥12.00（线下-微信转账，系统记录纳入对账）'},{op:'张管理', time:'2026-07-04 15:41:00', content:'转待用户确认，处理方案已同步用户端'}],
+    createdAt:'2026-07-04 10:15:00', updatedAt:'2026-07-04 15:41:00' },
+  { id:'AS20260704008', orderNo:'YK20260705005', type:'物品损坏/丢失', source:'用户售后', status:'await_confirm', assignee:'赵运营', phone:'177****7890', p0:false, result:'赔付', resultAmount:200.00, resultMethod:'线下-支付宝转账',
+    appeal:{desc:'寄送的背包收到时表面有明显划痕和污渍。', expect:'赔偿损失', images:['damage-3']},
+    orderSummary:{bizType:'寄送', locker:'萧山T3-A柜 T3A-M02', orderStatus:'已送达待取', amount:68.00},
+    records:[{op:'用户', time:'2026-07-04 09:30:00', content:'用户提交售后：背包划痕污渍，要求赔偿'},{op:'赵运营', time:'2026-07-04 10:10:00', content:'受理，请用户补充照片核实'},{op:'赵运营', time:'2026-07-04 17:20:00', content:'登记处理结果：赔付，金额 ¥200.00（线下-支付宝转账，系统记录纳入对账）'},{op:'赵运营', time:'2026-07-04 17:21:00', content:'转待用户确认，处理方案已同步用户端'}],
+    createdAt:'2026-07-04 09:30:00', updatedAt:'2026-07-04 17:21:00' },
+  { id:'AS20260703009', orderNo:'YK20260704009', type:'开柜/取件问题', source:'用户售后', status:'resolved', assignee:'王运营', phone:'136****4444', p0:true, result:'协助开柜', resultAmount:null, resultMethod:'远程开柜',
+    appeal:{desc:'柜门卡住打不开，里面有笔记本电脑，很着急！', expect:'尽快开柜取件', images:[]},
+    orderSummary:{bizType:'寄存', locker:'西湖天地1号柜 XT1-M02', orderStatus:'已退款', amount:25.00, refund:25.00},
+    records:[{op:'用户', time:'2026-07-03 13:05:00', content:'用户提交售后：柜门卡住无法取件（紧急）'},{op:'王运营', time:'2026-07-03 13:10:00', content:'受理，尝试远程开柜'},{op:'王运营', time:'2026-07-03 13:18:00', content:'登记处理结果：协助开柜（远程开柜成功），用户已取件'},{op:'用户', time:'2026-07-03 13:30:00', content:'用户确认接受处理结果，售后单转已完成'}],
+    createdAt:'2026-07-03 13:05:00', updatedAt:'2026-07-03 13:30:00' },
+  { id:'AS20260703010', orderNo:'YK20260704008', type:'退款申请', source:'用户售后', status:'resolved', assignee:'张管理', phone:'188****3333', p0:false, result:'同意退款', resultAmount:35.00, resultMethod:'线下-支付宝转账',
+    appeal:{desc:'下单后柜门没开成功，行李没存进去但已经扣款了，申请全额退款。', expect:'全额退款', images:['pay-1']},
+    orderSummary:{bizType:'寄送', locker:'杭州东站1号柜 DZ1-S02', orderStatus:'退款中', amount:35.00, refund:35.00},
+    records:[{op:'用户', time:'2026-07-03 20:10:00', content:'用户提交售后：未存入已扣款，申请全额退款'},{op:'张管理', time:'2026-07-04 09:00:00', content:'受理，核实柜控日志确认未存入'},{op:'张管理', time:'2026-07-04 11:00:00', content:'登记处理结果：同意退款，金额 ¥35.00（线下-支付宝转账，系统记录纳入对账）'},{op:'用户', time:'2026-07-04 12:00:00', content:'用户确认接受处理结果，售后单转已完成'}],
+    createdAt:'2026-07-03 20:10:00', updatedAt:'2026-07-04 12:00:00' },
+  { id:'AS20260703011', orderNo:'YK20260703011', type:'损坏', source:'运营标记', status:'resolved', assignee:'李运营', phone:'182****6666', p0:false, result:'已解决', resultAmount:null, resultMethod:null, appeal:null,
+    orderSummary:{bizType:'寄存', locker:'萧山T3-A柜 T3A-L01', orderStatus:'已完成', amount:40.00},
+    records:[{op:'李运营', time:'2026-07-03 11:20:00', content:'巡检发现 T3A-L01 柜门密封条脱落，标记异常'},{op:'李运营', time:'2026-07-03 15:00:00', content:'登记处理结果：已解决，运维现场更换密封条完成'}],
+    createdAt:'2026-07-03 11:20:00', updatedAt:'2026-07-03 15:00:00' },
+  { id:'AS20260703012', orderNo:'YK20260705002', type:'寄送问题', source:'用户售后', status:'rejected', assignee:'刘客服', phone:'139****5678', p0:false, result:'驳回', resultAmount:null, resultMethod:null,
+    appeal:{desc:'行李送太慢了，都两个小时了还在转运，要求赔偿延误损失。', expect:'延误赔偿', images:[]},
+    orderSummary:{bizType:'寄送', locker:'杭州东站1号柜 DZ1-M03', orderStatus:'转运中', amount:45.00},
+    records:[{op:'用户', time:'2026-07-03 15:40:00', content:'用户提交售后：寄送延误要求赔偿'},{op:'刘客服', time:'2026-07-03 16:10:00', content:'受理，核实转运时效'},{op:'刘客服', time:'2026-07-03 17:00:00', content:'登记处理结果：驳回；驳回原因：订单在承诺时效内（4小时达），未构成延误'}],
+    createdAt:'2026-07-03 15:40:00', updatedAt:'2026-07-03 17:00:00' },
+  { id:'AS20260702013', orderNo:'YK20260702013', type:'退款申请', source:'用户售后', status:'rejected', assignee:'张管理', phone:'158****8888', p0:false, result:'驳回', resultAmount:null, resultMethod:null,
+    appeal:{desc:'寄存时间没用满一个计费周期，要求按小时退差价。', expect:'退差价', images:[]},
+    orderSummary:{bizType:'寄存', locker:'湖滨A区1号柜 A01-L01', orderStatus:'已完成', amount:22.00},
+    records:[{op:'用户', time:'2026-07-02 20:00:00', content:'用户提交售后：要求按小时退差价'},{op:'张管理', time:'2026-07-02 21:00:00', content:'登记处理结果：驳回；驳回原因：按计费规则不足一个周期按周期计费，收费无误'}],
+    createdAt:'2026-07-02 20:00:00', updatedAt:'2026-07-02 21:00:00' },
+  { id:'AS20260702014', orderNo:'YK20260704006', type:'支付异常', source:'系统生成', status:'closed', assignee:'张管理', phone:'133****1111', p0:false, result:'同意退款', resultAmount:12.50, resultMethod:'线下-微信转账', appeal:null,
+    orderSummary:{bizType:'寄存', locker:'湖滨A区1号柜 A01-M01', orderStatus:'已完成', amount:12.50, refund:12.50},
+    records:[{op:'系统', time:'2026-07-02 13:00:00', content:'系统检测到重复扣款，自动生成异常单'},{op:'张管理', time:'2026-07-02 14:30:00', content:'登记处理结果：同意退款，金额 ¥12.50（线下-微信转账，系统记录纳入对账）'},{op:'张管理', time:'2026-07-02 16:00:00', content:'退款到账用户确认，售后单关闭归档'}],
+    createdAt:'2026-07-02 13:00:00', updatedAt:'2026-07-02 16:00:00' },
+  { id:'AS20260702015', orderNo:'YK20260702015', type:'取件码/存储码错误', source:'运营标记', status:'closed', assignee:'李运营', phone:'189****0000', p0:false, result:'已解决', resultAmount:null, resultMethod:null, appeal:null,
+    orderSummary:{bizType:'寄存', locker:'西湖天地1号柜 XT1-S01', orderStatus:'已完成', amount:9.00},
+    records:[{op:'李运营', time:'2026-07-02 09:20:00', content:'运维巡检发现 XT1 扫码设备故障，标记异常'},{op:'李运营', time:'2026-07-02 11:00:00', content:'登记处理结果：已解决，设备已更换恢复正常'},{op:'李运营', time:'2026-07-02 15:00:00', content:'售后单关闭归档'}],
+    createdAt:'2026-07-02 09:20:00', updatedAt:'2026-07-02 15:00:00' },
+  { id:'AS20260701016', orderNo:'YK20260705019', type:'寄送问题', source:'用户售后', status:'processing', assignee:'王运营', phone:'166****2233', p0:false, result:null, resultAmount:null, resultMethod:null,
+    appeal:{desc:'查不到行李的转运进度，不知道什么时候能送到，请帮忙跟进。', expect:'告知转运进度', images:[]},
+    orderSummary:{bizType:'寄送', locker:'萧山T3-A柜 T3A-M04', orderStatus:'待存入', amount:39.00},
+    records:[{op:'用户', time:'2026-07-01 18:25:00', content:'用户提交售后：查询转运进度'},{op:'王运营', time:'2026-07-02 09:00:00', content:'受理，向转运方查询中'}],
+    createdAt:'2026-07-01 18:25:00', updatedAt:'2026-07-02 09:00:00' }
 ];
 
 /* ================================================================
    GLOBAL STATE
    ================================================================ */
-var currentFilters = { status:'all', type:'all', source:'all', dateFrom:'', dateTo:'', keyword:'' };
+/* 创建时间默认近7天（PRD §3.2）；原型当前日锚定 2026-07-05 */
+var DEFAULT_DATE_FROM = '2026-06-29', DEFAULT_DATE_TO = '2026-07-05';
+var currentFilters = { status:'all', type:'all', source:'all', dateFrom:DEFAULT_DATE_FROM, dateTo:DEFAULT_DATE_TO, keyword:'' };
+function applyDefaultDates() {
+  var df = document.getElementById('filterDateFrom'), dt = document.getElementById('filterDateTo');
+  df.type = 'date'; dt.type = 'date';
+  df.value = DEFAULT_DATE_FROM; dt.value = DEFAULT_DATE_TO;
+}
 var currentSort = { field:'createdAt', order:'desc' };
 var currentPage = 1, pageSize = 10;
 var currentTicket = null;
@@ -619,26 +769,30 @@ var dialogCallback = null;
    STATUS MAP
    ================================================================ */
 var statusMap = {
-  'pending':    { label:'待处理', cls:'badge-warning' },
-  'processing': { label:'处理中', cls:'badge-info' },
-  'resolved':   { label:'已处理', cls:'badge-success' },
-  'closed':     { label:'已关闭', cls:'badge-muted' }
+  'pending':       { label:'待处理',     cls:'badge-warning' },
+  'processing':    { label:'处理中',     cls:'badge-info' },
+  'await_confirm': { label:'待用户确认', cls:'badge-primary' },
+  'resolved':      { label:'已完成',     cls:'badge-success' },
+  'rejected':      { label:'已驳回',     cls:'badge-danger' },
+  'closed':        { label:'已关闭',     cls:'badge-muted' }
 };
+/* 终态：仅可查看（已关闭可重开） */
+function isTerminal(s) { return ['resolved','rejected','closed'].indexOf(s) >= 0; }
 
 /* ================================================================
    FILTER & RENDER
    ================================================================ */
-function getFilteredTickets() {
+function getFilteredTickets(ignoreStatus) {
   var f = currentFilters;
   return mockTickets.filter(function(t) {
-    if (f.status !== 'all' && t.status !== f.status) return false;
+    if (!ignoreStatus && f.status !== 'all' && t.status !== f.status) return false;
     if (f.type !== 'all' && t.type !== f.type) return false;
     if (f.source !== 'all' && t.source !== f.source) return false;
     if (f.dateFrom && t.createdAt.slice(0,10) < f.dateFrom) return false;
     if (f.dateTo   && t.createdAt.slice(0,10) > f.dateTo) return false;
     if (f.keyword) {
       var kw = f.keyword.toLowerCase();
-      if (t.id.toLowerCase().indexOf(kw) === -1 && t.orderNo.toLowerCase().indexOf(kw) === -1) return false;
+      if (t.id.toLowerCase().indexOf(kw) === -1 && t.orderNo.toLowerCase().indexOf(kw) === -1 && t.phone.indexOf(kw) === -1) return false;
     }
     return true;
   });
@@ -670,23 +824,28 @@ function renderTable() {
 
   tbody.innerHTML = pageData.map(function(t) {
     var st = statusMap[t.status] || { label:t.status, cls:'badge-muted' };
-    var rowCls = t.p0 ? 'row-p0' : '';
-    var p0Dot = t.p0 ? '<span class="p0-dot" title="P0 高优先级"></span>' : '';
+    var rowCls = (t.p0 && !isTerminal(t.status)) ? 'row-p0' : '';
+    var p0Dot = t.p0 ? '<span class="p0-dot" title="P0 / 紧急"></span>' : '';
+    var resultCell = t.result
+      ? t.result + (t.resultAmount ? ' <span class="font-mono">¥' + t.resultAmount.toFixed(2) + '</span>' : '')
+      : '<span class="text-ink-muted">—</span>';
+    var opLabel = isTerminal(t.status) ? '查看' : '处理';
     return '<tr class="' + rowCls + ' cursor-pointer" onclick="openDrawer(\'' + t.id + '\')">' +
       '<td class="font-mono text-ink-body">' + p0Dot + '<span class="link">' + t.id + '</span></td>' +
       '<td class="font-mono"><span class="link" onclick="event.stopPropagation();goToOrder(\'' + t.orderNo + '\')">' + t.orderNo + '</span></td>' +
       '<td>' + t.type + '</td>' +
       '<td>' + t.source + '</td>' +
       '<td><span class="badge ' + st.cls + '">' + st.label + '</span></td>' +
+      '<td>' + resultCell + '</td>' +
       '<td>' + t.assignee + '</td>' +
       '<td class="font-mono text-ink-muted text-[12px]">' + t.createdAt.slice(5) + '</td>' +
       '<td class="font-mono text-ink-muted text-[12px]">' + t.updatedAt.slice(5) + '</td>' +
-      '<td onclick="event.stopPropagation()"><span class="op-link" onclick="openDrawer(\'' + t.id + '\')">' + (t.status==='pending'||t.status==='processing'?'处理':'查看') + '</span></td>' +
+      '<td onclick="event.stopPropagation()"><span class="op-link" onclick="openDrawer(\'' + t.id + '\')">' + opLabel + '</span></td>' +
       '</tr>';
   }).join('');
 
   renderPagination(total, totalPages);
-  updateStats(filtered);
+  updateStats(getFilteredTickets(true));
   lucide.createIcons();
   renderAnnoBadges();
 }
@@ -695,7 +854,14 @@ function updateStats(filtered) {
   document.getElementById('statTotal').textContent = filtered.length;
   document.getElementById('statPending').textContent = filtered.filter(function(t){return t.status==='pending';}).length;
   document.getElementById('statProcessing').textContent = filtered.filter(function(t){return t.status==='processing';}).length;
-  document.getElementById('statP0').textContent = filtered.filter(function(t){return t.p0 && t.status!=='closed';}).length;
+  document.getElementById('statAwait').textContent = filtered.filter(function(t){return t.status==='await_confirm';}).length;
+  document.getElementById('statP0').textContent = filtered.filter(function(t){return t.p0 && !isTerminal(t.status);}).length;
+  // 状态 Tab 计数：不含状态本身的其余筛选条件下各状态数量
+  var base = getFilteredTickets(true);
+  document.querySelectorAll('#statusTabs .tab-count').forEach(function(el){
+    var s = el.getAttribute('data-count');
+    el.textContent = s === 'all' ? base.length : base.filter(function(t){return t.status===s;}).length;
+  });
 }
 
 /* ================================================================
@@ -775,13 +941,10 @@ function applyFilters() {
 function resetFilters() {
   document.querySelectorAll('#statusTabs .filter-tab').forEach(function(t){t.classList.remove('active');});
   document.querySelector('#statusTabs .filter-tab[data-status="all"]').classList.add('active');
-  currentFilters = { status:'all', type:'all', source:'all', dateFrom:'', dateTo:'', keyword:'' };
+  currentFilters = { status:'all', type:'all', source:'all', dateFrom:DEFAULT_DATE_FROM, dateTo:DEFAULT_DATE_TO, keyword:'' };
   document.getElementById('filterType').value = 'all';
   document.getElementById('filterSource').value = 'all';
-  document.getElementById('filterDateFrom').value = '';
-  document.getElementById('filterDateTo').value = '';
-  document.getElementById('filterDateFrom').type = 'text';
-  document.getElementById('filterDateTo').type = 'text';
+  applyDefaultDates();
   document.getElementById('filterKeyword').value = '';
   toggleSearchClear();
   currentPage = 1;
@@ -813,38 +976,52 @@ function sortTable(field) {
 }
 
 /* ================================================================
-   DRAWER — 工单详情
+   DRAWER — 售后单详情/处理面板
    ================================================================ */
 function openDrawer(ticketId) {
   currentTicket = mockTickets.find(function(t){return t.id === ticketId;});
   if (!currentTicket) return;
-  var st = statusMap[currentTicket.status];
-  var isClosed = currentTicket.status === 'closed';
+  var t = currentTicket;
+  var st = statusMap[t.status];
 
-  // 工单信息
+  // 单据信息（含已登记的处理结果与线下金额记录）
+  var resultRow = t.result
+    ? '<div class="info-item"><span class="info-label">处理结果：</span><span class="info-value">' + t.result +
+      (t.resultAmount ? ' <span class="font-mono font-medium">¥' + t.resultAmount.toFixed(2) + '</span>' : '') +
+      (t.resultMethod ? '（' + t.resultMethod + '）' : '') + '</span></div>'
+    : '';
   document.getElementById('drawerTicketInfo').innerHTML =
-    '<div class="info-item"><span class="info-label">工单号：</span><span class="info-value font-mono">' + currentTicket.id + '</span></div>' +
-    '<div class="info-item"><span class="info-label">异常类型：</span><span class="info-value">' + (currentTicket.p0?'<span class="p0-dot"></span>':'') + currentTicket.type + (currentTicket.p0?' <span class="badge badge-warning" style="font-size:11px;">P0 高优</span>':'') + '</span></div>' +
-    '<div class="info-item"><span class="info-label">来源：</span><span class="info-value">' + currentTicket.source + '</span></div>' +
-    '<div class="info-item"><span class="info-label">工单状态：</span><span class="info-value"><span class="badge ' + st.cls + '">' + st.label + '</span></span></div>' +
-    '<div class="info-item"><span class="info-label">创建时间：</span><span class="info-value font-mono">' + currentTicket.createdAt + '</span></div>' +
-    '<div class="info-item"><span class="info-label">更新时间：</span><span class="info-value font-mono">' + currentTicket.updatedAt + '</span></div>';
+    '<div class="info-item"><span class="info-label">单号：</span><span class="info-value font-mono">' + t.id + '</span></div>' +
+    '<div class="info-item"><span class="info-label">类型：</span><span class="info-value">' + (t.p0?'<span class="p0-dot"></span>':'') + t.type + (t.p0?' <span class="badge badge-danger" style="font-size:11px;">P0 / 紧急</span>':'') + '</span></div>' +
+    '<div class="info-item"><span class="info-label">来源：</span><span class="info-value">' + t.source + '</span></div>' +
+    '<div class="info-item"><span class="info-label">状态：</span><span class="info-value"><span class="badge ' + st.cls + '">' + st.label + '</span></span></div>' +
+    resultRow +
+    '<div class="info-item"><span class="info-label">创建时间：</span><span class="info-value font-mono">' + t.createdAt + '</span></div>' +
+    '<div class="info-item"><span class="info-label">更新时间：</span><span class="info-value font-mono">' + t.updatedAt + '</span></div>';
 
-  // 关联订单
-  var os = currentTicket.orderSummary;
+  // 关联订单摘要（含实付/退款，点击跳订单列表）
+  var os = t.orderSummary;
   document.getElementById('drawerOrderInfo').innerHTML =
-    '<div class="info-item"><span class="info-label">订单号：</span><span class="info-value font-mono"><span class="link" onclick="goToOrder(\'' + currentTicket.orderNo + '\')">' + currentTicket.orderNo + '</span></span></div>' +
+    '<div class="info-item"><span class="info-label">订单号：</span><span class="info-value font-mono"><span class="link" onclick="goToOrder(\'' + t.orderNo + '\')">' + t.orderNo + '</span></span></div>' +
     '<div class="info-item"><span class="info-label">业务类型：</span><span class="info-value">' + os.bizType + '</span></div>' +
-    '<div class="info-item"><span class="info-label">柜机位置：</span><span class="info-value">' + os.locker + '</span></div>' +
-    '<div class="info-item"><span class="info-label">订单状态：</span><span class="info-value">' + os.orderStatus + '</span></div>';
+    '<div class="info-item"><span class="info-label">柜机格口：</span><span class="info-value">' + os.locker + '</span></div>' +
+    '<div class="info-item"><span class="info-label">订单状态：</span><span class="info-value">' + os.orderStatus + '</span></div>' +
+    (os.amount != null ? '<div class="info-item"><span class="info-label">实付金额：</span><span class="info-value font-mono">¥' + os.amount.toFixed(2) + '</span></div>' : '') +
+    (os.refund != null ? '<div class="info-item"><span class="info-label">退款金额：</span><span class="info-value font-mono">¥' + os.refund.toFixed(2) + '</span></div>' : '');
 
-  // 用户诉求
+  // 用户诉求（用户售后来源专有：售后类型/描述/期望结果/联系方式/图片）
   var appealDiv = document.getElementById('drawerUserAppeal');
-  if (currentTicket.appeal) {
+  if (t.source === '用户售后' && t.appeal) {
     appealDiv.classList.remove('hidden');
-    document.getElementById('drawerAppealContent').innerHTML = '<p class="bg-bg-page rounded p-3">' + currentTicket.appeal.desc + '</p>';
+    document.getElementById('drawerAppealContent').innerHTML =
+      '<div class="info-grid mb-2">' +
+      '<div class="info-item"><span class="info-label">售后类型：</span><span class="info-value">' + t.type + '</span></div>' +
+      '<div class="info-item"><span class="info-label">期望结果：</span><span class="info-value">' + (t.appeal.expect || '--') + '</span></div>' +
+      '<div class="info-item"><span class="info-label">联系方式：</span><span class="info-value font-mono">' + t.phone + '</span></div>' +
+      '</div>' +
+      '<p class="bg-bg-page rounded p-3">' + t.appeal.desc + '</p>';
     var imgs = '';
-    currentTicket.appeal.images.forEach(function(img){
+    (t.appeal.images || []).forEach(function(){
       imgs += '<div class="w-24 h-24 rounded border border-line bg-bg-page flex items-center justify-center"><i data-lucide="image" class="w-[24px] h-[24px] text-ink-muted"></i></div>';
     });
     document.getElementById('drawerAppealImages').innerHTML = imgs;
@@ -852,40 +1029,54 @@ function openDrawer(ticketId) {
     appealDiv.classList.add('hidden');
   }
 
-  // 处理记录
-  document.getElementById('drawerRecords').innerHTML = currentTicket.records.length > 0
-    ? currentTicket.records.map(function(r){
+  // 处理记录（留痕，仅可追加）
+  document.getElementById('drawerRecords').innerHTML = t.records.length > 0
+    ? t.records.map(function(r){
         return '<div class="timeline-item"><div class="text-[13px] text-ink-body">' + r.content + '</div><div class="text-[12px] text-ink-muted mt-1">' + r.op + ' · ' + r.time + '</div></div>';
       }).join('')
     : '<p class="text-[13px] text-ink-muted">暂无处理记录</p>';
 
-  // 状态选择器
-  var ss = document.getElementById('drawerStatusSelect');
-  var nextStatuses = getNextStatuses(currentTicket.status);
-  ss.innerHTML = '<option value="">-- 选择目标状态 --</option>';
-  nextStatuses.forEach(function(s){ ss.innerHTML += '<option value="' + s + '">' + statusMap[s].label + '</option>'; });
-  ss.value = '';
-
-  document.getElementById('drawerAssigneeSelect').value = '';
-  document.getElementById('drawerNoteInput').value = '';
-
-  // 底部按钮
-  var opsDiv = document.getElementById('drawerOps');
-  var pBtn = document.getElementById('drawerBtnProcess');
-  var rBtn = document.getElementById('drawerBtnResolve');
-  var cBtn = document.getElementById('drawerBtnClose');
-  var reBtn = document.getElementById('drawerBtnReopen');
-  pBtn.classList.add('hidden'); rBtn.classList.add('hidden'); cBtn.classList.add('hidden'); reBtn.classList.add('hidden');
-
-  if (isClosed) {
-    opsDiv.classList.add('hidden');
-    reBtn.classList.remove('hidden');
+  // 处理结果登记区：仅处理中可登记
+  var regDiv = document.getElementById('drawerResultReg');
+  if (t.status === 'processing') {
+    regDiv.classList.remove('hidden');
+    document.getElementById('resultSelect').value = '';
+    document.getElementById('resultAmount').value = '';
+    document.getElementById('resultNote').value = '';
+    onResultTypeChange();
   } else {
-    opsDiv.classList.remove('hidden');
-    if (currentTicket.status === 'pending') pBtn.classList.remove('hidden');
-    if (currentTicket.status === 'processing') rBtn.classList.remove('hidden');
-    if (currentTicket.status === 'resolved') cBtn.classList.remove('hidden');
+    regDiv.classList.add('hidden');
   }
+
+  // 处理操作区：待处理/处理中可操作
+  var opsDiv = document.getElementById('drawerOps');
+  if (t.status === 'pending' || t.status === 'processing') {
+    opsDiv.classList.remove('hidden');
+    document.getElementById('drawerAssigneeSelect').value = '';
+    document.getElementById('drawerNoteInput').value = '';
+  } else {
+    opsDiv.classList.add('hidden');
+  }
+
+  // 待用户确认提示
+  document.getElementById('drawerAwaitTip').classList.toggle('hidden', t.status !== 'await_confirm');
+
+  // 底部按钮：按状态与来源显隐
+  ['drawerBtnProcess','drawerBtnAwait','drawerBtnResolve','drawerBtnClose','drawerBtnReopen','drawerBtnUserAccept','drawerBtnUserReject'].forEach(function(id){
+    document.getElementById(id).classList.add('hidden');
+  });
+  if (t.status === 'pending') document.getElementById('drawerBtnProcess').classList.remove('hidden');
+  if (t.status === 'processing') {
+    if (t.source === '用户售后') document.getElementById('drawerBtnAwait').classList.remove('hidden');
+    document.getElementById('drawerBtnResolve').classList.remove('hidden');
+    document.getElementById('drawerBtnClose').classList.remove('hidden');
+  }
+  if (t.status === 'await_confirm') {
+    document.getElementById('drawerBtnUserAccept').classList.remove('hidden');
+    document.getElementById('drawerBtnUserReject').classList.remove('hidden');
+  }
+  if (t.status === 'resolved' || t.status === 'rejected') document.getElementById('drawerBtnClose').classList.remove('hidden');
+  if (t.status === 'closed') document.getElementById('drawerBtnReopen').classList.remove('hidden');
 
   document.getElementById('drawerOverlay').classList.add('show');
   document.getElementById('drawer').classList.add('open');
@@ -904,40 +1095,120 @@ function closeDrawer() {
   popAnnoScope(document.getElementById('drawer'));
 }
 
-function getNextStatuses(s) {
-  var flow = { pending:['processing'], processing:['resolved','closed'], resolved:['closed'], closed:[] };
-  return flow[s] || [];
-}
-
 function startProcess() {
   if (!currentTicket || currentTicket.status !== 'pending') return;
-  showDialog('confirm','确认受理工单','确定要受理工单 <span class="font-mono">' + currentTicket.id + '</span> 吗？受理后状态将变更为"处理中"。', function(){
+  showDialog('confirm','确认受理','确定要受理售后单 <span class="font-mono">' + currentTicket.id + '</span> 吗？受理后状态将变更为"处理中"，并同步用户端进度。', function(){
     if (currentTicket.assignee === '--') currentTicket.assignee = '张管理';
     currentTicket.status = 'processing';
     currentTicket.updatedAt = now();
-    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'受理工单，开始处理'});
+    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'受理售后单，开始处理（用户端同步转"处理中"）'});
     openDrawer(currentTicket.id);
     renderTable();
   });
 }
 
+/* 处理结果登记：切换结果时联动字段（金额/方式 或 开柜方式；驳回原因必填） */
+function onResultTypeChange() {
+  var r = document.getElementById('resultSelect').value;
+  var needAmount = ['同意退款','部分退款','赔付'].indexOf(r) >= 0;
+  document.getElementById('resultAmountFields').classList.toggle('hidden', !needAmount);
+  document.getElementById('resultUnlockFields').classList.toggle('hidden', r !== '协助开柜');
+  document.getElementById('resultNote').placeholder = r === '驳回' ? '驳回原因（必填，将展示给用户）' : '处理说明 / 备注';
+  document.getElementById('resultNoteError').style.display = 'none';
+  lucide.createIcons();
+}
+
+/* 提交登记：一期线下退款/赔付 + 系统记录（金额/方式/时间/操作人，纳入对账审计） */
+function submitResult() {
+  if (!currentTicket || currentTicket.status !== 'processing') return;
+  var r = document.getElementById('resultSelect').value;
+  var sel = document.getElementById('resultSelect');
+  if (!r) { sel.style.borderColor = '#D9001B'; setTimeout(function(){ sel.style.borderColor = '#DFE1E5'; }, 2000); return; }
+  var note = document.getElementById('resultNote').value.trim();
+  if (r === '驳回' && !note) { document.getElementById('resultNoteError').style.display = 'block'; return; }
+
+  var amount = null, method = null;
+  if (['同意退款','部分退款','赔付'].indexOf(r) >= 0) {
+    amount = parseFloat(document.getElementById('resultAmount').value);
+    var amtEl = document.getElementById('resultAmount');
+    if (!amount || amount <= 0) { amtEl.style.borderColor = '#D9001B'; setTimeout(function(){ amtEl.style.borderColor = '#DFE1E5'; }, 2000); return; }
+    method = document.getElementById('resultMethod').value;
+  } else if (r === '协助开柜') {
+    method = document.getElementById('resultUnlockMethod').value;
+  }
+
+  var msg = '确定登记处理结果为 <b>' + r + '</b>' + (amount ? '（金额 ¥' + amount.toFixed(2) + '，' + method + '）' : '') + ' 吗？' +
+    (amount ? '<br><span class="text-[12px] text-ink-muted">一期线下人工处理，系统记录纳入对账与审计。</span>' : '') +
+    (r === '驳回' ? '<br><span class="text-[12px] text-ink-muted">登记后售后单转"已驳回"，原因同步用户端。</span>' : '') +
+    (r === '已解决' ? '<br><span class="text-[12px] text-ink-muted">登记后售后单转"已完成"。</span>' : '');
+  showDialog('confirm','确认登记处理结果', msg, function(){
+    currentTicket.result = r;
+    currentTicket.resultAmount = amount;
+    currentTicket.resultMethod = method;
+    currentTicket.updatedAt = now();
+    var content = '登记处理结果：' + r +
+      (amount ? '，金额 ¥' + amount.toFixed(2) + '（' + method + '，线下人工处理，系统记录纳入对账）' : '') +
+      (r === '协助开柜' && method ? '（' + method + '）' : '') +
+      (note ? (r === '驳回' ? '；驳回原因：' + note : '；' + note) : '');
+    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:content});
+    if (r === '驳回') {
+      currentTicket.status = 'rejected';
+      currentTicket.records.push({op:'系统',time:currentTicket.updatedAt,content:'售后单转"已驳回"，驳回原因已同步用户端'});
+    } else if (r === '已解决') {
+      currentTicket.status = 'resolved';
+      currentTicket.records.push({op:'系统',time:currentTicket.updatedAt,content:'售后单转"已完成"'});
+    }
+    openDrawer(currentTicket.id);
+    renderTable();
+  });
+}
+
+/* 转待用户确认：仅用户售后来源，方案同步用户端等待确认 */
+function toAwaitConfirm() {
+  if (!currentTicket || currentTicket.status !== 'processing' || currentTicket.source !== '用户售后') return;
+  var warn = currentTicket.result ? '' : '<br><span class="text-[12px] text-warning">当前尚未登记处理结果，建议先登记再转待确认。</span>';
+  showDialog('confirm','转待用户确认','确定将售后单 <span class="font-mono">' + currentTicket.id + '</span> 转为"待用户确认"吗？处理方案将同步用户端，等待用户确认接受。' + warn, function(){
+    currentTicket.status = 'await_confirm';
+    currentTicket.updatedAt = now();
+    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'转待用户确认，处理方案已同步用户端'});
+    openDrawer(currentTicket.id);
+    renderTable();
+  });
+}
+
+/* 模拟用户端确认（原型演示两端同步：接受→已完成 / 不接受→退回处理中） */
+function simulateUserConfirm(accept) {
+  if (!currentTicket || currentTicket.status !== 'await_confirm') return;
+  currentTicket.updatedAt = now();
+  if (accept) {
+    currentTicket.status = 'resolved';
+    currentTicket.records.push({op:'用户',time:currentTicket.updatedAt,content:'用户确认接受处理方案（用户端操作模拟），售后单转"已完成"'});
+  } else {
+    currentTicket.status = 'processing';
+    currentTicket.records.push({op:'用户',time:currentTicket.updatedAt,content:'用户不接受处理方案（用户端操作模拟），退回"处理中"重新处理'});
+  }
+  openDrawer(currentTicket.id);
+  renderTable();
+}
+
 function resolveTicket() {
   if (!currentTicket || currentTicket.status !== 'processing') return;
-  showDialog('confirm','确认标记已处理','确定将工单 <span class="font-mono">' + currentTicket.id + '</span> 标记为"已处理"吗？', function(){
+  var warn = currentTicket.result ? '' : '<br><span class="text-[12px] text-warning">当前尚未登记处理结果，建议先登记再完成。</span>';
+  showDialog('confirm','确认标记完成','确定将售后单 <span class="font-mono">' + currentTicket.id + '</span> 标记为"已完成"吗？' + warn, function(){
     currentTicket.status = 'resolved';
     currentTicket.updatedAt = now();
-    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'工单处理完成，标记为已处理'});
+    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'售后单处理完成，转"已完成"'});
     openDrawer(currentTicket.id);
     renderTable();
   });
 }
 
 function closeTicket() {
-  if (!currentTicket || currentTicket.status !== 'resolved') return;
-  showDialog('confirm','确认关闭工单','确定关闭工单 <span class="font-mono">' + currentTicket.id + '</span> 吗？关闭后仅可查看，如需操作需重开。', function(){
+  if (!currentTicket || ['processing','resolved','rejected'].indexOf(currentTicket.status) < 0) return;
+  showDialog('confirm','确认关闭','确定关闭售后单 <span class="font-mono">' + currentTicket.id + '</span> 吗？关闭归档后仅可查看，如需操作需重开。', function(){
     currentTicket.status = 'closed';
     currentTicket.updatedAt = now();
-    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'工单关闭归档'});
+    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'售后单关闭归档'});
     openDrawer(currentTicket.id);
     renderTable();
   });
@@ -945,23 +1216,10 @@ function closeTicket() {
 
 function reopenTicket() {
   if (!currentTicket || currentTicket.status !== 'closed') return;
-  showDialog('confirm','确认重开工单','确定重开工单 <span class="font-mono">' + currentTicket.id + '</span> 吗？重开后状态将回到"处理中"。', function(){
+  showDialog('confirm','确认重开','确定重开售后单 <span class="font-mono">' + currentTicket.id + '</span> 吗？重开后状态将回到"处理中"（重开权限由运营配置约束）。', function(){
     currentTicket.status = 'processing';
     currentTicket.updatedAt = now();
-    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'重开工单'});
-    openDrawer(currentTicket.id);
-    renderTable();
-  });
-}
-
-function onStatusChange() {
-  var ns = document.getElementById('drawerStatusSelect').value;
-  if (!ns || !currentTicket || ns === currentTicket.status) return;
-  var labels = {processing:'处理中',resolved:'已处理',closed:'已关闭'};
-  showDialog('confirm','变更工单状态','确定将状态从"' + statusMap[currentTicket.status].label + '"变更为"' + labels[ns] + '"吗？', function(){
-    currentTicket.status = ns;
-    currentTicket.updatedAt = now();
-    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'变更工单状态 → ' + labels[ns]});
+    currentTicket.records.push({op:'张管理',time:currentTicket.updatedAt,content:'重开售后单'});
     openDrawer(currentTicket.id);
     renderTable();
   });
@@ -1033,18 +1291,18 @@ function submitMarkException() {
 
   var nowStr = now();
   var p0Types = ['锁柜失败','开柜异常'];
-  var newId = 'TK' + nowStr.replace(/[^0-9]/g,'').slice(0,12);
+  var newId = 'AS' + nowStr.replace(/[^0-9]/g,'').slice(0,12);
   mockTickets.unshift({
     id: newId, orderNo: orderNo, type: type, source: '运营标记', status: 'pending',
-    assignee: assignee || '--', createdAt: nowStr, updatedAt: nowStr,
-    p0: p0Types.indexOf(type) !== -1, appeal: null,
-    orderSummary: { bizType:'寄存', locker:'西湖景区A-03', orderStatus:'进行中' },
+    assignee: assignee || '--', phone: '138****0000', createdAt: nowStr, updatedAt: nowStr,
+    p0: p0Types.indexOf(type) !== -1, result: null, resultAmount: null, resultMethod: null, appeal: null,
+    orderSummary: { bizType:'寄存', locker:'湖滨A区1号柜 A01-S02', orderStatus:'寄存中', amount: 20.00 },
     records: [{ op:'张管理', time:nowStr, content: note }]
   });
   closeMarkModal();
-  showDialog('success','工单生成成功','异常工单 <span class="font-mono">' + newId + '</span> 已生成，状态为"待处理"。', function(){
+  showDialog('success','售后单生成成功','售后单 <span class="font-mono">' + newId + '</span> 已生成（来源=运营标记），状态为"待处理"。', function(){
     openDrawer(newId);
-  }, '查看工单');
+  }, '查看售后单');
   renderTable();
 }
 
@@ -1087,7 +1345,7 @@ function dialogConfirm() {
    ================================================================ */
 function goToOrder(orderNo) {
   showDialog('info','跳转订单详情','将跳转到订单 <span class="font-mono">' + orderNo + '</span> 的详情页面。<br><br><span class="text-ink-muted">原型阶段模拟跳转行为</span>', function(){
-    window.location.href = '订单管理.html';
+    window.location.href = '订单列表.html';
   }, '跳转');
 }
 
@@ -1197,7 +1455,7 @@ function toggleSidebar() {
 }
 
 /* ================================================================
-   INIT SIDEBAR — highlight 异常工单
+   INIT SIDEBAR — highlight 订单管理>售后列表
    ================================================================ */
 function initSidebarActive() {
   // Active state already set inline on the L1 element
@@ -1208,119 +1466,119 @@ function initSidebarActive() {
    PORTAL ANNOTATION SYSTEM
    ================================================================ */
 var annotations = {
-  1: { title:'工单状态筛选 Tab', desc:[
-    '触发：点击状态 Tab（全部/待处理/处理中/已处理/已关闭）',
+  1: { title:'售后状态筛选 Tab', desc:[
+    '触发：点击状态 Tab（全部/待处理/处理中/待用户确认/已完成/已驳回/已关闭），带各状态计数角标',
     '响应：表格按所选状态前端过滤刷新',
-    '状态 Badge 语义色：待处理=warning / 处理中=info / 已处理=success / 已关闭=ink-muted',
-    '默认：进入页面默认"全部"',
-    '工作台带筛选进入时可自动应用对应状态过滤'
+    '状态流转：待处理 → 处理中 →[待用户确认]→ 已完成 / 已驳回 / 已关闭（售后状态说明表）',
+    'Badge 语义色：待处理=warning / 处理中=info / 待用户确认=primary / 已完成=success / 已驳回=danger / 已关闭=ink-muted',
+    '"待用户确认"为用户售后来源专有，与用户端进度同步；运营标记/系统生成的纯异常单可不经此状态',
+    '默认"全部"；工作台带筛选进入时自动应用（如状态=待处理、来源=用户售后）'
   ]},
   2: { title:'关键词搜索', desc:[
-    '触发：输入工单号 / 关联订单号后按回车或点击查询',
-    '响应：模糊匹配工单号和关联订单号字段',
+    '触发：输入单号 / 关联订单号 / 用户手机号后按回车或点击查询',
+    '响应：三字段模糊匹配（手机号按脱敏值匹配）',
     '有内容时右侧显示清空按钮 ✕，点击清空并重新查询'
   ]},
-  3: { title:'异常类型筛选', desc:[
-    '触发：选择异常类型下拉选项',
-    '响应：表格按所选异常类型过滤',
-    '枚举：延误、损坏、遗失、取件码/存储码错误、支付异常、锁柜失败(P0)、开柜异常(P0)、其他',
-    'P0 类型（锁柜失败/开柜异常）在表格中以 danger 底色和红点突出'
+  3: { title:'类型筛选（售后类型+异常类型）', desc:[
+    '一个下拉分组展示：售后类型（用户售后来源5类）与异常类型（运营/系统来源8类）',
+    '售后类型：退款申请（含费用争议）/物品损坏丢失/开柜取件问题/寄送问题/其他，与用户端5类售后打通',
+    '异常类型：延误/损坏/遗失/取件码存储码错误/支付异常/锁柜失败(P0)/开柜异常(P0)/其他',
+    '两类并存，按来源展示对应分类；P0 与紧急售后行以 danger 底色和红点突出'
   ]},
   4: { title:'来源筛选', desc:[
-    '触发：选择来源下拉选项',
-    '响应：表格按工单来源过滤',
-    '运营标记：运营在订单管理"标记异常"生成',
-    '用户售后：用户端"客服/售后"提交自动生成，详情中展示用户诉求',
+    '三种来源合集，一处处理所有售后与异常（不拆分模块）',
+    '用户售后：用户端提交自动生成，与用户端售后单为同一实体两端视图，状态双向同步',
+    '运营标记：运营在订单列表"标记异常"生成',
     '系统生成：系统检测到锁柜失败等异常自动生成'
   ]},
   5: { title:'创建时间日期范围', desc:[
-    '触发：点击日期输入框 → 弹出原生日期选择器 → 选择日期后自动筛选',
-    '开始时间/结束时间可分别设置，也可只设一端',
-    'focus 时 type 切换为 date（原生选择器），blur 无值时恢复 text（显示 placeholder）'
+    '默认近7天（原型锚定当前日 2026-07-05，即 06-29 ~ 07-05）',
+    '开始/结束时间可分别调整，重置恢复默认近7天',
+    '按售后单创建时间过滤'
   ]},
-  6: { title:'工单列表标题', desc:[
-    '区块2标题，标识下方为工单数据列表区域',
-    '右侧"标记异常"按钮可快速创建工单（见标注 #7）'
+  6: { title:'售后单列表标题', desc:[
+    '模块由原"异常工单"升级改名为"售后列表"，归入一级菜单"订单管理"，与"订单列表"并列',
+    '保留原异常工单全部能力，叠加售后处理能力（处理结果登记、线下退款赔付记录、待用户确认同步）'
   ]},
   7: { title:'标记异常按钮', desc:[
-    '触发：点击"标记异常"按钮',
-    '响应：打开标记异常弹窗（见标注 #18-21）',
-    '提交后自动生成一条待处理工单，可跳转查看'
+    '触发：点击"标记异常"按钮，打开标记异常/新建弹窗（见标注 #19-22）',
+    '提交后生成一条待处理售后单（来源=运营标记），可跳转查看',
+    '通常从订单列表"标记异常"触发并自动带入订单号，本页也可手动发起'
   ]},
-  8: { title:'工单统计指标卡', desc:[
-    '展示当前筛选范围内工单的汇总统计',
-    '全部工单 / 待处理 / 处理中 / P0 紧急四个维度',
-    '数字用 mono 字体，P0 紧急用 danger 色图标突出',
-    'P0 工单包含锁柜失败、开柜异常两类，为高优先级跟踪项'
+  8: { title:'售后统计指标卡', desc:[
+    '全部售后单 / 待处理 / 处理中 / 待用户确认 / P0紧急 五个维度',
+    '统计口径：除状态外的当前筛选范围；数字用 mono 字体',
+    'P0/紧急 = 锁柜失败、开柜异常（P0异常）与开柜/取件问题（最紧急售后）中未完结的单据，danger 色突出'
   ]},
-  9: { title:'工单列表表格', desc:[
-    '列：工单号(mono)、关联订单(mono,可点击跳转)、异常类型、来源、工单状态(Badge)、处理人、创建时间(mono)、更新时间(mono)、操作',
-    '所有列左对齐，数字编码列用 JetBrains Mono 字体',
-    'P0 工单行（锁柜失败/开柜异常）用 danger 浅底色高亮，左侧红点标记',
-    'hover 行 → bg-hover 高亮',
-    '点击行或操作列 → 打开详情抽屉',
-    '关联订单号点击 → 跳转订单详情（工单↔订单双向跳转）',
-    '创建时间/更新时间列头支持排序切换'
+  9: { title:'售后单列表表格', desc:[
+    '列：单号(mono)/关联订单(mono,可点击跳转)/类型/来源/状态(Badge)/处理结果/处理人/创建时间/更新时间/操作',
+    '处理结果列（升级）：同意退款/部分退款/赔付/协助开柜/驳回/已解决，退款赔付附线下登记金额(mono)，未登记显示 —',
+    'P0 异常与紧急售后未完结行用 danger 浅底色高亮，左侧红点标记',
+    '操作列：待处理/处理中/待用户确认显示"处理"，终态显示"查看"',
+    '点击行或操作列 → 打开详情/处理面板抽屉',
+    '关联订单号点击 → 跳转订单列表（售后单↔订单双向跳转）',
+    '创建/更新时间列头支持排序切换'
   ]},
   10: { title:'分页器', desc:[
     '触发：点击页码 / 上/下页 / 输入跳转页码 / 更改每页条数',
     '≤7页全部显示，>7页首尾+当前页±1+省略号',
-    '默认每页10条，可选20/50条',
-    '显示总记录数和当前页码',
-    '位于表格所在卡片内部右下方'
+    '默认每页10条，可选20/50条'
   ]},
-  11: { title:'工单详情 — 工单信息', desc:[
-    '展示工单基本信息：工单号、异常类型、来源、工单状态、创建/更新时间',
-    'P0 工单额外显示"P0 高优"warning Badge',
-    '状态以对应语义色 Badge 展示',
-    '工单号和时间为 mono 字体'
+  11: { title:'详情 — 单据信息', desc:[
+    '展示单号、类型、来源、状态、已登记的处理结果（含线下金额与方式）、创建/更新时间',
+    'P0/紧急单据显示红点 + danger Badge',
+    '单号和时间为 mono 字体'
   ]},
-  12: { title:'工单详情 — 关联订单摘要', desc:[
-    '展示关联订单关键信息：订单号(可点击跳转)、业务类型、柜机位置、订单状态',
-    '订单号点击跳转订单详情页，实现工单↔订单双向跳转'
+  12: { title:'详情 — 关联订单摘要', desc:[
+    '订单号(可点击跳订单列表)、业务类型、柜机格口、订单状态、实付金额、（如有）退款金额',
+    '售后可能触发订单退款（订单转退款中/已退款），售后状态与订单状态两套联动、双向跳转',
+    '一期后台不直接退款，退款由系统触发或经本售后流程线下处理'
   ]},
-  13: { title:'工单详情 — 用户诉求', desc:[
-    '仅当工单来源为"用户售后"时显示',
-    '展示用户提交的问题描述和上传图片（原型用图标占位），为售后工单处理提供上下文'
+  13: { title:'详情 — 用户诉求', desc:[
+    '仅来源为"用户售后"时显示（同一实体两端视图）',
+    '展示售后类型、期望结果、联系方式（脱敏手机号）、问题描述、上传图片（原型用图标占位）'
   ]},
-  14: { title:'工单详情 — 处理记录', desc:[
-    '时间线样式展示所有处理留痕',
-    '每条含：操作人 + 时间 + 内容，首条节点为 primary 色',
-    '处理记录作为纠纷证据链，仅可追加，不可删除',
-    '追加时自动记录当前操作人和时间戳'
+  14: { title:'详情 — 处理记录（留痕）', desc:[
+    '时间线展示全过程留痕：受理、处理动作、结果登记、驳回原因、用户确认',
+    '每条含操作人+时间+内容，仅可追加、不可删除，作为纠纷追溯与审计证据链'
   ]},
-  15: { title:'工单详情 — 状态变更', desc:[
-    '触发：选择目标状态',
-    '响应：弹出确认弹窗 → 确认后变更状态并自动追加记录',
-    '流转顺序：待处理(warning)→处理中(info)→已处理(success)→已关闭(ink-muted)',
-    '仅可按序流转，不可跳跃',
-    '已关闭工单不可再操作（除重开外）'
+  15: { title:'处理结果登记（升级核心）', desc:[
+    '仅"处理中"状态可登记；六种结果：同意退款/部分退款/赔付/协助开柜/驳回/已解决',
+    '退款/部分退款/赔付：登记金额与方式（线下-微信/支付宝/银行转账/现金）——一期人工线下打款+系统记录，金额纳入对账中心与审计口径，线上自动退款为V2',
+    '协助开柜：登记处理方式（远程开柜依赖柜控接口 / 线下运维协助），开柜取件类为最紧急售后',
+    '驳回：原因必填，登记后单据转"已驳回"，原因同步用户端',
+    '已解决：登记后单据转"已完成"',
+    '登记自动追加留痕（操作人+时间+金额+方式）'
   ]},
-  16: { title:'工单详情 — 指派处理人', desc:[
-    '触发：选择处理人 → 确认',
-    '响应：更新处理人并追加记录',
-    '可选人员：张管理、李运营、王运营、赵运营、刘客服'
+  16: { title:'详情 — 指派处理人', desc:[
+    '触发：选择处理人 → 确认后更新并追加留痕',
+    '可选人员：张管理、李运营、王运营、赵运营、刘客服',
+    '敏感操作权限（驳回/关闭/重开/金额登记）可限管理员或设额度（运营配置）'
   ]},
-  17: { title:'工单详情 — 添加处理备注', desc:[
-    '触发：输入备注内容 → 点击"添加备注"',
-    '响应：追加一条处理记录（自动记录操作人+时间+内容）',
-    '规则：备注一经提交不可删除，仅可追加，作为纠纷证据链',
-    '空内容提交时输入框边框变红提示'
+  17: { title:'详情 — 添加处理备注', desc:[
+    '触发：输入备注 → 点击"添加备注"追加一条留痕',
+    '规则：一经提交不可删除，仅可追加；空内容提交时输入框边框变红提示'
   ]},
-  18: { title:'标记异常 — 关联订单', desc:[
-    '从订单管理触发时自动带入订单号，本页手动发起预填随机订单号',
-    '可手动修改为其他订单号'
+  18: { title:'待用户确认 — 用户端同步', desc:[
+    '后台转"待用户确认"→ 用户端售后单同步展示处理方案，等待用户确认',
+    '用户确认接受 → 单据转"已完成"；用户不接受 → 退回"处理中"运营重新处理',
+    '底部"模拟"按钮为原型演示用户端行为，实际由用户在用户端操作',
+    '受理/驳回等后台动作同样实时同步用户端进度（PRD §4.5）'
   ]},
-  19: { title:'标记异常 — 异常类型(必填)', desc:[
-    '必填，提交时校验，选项为8种异常类型',
-    '选择 P0 类型时生成工单标记为 P0 高优先级'
+  19: { title:'标记异常 — 关联订单', desc:[
+    '从订单列表"标记异常"触发时自动带入订单号；本页手动发起预填随机订单号，可修改'
   ]},
-  20: { title:'标记异常 — 处理备注(必填)', desc:[
+  20: { title:'标记异常 — 异常类型(必填)', desc:[
+    '必填，提交时校验，选项为8种异常类型（运营标记来源使用异常类型分类）',
+    '选择锁柜失败/开柜异常时生成单据标记为 P0 高优先级'
+  ]},
+  21: { title:'标记异常 — 处理备注(必填)', desc:[
     '必填，提交时校验，描述异常问题详情',
-    '将作为工单首条处理记录，提交后不可删除'
+    '将作为售后单首条处理留痕，提交后不可删除'
   ]},
-  21: { title:'标记异常 — 指派处理人(选填)', desc:[
-    '选填，可指定运营人员处理，不选时处理人为"--"，后续可在详情中指派'
+  22: { title:'标记异常 — 指派处理人(选填)', desc:[
+    '选填，不选时处理人为"--"，后续可在详情中指派',
+    '提交 → 校验 → 生成待处理单据（来源=运营标记）→ 提示成功可跳详情'
   ]}
 };
 
@@ -1562,7 +1820,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="tk-filters">
       <div class="tk-filter-item">
         <label class="tk-filter-label">任务模块</label>
-        <div class="tk-ctrl"><select class="tk-select" id="tkFilterModule"><option value="">全部</option><option value="订单管理">订单管理</option><option value="异常工单">异常工单</option></select></div>
+        <div class="tk-ctrl"><select class="tk-select" id="tkFilterModule"><option value="">全部</option><option value="订单管理">订单管理</option><option value="售后单">售后单</option></select></div>
       </div>
       <div class="tk-filter-item">
         <label class="tk-filter-label">操作人</label>
@@ -1626,29 +1884,29 @@ document.addEventListener('DOMContentLoaded', function() {
   /* ===== MOCK DATA（PRD §6/§7，按操作时间倒序） ===== */
   var TK_NOW = new Date('2026-07-05T15:30:00');
   var tkImport = [
-    {module:'异常工单', file:'异常工单导入_20260705.xlsx',   op:'张三', time:'2026-07-05 09:15:30', status:'processing', progress:66},
+    {module:'售后列表', file:'售后单导入_20260705.xlsx',   op:'张三', time:'2026-07-05 09:15:30', status:'processing', progress:66},
     {module:'订单管理', file:'订单批量导入_20260704.xlsx',   op:'李四', time:'2026-07-04 15:42:18', status:'processing', progress:32},
     {module:'订单管理', file:'订单批量导入_20260701.xlsx',   op:'张三', time:'2026-07-01 10:23:45', status:'partial_fail', total:100, ok:98, fail:2},
     {module:'订单管理', file:'订单批量导入_20260630.xlsx',   op:'李四', time:'2026-06-30 16:08:12', status:'success', total:50, ok:50, fail:0},
-    {module:'异常工单', file:'异常工单导入_20260629.xlsx',   op:'王五', time:'2026-06-29 11:05:27', status:'partial_fail', total:36, ok:30, fail:6},
+    {module:'售后列表', file:'售后单导入_20260629.xlsx',   op:'王五', time:'2026-06-29 11:05:27', status:'partial_fail', total:36, ok:30, fail:6},
     {module:'订单管理', file:'订单补录导入_20260628.xlsx',   op:'赵六', time:'2026-06-28 14:37:56', status:'success', total:220, ok:220, fail:0},
-    {module:'异常工单', file:'异常工单导入_20260626.xlsx',   op:'张三', time:'2026-06-26 09:48:03', status:'fail'},
+    {module:'售后列表', file:'售后单导入_20260626.xlsx',   op:'张三', time:'2026-06-26 09:48:03', status:'fail'},
     {module:'订单管理', file:'订单批量导入_20260624.xlsx',   op:'王五', time:'2026-06-24 17:22:41', status:'success', total:78, ok:78, fail:0},
     {module:'订单管理', file:'订单批量导入_20260620.xlsx',   op:'李四', time:'2026-06-20 10:11:09', status:'partial_fail', total:150, ok:141, fail:9},
-    {module:'异常工单', file:'异常工单导入_20260618.xlsx',   op:'钱七', time:'2026-06-18 13:59:34', status:'success', total:12, ok:12, fail:0},
+    {module:'售后列表', file:'售后单导入_20260618.xlsx',   op:'钱七', time:'2026-06-18 13:59:34', status:'success', total:12, ok:12, fail:0},
     {module:'订单管理', file:'订单批量导入_20260615.xlsx',   op:'张三', time:'2026-06-15 08:30:22', status:'fail'}
   ];
   var tkDownload = [
-    {module:'异常工单', file:'异常工单导出_20260705100812.xlsx', op:'王五', time:'2026-07-05 10:08:12', status:'processing', progress:40},
+    {module:'售后列表', file:'售后单导出_20260705100812.xlsx', op:'王五', time:'2026-07-05 10:08:12', status:'processing', progress:40},
     {module:'订单管理', file:'订单管理导出_20260704161530.xlsx', op:'张三', time:'2026-07-04 16:15:30', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260701131516.xlsx', op:'张三', time:'2026-07-01 13:15:16', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260630095820.xlsx', op:'李四', time:'2026-06-30 09:58:20', status:'success'},
-    {module:'异常工单', file:'异常工单导出_20260628143022.xlsx', op:'王五', time:'2026-06-28 14:30:22', status:'fail'},
+    {module:'售后列表', file:'售后单导出_20260628143022.xlsx', op:'王五', time:'2026-06-28 14:30:22', status:'fail'},
     {module:'订单管理', file:'订单管理导出_20260625174455.xlsx', op:'赵六', time:'2026-06-25 17:44:55', status:'success'},
-    {module:'异常工单', file:'异常工单导出_20260622112748.xlsx', op:'张三', time:'2026-06-22 11:27:48', status:'success'},
+    {module:'售后列表', file:'售后单导出_20260622112748.xlsx', op:'张三', time:'2026-06-22 11:27:48', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260618150233.xlsx', op:'李四', time:'2026-06-18 15:02:33', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260604093015.xlsx', op:'钱七', time:'2026-06-04 09:30:15', status:'success'},
-    {module:'异常工单', file:'异常工单导出_20260601082247.xlsx', op:'王五', time:'2026-06-01 08:22:47', status:'success'},
+    {module:'售后列表', file:'售后单导出_20260601082247.xlsx', op:'王五', time:'2026-06-01 08:22:47', status:'success'},
     {module:'订单管理', file:'订单管理导出_20260530164109.xlsx', op:'张三', time:'2026-05-30 16:41:09', status:'success'}
   ];
   var tkMembers = ['张三','李四','王五','赵六','钱七'];
@@ -1791,7 +2049,7 @@ document.addEventListener('DOMContentLoaded', function() {
   /* ===== 交互标注接入：沿用页面 Portal 标注系统，编号接在现有最大号之后 ===== */
   var tkAnnoDefs = [
     {key:'tabs',    title:'任务列表 Tab 切换',   desc:['导入任务：Excel 批量导入记录；下载任务：导出文件记录','切换 Tab 时筛选条件重置为默认值，列表回到第 1 页','关闭抽屉后记住最后访问的 Tab（会话内有效，刷新重置）','从导入/导出 Toast「点击查看」跳转时自动定位对应 Tab']},
-    {key:'filters', title:'筛选区',              desc:['任务模块：全部/订单管理/异常工单（后续随模块迭代补充）','操作人：全部成员，支持输入姓名关键词模糊搜索','操作时间：日期区间（开始时间 ~ 结束时间），精确到日','点击【搜索】应用条件回第 1 页；【重置】恢复默认；条件间 AND 关系']},
+    {key:'filters', title:'筛选区',              desc:['任务模块：全部/订单管理/售后单（后续随模块迭代补充）','操作人：全部成员，支持输入姓名关键词模糊搜索','操作时间：日期区间（开始时间 ~ 结束时间），精确到日','点击【搜索】应用条件回第 1 页；【重置】恢复默认；条件间 AND 关系']},
     {key:'note',    title:'下载任务保留说明',    desc:['仅下载任务 Tab 展示','导出数据在平台内记录最多保留 30 天，30 天后自动清除']},
     {key:'stage',   title:'任务阶段',            desc:['处理中：蓝色「处理中 N%」+ 线形进度条，每 10 秒轮询刷新进度，完成自动转终态','导入-全部成功：绿色「总数N条，成功N条，失败0条」','导入-部分失败：失败数量红色加粗；导入-处理失败：红色「导入失败」','下载：导出成功（绿）/ 导出失败（红）']},
     {key:'ops',     title:'操作列',              desc:['导入-部分失败：【下载错误数据】蓝色链接，命名 {模块名}导入错误数据_{YYYYMMDDHHMMSS}.xlsx','下载-导出成功（30 天内）：【下载文件】可重复点击，点击 Toast「开始下载」','下载-导出成功（已过期）：链接置灰不可点，hover 提示「文件已过期，无法下载」','处理中 / 全部成功 / 失败：显示 ——（无操作）']},
