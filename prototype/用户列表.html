@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>用户管理 - 游寄后台管理系统</title>
+  <title>用户列表 - 游寄后台管理系统</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -211,8 +211,13 @@
       <div class="menu-item l2" data-page="价格配置.html" onclick="menuSelect(this)">价格配置</div>
       <div class="menu-item l2" data-page="目的地配置.html" onclick="menuSelect(this)">目的地配置</div>
     </div>
-    <div class="menu-item l1 active-l1" data-page="用户管理.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="users" class="w-[15px] h-[15px]"></i></div>用户管理
+    <!-- 用户管理（含二级菜单：用户列表 / 投诉建议） -->
+    <div class="menu-item l1 active-l1" data-sub="sub-user" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="users" class="w-[15px] h-[15px]"></i></div>用户管理<span class="menu-arrow open">▼</span>
+    </div>
+    <div class="submenu" id="sub-user" style="max-height:400px;">
+      <div class="menu-item l2 active-l2" data-page="用户列表.html" onclick="menuSelect(this)">用户列表</div>
+      <div class="menu-item l2" data-page="投诉建议.html" onclick="menuSelect(this)">投诉建议</div>
     </div>
     <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)">
       <div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置
@@ -1256,16 +1261,7 @@ function handleL1(el) {
   }
 }
 function handleL2(el) {
-  var parentSub = el.closest('.submenu');
-  var parentSubId = parentSub ? parentSub.id : null;
-  collapseAllExcept(parentSubId);
-  if (parentSub && parentSub.classList.contains('collapsed')) parentSub.classList.remove('collapsed');
-  clearAllActive();
-  el.classList.add('active-l2');
-  var parentL1 = findParentL1BySubId(parentSubId);
-  if (parentL1) { parentL1.classList.add('active-l1'); var arrow = parentL1.querySelector('.menu-arrow'); if (arrow) arrow.classList.add('open'); }
-  var page = el.getAttribute('data-page');
-  navigateToPage(page);
+  navigateToPage(el.getAttribute('data-page'));
 }
 function collapseAllExcept(keepSubId) {
   document.querySelectorAll('.submenu').forEach(function(sub) {
@@ -1273,7 +1269,7 @@ function collapseAllExcept(keepSubId) {
     if (sub.classList.contains('collapsed')) return;
     sub.classList.add('collapsed');
     var l1 = findParentL1BySubId(sub.id);
-    if (l1) { var arrow = l1.querySelector('.menu-arrow'); if (arrow) arrow.classList.remove('open'); if (!sub.querySelector('.menu-item.active-l2')) l1.classList.remove('active-l1'); }
+    if (l1) { var arrow = l1.querySelector('.menu-arrow'); if (arrow) arrow.classList.remove('open'); l1.classList.remove('active-l1'); }
   });
 }
 function clearAllActive() {

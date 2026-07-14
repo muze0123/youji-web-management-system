@@ -161,11 +161,20 @@
       <div class="menu-item l2" data-page="价格配置.html" onclick="menuSelect(this)">价格配置</div>
       <div class="menu-item l2" data-page="目的地配置.html" onclick="menuSelect(this)">目的地配置</div>
     </div>
-    <div class="menu-item l1" data-page="用户管理.html" onclick="menuSelect(this)">
-      <div class="menu-ico"><i data-lucide="users" class="w-[15px] h-[15px]"></i></div>用户管理
+    <!-- 用户管理（含二级菜单：用户列表 / 投诉建议） -->
+    <div class="menu-item l1" data-sub="sub-user" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="users" class="w-[15px] h-[15px]"></i></div>用户管理<span class="menu-arrow">▼</span>
+    </div>
+    <div class="submenu collapsed" id="sub-user" style="max-height:400px;">
+      <div class="menu-item l2" data-page="用户列表.html" onclick="menuSelect(this)">用户列表</div>
+      <div class="menu-item l2" data-page="投诉建议.html" onclick="menuSelect(this)">投诉建议</div>
     </div>
 
-    <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)"><div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置<span class="menu-arrow">▼</span></div>
+    <!-- 系统设置（含二级菜单） -->
+    <div class="menu-item l1" data-sub="sub-settings" onclick="menuSelect(this)">
+      <div class="menu-ico"><i data-lucide="settings" class="w-[15px] h-[15px]"></i></div>系统设置
+      <span class="menu-arrow">▼</span>
+    </div>
     <div class="submenu collapsed" id="sub-settings" style="max-height:400px;">
       <div class="menu-item l2" data-page="成员管理.html" onclick="menuSelect(this)">成员管理</div>
       <div class="menu-item l2" data-page="部门管理.html" onclick="menuSelect(this)">部门管理</div>
@@ -174,6 +183,7 @@
       <div class="menu-item l2" data-page="账号信息.html" onclick="menuSelect(this)">账号信息</div>
       <div class="menu-item l2" data-page="操作日志.html" onclick="menuSelect(this)">操作日志</div>
     </div>
+
   </aside>
 
   <!-- ===== MAIN CONTENT ===== -->
@@ -680,8 +690,10 @@ function menuSelect(el) { if(el.classList.contains('l1'))handleL1(el); else if(e
 function handleL1(el){ var s=el.getAttribute('data-sub'); if(s)handleL1Toggle(el,s); else selectL1NoChildren(el); }
 function handleL1Toggle(el,sid){ var sub=document.getElementById(sid); if(!sub)return; var a=el.querySelector('.menu-arrow'); if(!sub.classList.contains('collapsed')){ sub.classList.add('collapsed'); if(a)a.classList.remove('open'); if(!sub.querySelector('.menu-item.active-l2'))el.classList.remove('active-l1'); }else{ collapseAllExcept(sid); sub.classList.remove('collapsed'); if(a)a.classList.add('open'); if(sub.querySelector('.menu-item.active-l2'))el.classList.add('active-l1'); } }
 function selectL1NoChildren(el){ collapseAllExcept(null); clearAllActive(); if(!el.classList.contains('active-l1')){ el.classList.add('active-l1'); navigateToPage(el.getAttribute('data-page')); } }
-function handleL2(el){ var ps=el.closest('.submenu'), pid=ps?ps.id:null; collapseAllExcept(pid); if(ps&&ps.classList.contains('collapsed'))ps.classList.remove('collapsed'); clearAllActive(); el.classList.add('active-l2'); var pl=findParentL1BySubId(pid); if(pl){pl.classList.add('active-l1');var a=pl.querySelector('.menu-arrow');if(a)a.classList.add('open');} navigateToPage(el.getAttribute('data-page')); }
-function collapseAllExcept(k){ document.querySelectorAll('.submenu').forEach(function(s){ if(s.id===k)return; if(s.classList.contains('collapsed'))return; s.classList.add('collapsed'); var l=findParentL1BySubId(s.id); if(l){var a=l.querySelector('.menu-arrow');if(a)a.classList.remove('open');if(!s.querySelector('.menu-item.active-l2'))l.classList.remove('active-l1');} }); }
+function handleL2(el) {
+  navigateToPage(el.getAttribute('data-page'));
+}
+function collapseAllExcept(k){ document.querySelectorAll('.submenu').forEach(function(s){ if(s.id===k)return; if(s.classList.contains('collapsed'))return; s.classList.add('collapsed'); var l=findParentL1BySubId(s.id); if(l){var a=l.querySelector('.menu-arrow');if(a)a.classList.remove('open');l.classList.remove('active-l1');} }); }
 function clearAllActive(){ document.querySelectorAll('.menu-item').forEach(function(i){i.classList.remove('active-l1','active-l2');}); }
 function findParentL1BySubId(id){ return id?document.querySelector('.menu-item.l1[data-sub="'+id+'"]'):null; }
 function navigateToPage(p){ if(!p)return; var f=p.split("/").pop(),c=window.location.pathname.split("/").pop(); if(f===c)return; if(p.endsWith('.html'))if(window.top===window){window.location.href=p}else{try{window.top.location.href=p}catch(e){window.location.href=p}} else{document.getElementById('mainContent').innerHTML='<div class="p-4"><div class="bg-white rounded-lg border border-line p-5 md:p-6"><h2 class="text-[16px] font-semibold text-ink-title mb-2">'+p+'</h2><p class="text-[14px] text-ink-muted">该页面开发中，敬请期待。</p></div></div>';} }
