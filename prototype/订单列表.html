@@ -330,13 +330,17 @@
 
 <script>
 /* ================================================================
-   MOCK DATA — 20 orders covering all 14 statuses
-   状态口径见 PRD/订单状态说明.md（本地映射：小铁 processing/completed + is_overdue 本地加工）
+   MOCK DATA — 22 orders covering all 16 statuses
+   状态口径见 PRD/订单状态说明.md V1.1（本地映射：小铁 processing/completed + is_overdue 本地加工；
+   含寄送新增「待取回」口径9 / 「超时待取」口径10）
    ================================================================ */
-/* 14 种本地映射状态，按状态流转顺序排列（寄存/寄送并集） */
-var statuses = ['待支付','锁柜中','待存入','寄存中','超时寄存中','待取件结算','待转运','转运中','已送达待取','已完成','退款中','已退款','已取消','异常'];
+/* 16 种本地映射状态，按状态流转顺序排列（寄存/寄送并集） */
+var statuses = ['待支付','锁柜中','待存入','寄存中','超时寄存中','待取件结算','待转运','待取回','转运中','已送达待取','超时待取','已完成','退款中','已退款','已取消','异常'];
 var cabinets = ['湖滨A区1号柜','湖滨B区1号柜','西湖天地1号柜','杭州东站1号柜','萧山T3-A柜','杭州大厦1号柜'];
 var rawOrders = [
+  /* --- 新增状态样本：待取回（口径9，占用费多退少补）/ 超时待取（口径10，取件时补费） --- */
+  { orderNo:'YK20260705021', bizType:'寄送', user:'139****7788', cabinet:'湖滨A区1号柜', locker:'A01-M05', lockerType:'中', status:'待取回', source:'自有', amount:45.00, occupyFee:7.50, expectedRefund:37.50, created:'2026-07-05 10:20', updated:'2026-07-05 13:10' },
+  { orderNo:'YK20260704022', bizType:'寄送', user:'153****3344', cabinet:'萧山T3-A柜', locker:'T3A-L03', lockerType:'大', status:'超时待取', source:'小铁', amount:72.00, overdueFee:17.00, created:'2026-07-03 09:30', updated:'2026-07-05 11:40' },
   /* --- 新增状态样本：锁柜中 / 待存入 / 待转运（PRD/订单状态说明.md） --- */
   { orderNo:'YK20260705016', bizType:'寄存', user:'135****6789', cabinet:'湖滨A区1号柜', locker:'A01-S03', lockerType:'小', status:'锁柜中', source:'自有', amount:15.00, created:'2026-07-05 15:02', updated:'2026-07-05 15:02' },
   { orderNo:'YK20260705017', bizType:'寄存', user:'151****4321', cabinet:'湖滨B区1号柜', locker:'B01-M02', lockerType:'中', status:'待存入', source:'自有', amount:24.00, created:'2026-07-05 14:48', updated:'2026-07-05 14:49' },
@@ -421,10 +425,11 @@ function resetFilters() {
 /* ================================================================
    RENDER TABLE
    ================================================================ */
-/* 状态 Badge 语义色映射（订单管理PRD §二 + 订单状态说明.md）
-   锁柜中=info（系统过渡态）、待存入=warning（等待用户动作，10分钟超时规则）为 PRD 未明确项的就近取值 */
+/* 状态 Badge 语义色映射（订单管理PRD §二 + 订单状态说明.md V1.1）
+   锁柜中=info（系统过渡态）、待存入=warning（等待用户动作，10分钟超时规则）为 PRD 未明确项的就近取值；
+   待取回=warning（等待用户取回结算）、超时待取=danger（超时计费，与超时寄存中同级） */
 function getStatusBadge(s) {
-  var m = { '待支付':'badge-warning','锁柜中':'badge-info','待存入':'badge-warning','寄存中':'badge-success','超时寄存中':'badge-danger','待取件结算':'badge-warning','待转运':'badge-success','转运中':'badge-info','已送达待取':'badge-warning','已完成':'badge-muted','已取消':'badge-muted','退款中':'badge-warning','已退款':'badge-muted','异常':'badge-danger' };
+  var m = { '待支付':'badge-warning','锁柜中':'badge-info','待存入':'badge-warning','寄存中':'badge-success','超时寄存中':'badge-danger','待取件结算':'badge-warning','待转运':'badge-success','待取回':'badge-warning','转运中':'badge-info','已送达待取':'badge-warning','超时待取':'badge-danger','已完成':'badge-muted','已取消':'badge-muted','退款中':'badge-warning','已退款':'badge-muted','异常':'badge-danger' };
   return '<span class="badge '+(m[s]||'badge-muted')+'">'+s+'</span>';
 }
 
@@ -548,6 +553,9 @@ function openDetail(orderNo) {
   html += '<div class="detail-group"><h4 data-anno="7" class="inline-block"><i data-lucide="dollar-sign" class="w-[15px] h-[15px] text-primary"></i>费用信息</h4>';
   html += '<div class="detail-row"><span class="detail-label">实付金额</span><span class="detail-value font-mono font-semibold">¥'+o.amount.toFixed(2)+'</span></div>';
   if (o.overdueFee) html += '<div class="detail-row"><span class="detail-label">应补超时费</span><span class="detail-value font-mono font-semibold text-danger">¥'+o.overdueFee.toFixed(2)+'</span></div>';
+  // 待取回（口径9）：起点柜占用费按短租费率从存入起算，多退少补
+  if (o.occupyFee != null) html += '<div class="detail-row"><span class="detail-label">起点柜占用费</span><span class="detail-value font-mono font-semibold text-warning">¥'+o.occupyFee.toFixed(2)+'</span></div>';
+  if (o.expectedRefund != null) html += '<div class="detail-row"><span class="detail-label">预计退款金额</span><span class="detail-value font-mono font-semibold">¥'+o.expectedRefund.toFixed(2)+'<span class="text-[11px] text-ink-muted font-normal ml-1">（取回结算时原路退回）</span></span></div>';
   if (o.refundAmount) {
     html += '<div class="detail-row"><span class="detail-label">退款金额</span><span class="detail-value font-mono font-semibold">¥'+o.refundAmount.toFixed(2)+'</span></div>';
     html += '<div class="detail-row"><span class="detail-label">退款进度</span><span class="detail-value">'+o.refundStatus+'</span></div>';
@@ -569,9 +577,10 @@ function openDetail(orderNo) {
 }
 
 /* ================================================================
-   STATUS TIMELINE — 按业务类型的完整状态链（订单状态说明.md）
+   STATUS TIMELINE — 按业务类型的完整状态链（订单状态说明.md V1.1）
    寄存：待支付→锁柜中→待存入→寄存中→(超时寄存中)→待取件结算→已完成
-   寄送：待支付→锁柜中→待存入→待转运→转运中→已送达待取→已完成
+   寄送：待支付→锁柜中→待存入→待转运→转运中→已送达待取→(超时待取)→已完成
+   待取回为寄送分支态：待转运→申请取消→待取回→（取回结算）→已取消（口径9）
    分支终态（已取消/退款中/已退款/异常）单独收尾展示
    ================================================================ */
 var TL_STORE = [
@@ -588,13 +597,24 @@ var TL_SHIP = [
   { s:'锁柜中',     label:'支付成功 · 锁柜中' },
   { s:'待存入',     label:'锁柜成功 · 待存入' },
   { s:'待转运',     label:'已存入 · 待转运' },
-  { s:'转运中',     label:'转运中' },
-  { s:'已送达待取', label:'已送达目的地 · 待取' },
+  { s:'转运中',     label:'转运中（已揽收 · 不可取消）' },
+  { s:'已送达待取', label:'已送达目的地 · 待取（免费期24h）' },
+  { s:'超时待取',   label:'超过免费期 · 超时待取（取件时补费）' },
   { s:'已完成',     label:'取件完成' }
 ];
+/* 条件节点：非对应状态时从链路中跳过（is_overdue / 超免费期本地加工） */
+var TL_CONDITIONAL = ['超时寄存中','超时待取'];
 
 function buildTimeline(o) {
   var html = '';
+  // 待取回（口径9）：寄送分支态，待转运阶段用户申请取消后等待取回结算
+  if (o.status === '待取回') {
+    html += tlNode('下单', o.created, false);
+    html += tlNode('支付成功 · 锁柜成功', '', false);
+    html += tlNode('已存入 · 待转运', '', false);
+    html += tlNode('用户申请取消 · 待取回（占用费多退少补）', o.updated, true);
+    return html;
+  }
   // 分支终态：下单 →（支付成功）→ 当前分支状态
   if (['已取消','退款中','已退款','异常'].indexOf(o.status) >= 0) {
     html += tlNode('下单', o.created, false);
@@ -602,9 +622,9 @@ function buildTimeline(o) {
     html += tlNode(o.status, o.updated, true);
     return html;
   }
-  // 正常链路：截取到当前状态；非超时单跳过「超时寄存中」节点
+  // 正常链路：截取到当前状态；条件节点（超时寄存中/超时待取）仅对应状态展示
   var chain = (o.bizType === '寄送' ? TL_SHIP : TL_STORE).filter(function(n){
-    return n.s !== '超时寄存中' || o.status === '超时寄存中';
+    return TL_CONDITIONAL.indexOf(n.s) < 0 || o.status === n.s;
   });
   var idx = chain.findIndex(function(n){ return n.s === o.status; });
   if (idx < 0) idx = 0;
@@ -698,14 +718,14 @@ function toggleSidebar(){var s=document.getElementById('sidebar'),o=document.get
    PORTAL ANNOTATIONS
    ================================================================ */
 var annotations = {
-  1: { title: '筛选区', desc: ['一行4个字段，表格式左对齐，超出换行','标签文字右对齐紧贴控件左侧，字号14px，黑色（#1A1D24）','标签末尾带中文冒号：，标签区宽度统一（保证同行控件起始列对齐）','搜索订单：按订单号或用户手机号模糊匹配（脱敏匹配）','订单状态：全部 + 本地映射的14种状态（含锁柜中/待存入/待转运，见订单状态说明表），支持工作台带筛选进入','状态下拉与业务类型不联动，统一列出全部状态；组合筛选不匹配时显示空结果','业务类型：行李寄存 / 行李寄送','订单来源：自有小程序 / 小铁小程序','柜机：全部 / 指定柜机','创建时间：[开始时间 - 结束时间]，两个日期输入框合并在一个字段内，无默认值','查询 / 重置：应用或清空筛选']},
-  2: { title: '订单列表表格', desc: ['列：订单号/业务类型/用户/柜机/格口/柜型/订单状态/来源/金额/创建时间/更新时间/操作','订单号可点击复制（mono字体），金额右对齐mono字体','状态Badge按本地映射14种状态取语义色：待支付/待存入/待取件结算/已送达待取/退款中(warning)，锁柜中/转运中(info)，寄存中/待转运(success)，超时寄存中/异常(danger)，已完成/已取消/已退款(muted)','操作列按「订单状态说明表」运营可操作边界区分：终态（已完成/已取消/已退款）与退款中仅「详情」；异常态为「详情+查看售后」（跳售后列表）；其余为「详情+标记异常」','一期口径：后台不直接退款/改派，退款由系统触发或经售后流程线下处理','手机号脱敏展示（138****8888）','点击行或"详情"按钮→打开右侧订单详情抽屉','标记异常→表单弹窗（类型/备注必填）→生成待处理售后单（来源=运营标记）并跳转售后列表']},
+  1: { title: '筛选区', desc: ['一行4个字段，表格式左对齐，超出换行','标签文字右对齐紧贴控件左侧，字号14px，黑色（#1A1D24）','标签末尾带中文冒号：，标签区宽度统一（保证同行控件起始列对齐）','搜索订单：按订单号或用户手机号模糊匹配（脱敏匹配）','订单状态：全部 + 本地映射的16种状态（含锁柜中/待存入/待转运，及寄送新增的待取回/超时待取，见订单状态说明表V1.1），支持工作台带筛选进入','状态下拉与业务类型不联动，统一列出全部状态；组合筛选不匹配时显示空结果','业务类型：行李寄存 / 行李寄送','订单来源：自有小程序 / 小铁小程序','柜机：全部 / 指定柜机','创建时间：[开始时间 - 结束时间]，两个日期输入框合并在一个字段内，无默认值','查询 / 重置：应用或清空筛选']},
+  2: { title: '订单列表表格', desc: ['列：订单号/业务类型/用户/柜机/格口/柜型/订单状态/来源/金额/创建时间/更新时间/操作','订单号可点击复制（mono字体），金额右对齐mono字体','状态Badge按本地映射16种状态取语义色：待支付/待存入/待取件结算/待取回/已送达待取/退款中(warning)，锁柜中/转运中(info)，寄存中/待转运(success)，超时寄存中/超时待取/异常(danger)，已完成/已取消/已退款(muted)','操作列按「订单状态说明表」运营可操作边界区分：终态（已完成/已取消/已退款）与退款中仅「详情」；异常态为「详情+查看售后」（跳售后列表）；其余为「详情+标记异常」','一期口径：后台不直接退款/改派，退款由系统触发或经售后流程线下处理','手机号脱敏展示（138****8888）','点击行或"详情"按钮→打开右侧订单详情抽屉','标记异常→表单弹窗（类型/备注必填）→生成待处理售后单（来源=运营标记）并跳转售后列表']},
   3: { title: '订单列表标题', desc: ['区块D顶部左侧的列表区标题','标识当前区块为订单数据列表']},
   4: { title: '导出按钮', desc: ['点击导出当前筛选结果为CSV文件','供运营与财务对账使用','V2可扩展为后台直接导出']},
   5: { title: '分页器', desc: ['总条数 + 页码导航 + 每页条数（10/20/50）','≤7页全显示，>7页首尾+当前页±1+省略号']},
   6: { title: '订单详情-基本信息', desc: ['展示订单号（可复制）、业务类型、来源、状态Badge、创建/更新时间','抽屉宽560px，右侧滑出，遮罩可关闭','终态（已完成/已取消/已退款）、退款中与异常态订单不显示底部「标记异常」按钮']},
-  7: { title: '订单详情-费用信息', desc: ['实付金额：mono字体加粗展示','超时寄存中/待取件结算：展示「应补超时费」（danger色），按已确认计费规则本地加工','退款中/已退款：展示退款金额与退款进度（原路退回）','一期后台仅查看退款进度，不直接操作退款']},
-  8: { title: '订单详情-状态流转', desc: ['时间线按业务类型展示完整状态链，从下单到当前状态','寄存链：待支付→锁柜中→待存入→寄存中→(超时寄存中)→待取件结算→已完成','寄送链：待支付→锁柜中→待存入→待转运→转运中→已送达待取→已完成','非超时订单自动跳过「超时寄存中」节点（is_overdue本地加工判定）','分支终态（已取消/退款中/已退款/异常）单独收尾展示','当前状态用绿色圆点+阴影强调','一期后台不直接操作退款/改派，退款由系统触发或经售后流程线下处理']},
+  7: { title: '订单详情-费用信息', desc: ['实付金额：mono字体加粗展示','超时寄存中/待取件结算/超时待取：展示「应补超时费」（danger色），按已确认计费规则本地加工，取件时补费','待取回（口径9）：展示「起点柜占用费」（warning色，按柜型短租费率从存入起算、按日封顶、无免费期）与「预计退款金额」（占用费≤实付退差额；>实付则补差额后开柜）','退款中/已退款：展示退款金额与退款进度（原路退回）','一期后台仅查看退款进度，不直接操作退款']},
+  8: { title: '订单详情-状态流转', desc: ['时间线按业务类型展示完整状态链，从下单到当前状态','寄存链：待支付→锁柜中→待存入→寄存中→(超时寄存中)→待取件结算→已完成','寄送链：待支付→锁柜中→待存入→待转运→转运中→已送达待取→(超时待取)→已完成','待取回为寄送分支态（口径9）：待转运→用户申请取消→待取回→取回结算后转已取消（取消原因=转运前用户取回）','条件节点（超时寄存中/超时待取）仅对应状态订单展示（is_overdue/超免费期本地加工判定）','分支终态（已取消/退款中/已退款/异常）单独收尾展示','当前状态用绿色圆点+阴影强调','一期后台不直接操作退款/改派，退款由系统触发或经售后流程线下处理']},
   9: { title: '查看关联售后', desc: ['仅异常态订单显示，点击跳转售后列表页','售后单关联订单，双向跳转（售后列表侧点击关联订单号可跳回订单）','订单被标记异常或系统检测异常后，由售后列表模块的对应单据跟进处理']},
   10: { title: '标记异常-关联订单', desc: ['从订单列表行操作或详情抽屉触发时自动带入订单号，只读不可修改']},
   11: { title: '标记异常-异常类型(必填)', desc: ['必填，提交时校验，选项为8种异常类型（运营标记来源使用异常类型分类）','选择锁柜失败/开柜异常（P0）时，生成的售后单标记为P0高优先级']},
