@@ -54,9 +54,8 @@
     .badge-muted{color:#9DA2AC;background:#F0F1F3;}
     .badge-info{color:#0091D5;background:#E4F4FB;}
     /* KPI card */
-    .kpi-card{border-radius:6px;border:1px solid #E8EAED;background:#fff;padding:14px 18px;transition:box-shadow .15s;}
     .kpi-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06);}
-    .kpi-card.diff-highlight{border-color:#D9001B;background:#FFFAFA;}
+    .kpi-card.diff-highlight{border-color:#D9001B;background:#FFE8EB;}
     /* Filter */
     .filter-input{font-family:inherit;font-size:13px;height:32px;padding:0 10px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;}
     .filter-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12);}
@@ -201,20 +200,11 @@
           <button class="btn btn-primary btn-sm" onclick="syncData()" id="btnSync">
             <i data-lucide="refresh-cw" class="w-[13px] h-[13px]"></i> 同步小铁数据
           </button>
-          <span class="sync-indicator ml-auto" id="syncStatus">
+          <span class="sync-indicator" id="syncStatus">
             <span class="sync-dot unsynced" id="syncDot"></span>
             <span id="syncLabel">待同步</span>
           </span>
         </div>
-      </div>
-
-      <!-- ===== 区块C: 汇总概览条 ===== -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4" data-anno="5" id="kpiRow">
-        <div class="kpi-card"><div class="text-[12px] text-ink-sub mb-1">总订单数</div><div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiOrders">--</div></div>
-        <div class="kpi-card"><div class="text-[12px] text-ink-sub mb-1">本地合计</div><div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiLocal">--</div></div>
-        <div class="kpi-card"><div class="text-[12px] text-ink-sub mb-1">小铁合计</div><div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiXt">--</div></div>
-        <div class="kpi-card" id="kpiDiffCard"><div class="text-[12px] text-ink-sub mb-1">差异合计</div><div class="text-[24px] font-semibold font-mono" id="kpiDiff">--</div></div>
-        <div class="kpi-card" id="kpiDiffCntCard"><div class="text-[12px] text-ink-sub mb-1">差异笔数</div><div class="text-[24px] font-semibold font-mono" id="kpiDiffCnt">--</div></div>
       </div>
 
       <!-- ===== 区块D: 按日汇总表 ===== -->
@@ -224,6 +214,14 @@
           <button class="btn btn-default btn-sm" onclick="exportCSV()" data-anno="3">
             <i data-lucide="download" class="w-[13px] h-[13px]"></i> 导出数据
           </button>
+        </div>
+        <!-- ===== 数据指标卡 ===== -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4" data-anno="5" id="kpiRow">
+          <div class="kpi-card p-3 rounded-md border border-line bg-bg-page"><div class="text-[12px] text-ink-sub mb-1">总订单数</div><div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiOrders">--</div></div>
+          <div class="kpi-card p-3 rounded-md border border-line bg-bg-page"><div class="text-[12px] text-ink-sub mb-1">本地合计</div><div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiLocal">--</div></div>
+          <div class="kpi-card p-3 rounded-md border border-line bg-bg-page"><div class="text-[12px] text-ink-sub mb-1">小铁合计</div><div class="text-[24px] font-semibold text-ink-title font-mono" id="kpiXt">--</div></div>
+          <div class="kpi-card p-3 rounded-md border border-line bg-bg-page" id="kpiDiffCard"><div class="text-[12px] text-ink-sub mb-1">差异合计</div><div class="text-[24px] font-semibold font-mono" id="kpiDiff">--</div></div>
+          <div class="kpi-card p-3 rounded-md border border-line bg-bg-page" id="kpiDiffCntCard"><div class="text-[12px] text-ink-sub mb-1">差异笔数</div><div class="text-[24px] font-semibold font-mono" id="kpiDiffCnt">--</div></div>
         </div>
         <div class="overflow-x-auto">
           <table class="data-table" id="summaryTable">

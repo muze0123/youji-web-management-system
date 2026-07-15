@@ -116,16 +116,19 @@
     .usage-bar{height:6px;border-radius:3px;background:#F0F1F3;overflow:hidden;}
     .usage-bar-fill{height:100%;border-radius:3px;transition:width .3s ease;}
     /* Tab toggle */
-    .view-tab{padding:6px 14px;font-size:13px;color:#6E7685;cursor:pointer;border-radius:4px;transition:all .15s;white-space:nowrap;border:1px solid transparent;display:inline-flex;align-items:center;gap:5px;}
+    .view-tab{padding:6px 14px;font-size:13px;color:#6E7685;cursor:pointer;border-radius:4px;transition:all .15s;white-space:nowrap;border:1px solid #DFE1E5;display:inline-flex;align-items:center;gap:5px;}
     .view-tab:hover{color:#0066FF;background:#E6F0FF;}
-    .view-tab.active{background:#0066FF;color:#fff;font-weight:500;}
+    .view-tab.active{background:#0066FF;color:#fff;font-weight:500;border-color:#0066FF;}
+    /* Refresh icon button */
+    .refresh-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:none;border-radius:4px;color:#9DA2AC;cursor:pointer;transition:all .15s;margin-left:-4px;}
+    .refresh-icon-btn:hover{color:#0066FF;}
     /* Info row */
     .info-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F0F1F3;}
     .info-row:last-child{border-bottom:none;}
     .info-label{width:100px;flex-shrink:0;font-size:13px;color:#6E7685;}
     .info-value{font-size:13px;color:#3A3F4A;}
     /* Sync badge */
-    .sync-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#9DA2AC;padding:2px 8px;border-radius:4px;background:#F7F8FA;}
+    .sync-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#9DA2AC;padding:0;border-radius:4px;}
     .sync-dot{width:6px;height:6px;border-radius:50%;background:#0FC060;}
     /* Skeleton */
     @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
@@ -237,26 +240,6 @@
 
       <!-- ===== 区块1: 筛选区 ===== -->
       <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-        <!-- 视图切换 + 同步/刷新 -->
-        <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
-          <div class="flex items-center gap-2" data-anno="1">
-            <button class="view-tab active" id="tabList" onclick="switchView('list')">
-              <i data-lucide="list" class="w-[14px] h-[14px]"></i> 列表视图
-            </button>
-            <button class="view-tab" id="tabMap" onclick="switchView('map')">
-              <i data-lucide="map" class="w-[14px] h-[14px]"></i> 地图视图
-            </button>
-          </div>
-          <div class="flex items-center gap-3" data-anno="2">
-            <span class="sync-badge">
-              <span class="sync-dot" id="syncDot"></span>
-              <span id="syncTime">最近同步：--</span>
-            </span>
-            <button class="btn btn-default btn-sm" onclick="refreshData()">
-              <i data-lucide="refresh-cw" class="w-[13px] h-[13px]"></i> 刷新
-            </button>
-          </div>
-        </div>
         <!-- filter-grid -->
         <div class="filter-grid" data-anno="3">
           <div class="filter-item">
@@ -299,9 +282,20 @@
 
         <!-- ===== 区块2: 数据区 ===== -->
         <div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-          <!-- 标题行 -->
-          <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
-            <h2 class="text-[16px] font-semibold text-ink-title inline-block">柜机列表</h2>
+          <div class="flex items-center gap-4 mb-4">
+            <button class="view-tab active" id="tabList" onclick="switchView('list')">
+              <i data-lucide="list" class="w-[14px] h-[14px]"></i> 列表视图
+            </button>
+            <button class="view-tab map-tab" id="tabMap" onclick="switchView('map')">
+              <i data-lucide="map" class="w-[14px] h-[14px]"></i> 地图视图
+            </button>
+            <span class="sync-badge">
+              <span class="sync-dot" id="syncDot"></span>
+              <span id="syncTime">最近同步：--</span>
+            </span>
+            <button class="refresh-icon-btn" onclick="refreshData()">
+              <i data-lucide="refresh-cw" class="w-[14px] h-[14px]"></i>
+            </button>
           </div>
 
           <!-- KPI 状态概览 -->
@@ -375,6 +369,21 @@
       <!-- ===== MAP VIEW ===== -->
       <div id="mapView" class="hidden">
         <div class="bg-white rounded-lg border border-line p-5 md:p-6" data-anno="7">
+          <div class="flex items-center gap-4 mb-4">
+            <button class="view-tab" id="tabListMap" onclick="switchView('list')">
+              <i data-lucide="list" class="w-[14px] h-[14px]"></i> 列表视图
+            </button>
+            <button class="view-tab map-tab active" id="tabMapMap" onclick="switchView('map')">
+              <i data-lucide="map" class="w-[14px] h-[14px]"></i> 地图视图
+            </button>
+            <span class="sync-badge">
+              <span class="sync-dot" id="syncDotMap"></span>
+              <span id="syncTimeMap">最近同步：--</span>
+            </span>
+            <button class="refresh-icon-btn" onclick="refreshData()">
+              <i data-lucide="refresh-cw" class="w-[14px] h-[14px]"></i>
+            </button>
+          </div>
           <div class="flex flex-col items-center justify-center py-20 text-center">
             <i data-lucide="map-pin" class="w-[64px] h-[64px] text-ink-muted mb-4" style="opacity:.3;"></i>
             <h3 class="text-[16px] font-semibold text-ink-title mb-2">地图视图</h3>
@@ -739,6 +748,8 @@ function switchView(view) {
   document.getElementById('mapView').classList.toggle('hidden', view !== 'map');
   document.getElementById('tabList').classList.toggle('active', view === 'list');
   document.getElementById('tabMap').classList.toggle('active', view === 'map');
+  document.getElementById('tabListMap').classList.toggle('active', view === 'list');
+  document.getElementById('tabMapMap').classList.toggle('active', view === 'map');
   if (annoVisible) { setTimeout(renderAnnoBadges, 50); }
 }
 
@@ -874,8 +885,7 @@ function onLockerClick(e, id, type, status, orderNo) {
    DATA REFRESH & SYNC
    ================================================================ */
 function refreshData() {
-  // Simulate refresh
-  var btn = document.querySelector('#mainContent .btn-default.btn-sm');
+  var btn = document.querySelector('#mainContent .refresh-icon-btn');
   var icon = btn.querySelector('[data-lucide]');
   btn.disabled = true;
   icon.style.animation = 'spin 1s linear infinite';
@@ -885,7 +895,6 @@ function refreshData() {
     updateSyncTime();
     btn.disabled = false;
     icon.style.animation = '';
-    // Simulate slight data changes
     applyFilters();
   }, 800);
 }
@@ -893,7 +902,10 @@ function refreshData() {
 function updateSyncTime() {
   var now = lastSyncTime || new Date();
   var ts = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
-  document.getElementById('syncTime').textContent = '最近同步：'+ts;
+  var el = document.getElementById('syncTime');
+  if (el) el.textContent = '最近同步：'+ts;
+  var elMap = document.getElementById('syncTimeMap');
+  if (elMap) elMap.textContent = '最近同步：'+ts;
 }
 
 /* Add spin animation */
