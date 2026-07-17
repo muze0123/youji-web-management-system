@@ -224,7 +224,8 @@
           <p class="text-[11px] text-ink-muted mt-3">校验规则：正数、封顶价 ≥ 单价。修改将影响用户端下单、退款与对账。</p>
         </div>
 
-        <!-- C: Long-term price -->
+        <!-- C: Long-term price [HIDDEN - removed long-term business scenario]
+        <!--
         <div class="price-section" data-anno="2">
           <h4><i data-lucide="calendar-days" class="w-[16px] h-[16px] text-primary"></i>长租价格（元/月）<span class="text-[11px] text-ink-muted font-normal ml-2">每月按 31 天计</span></h4>
           <div class="price-grid">
@@ -235,6 +236,7 @@
             <div class="value-cell"><input type="number" class="price-input" id="ltLarge" value="40" step="1" min="0" onchange="markDirty()"><span class="input-unit">元/月</span></div>
           </div>
         </div>
+        -->
 
         <!-- D: Overtime rate -->
         <div class="price-section" data-anno="3">
@@ -247,10 +249,13 @@
                 <div class="select-wrap"><select class="filter-select" onchange="markDirty()"><option>不足1小时按1小时</option><option>不足30分钟按30分钟</option><option>按分钟计</option></select></div>
               </div>
             </div>
+<!-- Long-term overtime [HIDDEN - removed long-term business scenario]
+            <!--
             <div class="bg-bg-page rounded p-4">
               <div class="font-medium text-ink-title mb-2">长租超时</div>
               <div class="flex items-center gap-2"><span class="text-ink-sub">日费率：</span><span>按短租单价 × 24h 封顶值计算</span></div>
             </div>
+            -->
           </div>
         </div>
 
@@ -264,13 +269,17 @@
               <div class="text-ink-sub text-[12px]">退款算法：退款 = 实付 − 使用时长费用（按短租单价计）</div>
               <div class="text-ink-sub text-[12px]">费用 ≥ 实付时默认不退</div>
             </div>
+<!-- Long-term refund [HIDDEN - removed long-term business scenario]
+            <!--
             <div class="bg-bg-page rounded p-4">
               <div class="font-medium text-ink-title mb-3">长租退款</div>
               <div class="flex items-center gap-2 mb-2"><span class="text-ink-sub">全额退时限：</span><span>下单后</span><input type="number" class="price-input" style="width:60px;height:28px;font-size:12px;" value="5" min="0" onchange="markDirty()"><span>分钟内</span></div>
               <div class="flex items-center gap-2 mb-2"><span class="text-ink-sub">整月退费：</span><label class="toggle-sw"><input type="checkbox" checked onchange="markDirty()"><span class="toggle-slider"></span></label></div>
             </div>
+            -->
           </div>
-          <!-- Refund tier table (long-term, editable rows) -->
+<!-- Refund tier table (long-term, editable rows) [HIDDEN - removed long-term business scenario]
+          <!--
           <div class="font-medium text-ink-title mb-2 text-[13px]">长租不足整月退款比例阶梯 <span class="text-[11px] text-ink-muted font-normal">（可增删阶梯行）</span></div>
           <div class="bg-bg-page rounded p-3" id="refundTiers">
             <div class="tier-row text-[12px] text-ink-sub font-medium" style="border-bottom:1px solid #DFE1E5;padding-bottom:4px;margin-bottom:4px;">
@@ -278,6 +287,7 @@
             </div>
           </div>
           <button class="btn btn-default btn-sm mt-2" onclick="addRefundTier()"><i data-lucide="plus" class="w-[13px] h-[13px]"></i> 添加阶梯</button>
+          -->
         </div>
 
         <!-- F: Save + Change log -->
@@ -565,7 +575,7 @@ function stopDragToggle(){document.removeEventListener('mousemove',onDragToggle)
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded',function(){
   lucide.createIcons();
-  renderRefundTiers();
+  // renderRefundTiers(); // [HIDDEN - removed long-term business scenario]
   renderAnnoBadges();
   document.getElementById('mainContent').addEventListener('scroll',renderAnnoBadges);
   window.addEventListener('resize',renderAnnoBadges);
